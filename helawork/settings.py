@@ -76,8 +76,8 @@ WSGI_APPLICATION = 'helawork.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'helaworkdb',       # your database name
-        'USER': 'postgres',         # your postgres username
+        'NAME': 'helaworkdb',       
+        'USER': 'postgres',         
         'PASSWORD': 'admin',
         'HOST': 'localhost',
         'PORT': '5432',
