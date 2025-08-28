@@ -81,3 +81,19 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment {self.amount} for {self.task.title} ({self.user.name})"
+    
+    
+class PaymentRate(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="rates")
+    employer = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name="rates")
+    rate_per_hour = models.DecimalField(max_digits=10, decimal_places=2)
+    effective_from = models.DateTimeField()
+    effective_to = models.DateTimeField(null=True, blank=True)
+
+class TransactionLog(models.Model):
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name="transactions")
+    mpesa_receipt = models.CharField(max_length=100, unique=True)
+    phone_number = models.CharField(max_length=20)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=50)  # e.g. SUCCESS, FAILED, PENDING
+    created_at = models.DateTimeField(auto_now_add=True)
