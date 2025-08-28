@@ -5,10 +5,10 @@ from decimal import Decimal
 
 class User(models.Model):
     user_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100,default="Anonymous")
     email = models.EmailField(unique=True)
     phoneNo = models.CharField(max_length=13, unique=True)
-    hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # new field
+    hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0.00) 
 
     def __str__(self):
         return self.name
