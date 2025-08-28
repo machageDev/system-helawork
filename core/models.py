@@ -91,7 +91,7 @@ class Task(models.Model):
         return f"{self.title} - {self.assigned_to.username}"
 
     def save(self, *args, **kwargs):
-        # Auto-calculate total cost if hourly_rate and actual_hours are provided
+        
         if self.hourly_rate and self.actual_hours:
             self.total_cost = self.hourly_rate * self.actual_hours
         elif self.budget and not self.total_cost:
