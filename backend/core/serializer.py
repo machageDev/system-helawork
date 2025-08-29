@@ -3,6 +3,7 @@ from models import User
 from .models import Employer
 from .models import Task
 from .models import WorkLog
+from .models import ProofOfWork, Payment, PaymentRate, TransactionLog
 
 class UserSerializer(serializers.ModelField):
     class meta:
@@ -28,6 +29,29 @@ class WorkLOgSerializer(serializers.ModelSerializer):
         fiels = '__all__'        
 
 
+
 class ProofOfWorkSerializer(serializers.ModelSerializer):
-    class meta:
-        fields = '__all__'        
+    class Meta:
+        model = ProofOfWork
+        fields = '__all__'
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    amount = serializers.ReadOnlyField()  # amount can be calculated automatically
+
+    class Meta:
+        model = Payment
+        fields = '__all__'
+
+
+class PaymentRateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentRate
+        fields = '__all__'
+
+
+class TransactionLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TransactionLog
+        fields = '__all__'
+        
