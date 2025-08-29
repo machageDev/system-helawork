@@ -1,12 +1,22 @@
-from django.shortcuts import render
+import random
+from tokenize import Token
+from django.shortcuts import redirect, render
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
-
+from django.conf import settings
+import token
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db import transaction
+from rest_framework import status
 from core.serializer import RegisterSerializer
-
+from django.core.mail import send_mail
+from django.contrib import messages
 from .models import User
 from rest_framework import serializers, viewsets, permissions, status
 
