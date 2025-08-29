@@ -2,6 +2,7 @@ import random
 from tokenize import Token
 from django.shortcuts import redirect, render
 
+from django.urls import reverse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -103,4 +104,31 @@ def apilogin(request):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def apiforgot_password(request):
+    try:
+        email = request.data.get('email')
+        if not email:
+            return Response({"error": "Please fill all fields"}, status=status.HTTP_400_BAD_REQUEST)
+        if not User.objects.filter(email=email).exists():
+            return Response({"error": "User does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+        user = User.objects.get(email=email)
+         
+        token = default_token_generator.make_token(user)
+        reset_url = request.build_absolute_uri(reverse('password-reset-confirm', kwargs={'token': token, 'uidb64': user.pk}))
+
+         
+        send_mail(
+            subject="Password Reset Request",
+            message=f"Click the link below to reset your password:\n{reset_url}",
+            from_email="no-reply@yourdomain.com",
+            recipient_list=[email],
+            fail_silently=False,
+        )
+        return Response({"message": "Password reset successfully"}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        
