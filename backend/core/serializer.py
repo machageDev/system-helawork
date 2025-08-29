@@ -26,3 +26,8 @@ class WorkLOgSerializer(serializers.ModelSerializer):
     class meta:
         model = WorkLog 
         fiels = '__all__'        
+
+
+class ProofOfWorkSerializer(serializers.ModelSerializer):
+    class meta:
+        fields = '__all__'        
