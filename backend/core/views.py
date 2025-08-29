@@ -1,3 +1,4 @@
+from asyncio import Task
 import random
 from tokenize import Token
 from django.shortcuts import redirect, render
@@ -14,7 +15,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import transaction
 from rest_framework import status
-from core.serializer import LoginSerializer, RegisterSerializer, UserProfileSerializer
+from core.serializer import LoginSerializer, RegisterSerializer, TaskSerializer, UserProfileSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
 from .models import User
@@ -141,3 +142,60 @@ def apicreate_user_profile(request):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_task(request):
+    serializer = TaskSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def list_tasks(request):
+    tasks = Task.objects.all()
+    serializer = TaskSerializer(tasks, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_task(request, pk):
+    try:
+        task = Task.objects.get(pk=pk)
+    except Task.DoesNotExist:
+        return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = TaskSerializer(task)
+    return Response(serializer.data)
+
+
+@api_view(['PUT'])
+@permission_classes([AllowAny])
+def update_task(request, pk):
+    try:
+        task = Task.objects.get(pk=pk)
+    except Task.DoesNotExist:
+        return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = TaskSerializer(task, data=request.data, partial=True)  # partial=True → allows partial update
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+@permission_classes([AllowAny])
+def delete_task(request, pk):
+    try:
+        task = Task.objects.get(pk=pk)
+    except Task.DoesNotExist:
+        return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    task.delete()
+    return Response({'message': 'Task deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
