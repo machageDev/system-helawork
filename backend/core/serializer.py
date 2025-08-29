@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from models import User
+from models import User, UserProfile
 from .models import Employer
 from .models import Task
 from .models import WorkLog
@@ -64,4 +64,9 @@ class LoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['name','password']  
-         
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['id', 'user', 'bio',  'profile_picture']         
