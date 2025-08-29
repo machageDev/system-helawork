@@ -8,13 +8,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
 import token
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.contrib.auth.tokens import default_token_generator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import transaction
 from rest_framework import status
-from core.serializer import RegisterSerializer
+from core.serializer import LoginSerializer, RegisterSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
 from .models import User
@@ -63,7 +62,8 @@ def otp(request):
 
     return render(request, 'otp.html')
 
-
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def apiregister(request):
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
@@ -82,6 +82,25 @@ def apiregister(request):
             token, created = Token.objects.get_or_create(user=user)
         return Response({"message": "User registerd successfully.","token":token.key},status=status.HTTP_201_CREATED)
         
-    return Response({"error": "Invalid data provided."}, status=status.HTTP_400_BAD_REQUEST)        
+    return Response({"error": "Invalid data provided."}, status=status.HTTP_400_BAD_REQUEST) 
+       
+@api_view(['POST'])
+@permission_classes([AllowAny])        
+def apilogin(request):
+    serializer = LoginSerializer(data=request.data)
+    if serializer.is_valid():
+        name = serializer.validated_data['name'].strip()
+        password = serializer.validated_data['password']
         
-                            
+        try:
+            user = User.objects.get(name=name)
+            
+            if user.password == password:
+                return Response({"message": "Login successful", "user_id": user.user_id, "name": user.name},status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "invalid login"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        

@@ -58,4 +58,10 @@ class TransactionLogSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['name', 'email', 'hourly_rate']        
+        fields = ['name', 'email', 'password'] 
+        
+class LoginSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['name','password']  
+         
