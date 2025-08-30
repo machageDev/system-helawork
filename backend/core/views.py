@@ -15,10 +15,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import transaction
 from rest_framework import status
-from core.serializer import LoginSerializer, RegisterSerializer, TaskSerializer, UserProfileSerializer, WorkLogSerializer
+from core.serializer import LoginSerializer, ProofOfWorkSerializer, RegisterSerializer, TaskSerializer, UserProfileSerializer, WorkLogSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
-from .models import User, WorkLog
+from .models import ProofOfWork, User, WorkLog
 from rest_framework import serializers, viewsets, permissions, status
 
 # Step 1: Generate and send OTP
@@ -201,7 +201,7 @@ def delete_task(request, pk):
     return Response({'message': 'Task deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET', 'POST'])
-def worklog_list(request):
+def apiworklog_list(request):
     if request.method == 'GET':
         worklogs = WorkLog.objects.all()
         serializer = WorkLogSerializer(worklogs, many=True)
@@ -216,9 +216,9 @@ def worklog_list(request):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
-def worklog_detail(request, pk):
+def apiworklog_detail(request):
     try:
-        worklog = WorkLog.objects.get(pk=pk)
+        worklog = WorkLog.objects.get()
     except WorkLog.DoesNotExist:
         return Response({"error": "WorkLog not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -236,3 +236,41 @@ def worklog_detail(request, pk):
     elif request.method == 'DELETE':
         worklog.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    
+    
+def apiproofwork(request):
+    if request.method == 'GET':
+        proofs = ProofOfWork.objects.all()
+        serializer = ProofOfWorkSerializer(proofs, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = ProofOfWorkSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def apiproof_detail(request):
+    try:
+        proof = ProofOfWork.objects.get()
+    except ProofOfWork.DoesNotExist:
+        return Response({"error": "ProofOfWork not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = ProofOfWorkSerializer(proof)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = ProofOfWorkSerializer(proof, data=request.data, partial=True)  
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        proof.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)    
