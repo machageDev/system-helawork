@@ -18,7 +18,7 @@ from rest_framework import status
 from core.serializer import LoginSerializer, RegisterSerializer, TaskSerializer, UserProfileSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
-from .models import User
+from .models import User, WorkLog
 from rest_framework import serializers, viewsets, permissions, status
 
 # Step 1: Generate and send OTP
@@ -199,3 +199,40 @@ def delete_task(request, pk):
 
     task.delete()
     return Response({'message': 'Task deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET', 'POST'])
+def worklog_list(request):
+    if request.method == 'GET':
+        worklogs = WorkLog.objects.all()
+        serializer = WorkLogSerializer(worklogs, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = WorkLogSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def worklog_detail(request, pk):
+    try:
+        worklog = WorkLog.objects.get(pk=pk)
+    except WorkLog.DoesNotExist:
+        return Response({"error": "WorkLog not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = WorkLogSerializer(worklog)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = WorkLogSerializer(worklog, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        worklog.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
