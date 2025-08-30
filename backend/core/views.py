@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import transaction
 from rest_framework import status
-from core.serializer import LoginSerializer, RegisterSerializer, TaskSerializer, UserProfileSerializer
+from core.serializer import LoginSerializer, RegisterSerializer, TaskSerializer, UserProfileSerializer, WorkLogSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
 from .models import User, WorkLog

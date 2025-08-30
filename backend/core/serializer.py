@@ -22,7 +22,7 @@ class TaskSerializer(serializers.ModelSerializer):
         model = Task
         fields = '__all__'        
 
-class WorkLOgSerializer(serializers.ModelSerializer):
+class WorkLogSerializer(serializers.ModelSerializer):
     hours_worked = serializers.ReadOnlyField()
     class meta:
         model = WorkLog 
@@ -70,3 +70,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['id', 'user', 'bio',  'profile_picture']         
+class WorkLogSerializer(serializers.ModelSerializer):
+    hours_worked = serializers.ReadOnlyField()
+
+    class Meta:
+        model = WorkLog
+        fields = ['id', 'task', 'user', 'start_time', 'end_time', 'hours_worked']        
