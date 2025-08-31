@@ -1,8 +1,11 @@
 import uuid
+from django.conf import settings
 from django.db import models
+from django.dispatch import receiver
 from django.utils import timezone
 from decimal import Decimal
 from django.contrib.auth.hashers import make_password, check_password
+from django.db.models.signals import post_save
 
 class User(models.Model):
     user_id = models.AutoField(primary_key=True)
@@ -113,10 +116,22 @@ class TransactionLog(models.Model):
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
     bio = models.TextField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.name}'s Profile"
+
+
+#  Signal to auto-create profile when a User is created
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
     
