@@ -72,7 +72,7 @@ def apiregister(request):
         name = serializer.validated_data['name'].strip()
         email = serializer.validated_data['email'].strip().lower()
         password = serializer.validated_data['password']
-        phone_number = serializer.validated_data['phoneNo'].strip()  # <- match your serializer field
+        phone_number = serializer.validated_data['phoneNo'].strip()  
 
         if User.objects.filter(email=email).exists():
             return Response({"error": "User with this email already exists"}, status=status.HTTP_400_BAD_REQUEST)
