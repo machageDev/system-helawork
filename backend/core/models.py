@@ -1,18 +1,31 @@
+import uuid
 from django.db import models
 from django.utils import timezone
 from decimal import Decimal
-
+from django.contrib.auth.hashers import make_password, check_password
 
 class User(models.Model):
     user_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100,default="Anonymous")
     email = models.EmailField(unique=True)
     phoneNo = models.CharField(max_length=13, unique=True)
-    password = models.CharField(max_length=128) 
+    password = models.CharField(max_length=128,null=True,blank=True) 
+    
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
 
     def __str__(self):
         return self.name
+    
+class UserToken(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="token")
+    key = models.CharField(max_length=255, unique=True, default=uuid.uuid4)
 
+    def __str__(self):
+        return f"Token for {self.user.name}"
 
 class Employer(models.Model):
     company_name = models.CharField(max_length=255)
@@ -95,7 +108,7 @@ class TransactionLog(models.Model):
     mpesa_receipt = models.CharField(max_length=100, unique=True)
     phone_number = models.CharField(max_length=20)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=50)  # e.g. SUCCESS, FAILED, PENDING
+    status = models.CharField(max_length=50)  
     created_at = models.DateTimeField(auto_now_add=True)
 
 

@@ -1,15 +1,12 @@
-from asyncio import Task
 import random
-from tokenize import Token
 from django.shortcuts import redirect, render
-
+from rest_framework.authtoken.models import Token
 from django.urls import reverse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
-import token
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -18,6 +15,7 @@ from rest_framework import status
 from core.serializer import LoginSerializer, ProofOfWorkSerializer, RegisterSerializer, TaskSerializer, UserProfileSerializer, WorkLogSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
+from asyncio import Task
 from .models import ProofOfWork, User, WorkLog
 from rest_framework import serializers, viewsets, permissions, status
 
@@ -72,7 +70,7 @@ def apiregister(request):
         name = serializer.validated_data['name'].strip()
         email = serializer.validated_data['email'].strip().lower()
         password = serializer.validated_data['password']
-        phone_number = serializer.validated_data['phoneNo'].strip()  
+        phone_number = serializer.validated_data['phoneNo'].strip()
 
         if User.objects.filter(email=email).exists():
             return Response({"error": "User with this email already exists"}, status=status.HTTP_400_BAD_REQUEST)
@@ -80,13 +78,21 @@ def apiregister(request):
             return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
-            user = User.objects.create_user(
+            user = User(
                 name=name,
                 email=email,
-                password=password,
+                phoneNo=phone_number,
             )
+            
+            user.set_password(password)
+            user.save()
+
             token, created = Token.objects.get_or_create(user=user)
-        return Response({"message": "User registered successfully.", "token": token.key}, status=status.HTTP_201_CREATED)
+
+        return Response(
+            {"message": "User registered successfully.", "token": token.key},
+            status=status.HTTP_201_CREATED
+        )
 
     return Response({"error": "Invalid data provided."}, status=status.HTTP_400_BAD_REQUEST)
 
