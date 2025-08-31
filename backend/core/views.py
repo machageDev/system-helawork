@@ -71,20 +71,25 @@ def apiregister(request):
     if serializer.is_valid():
         name = serializer.validated_data['name'].strip()
         email = serializer.validated_data['email'].strip().lower()
-        password = serializer. validated_data['password']
-        phone_number = serializer.validated_data['phoneNO'].strip()
-        
-        if User.objects.filter(email=email).exits():
-            return Response({"error":"User with this email already exist"},status=status.HTTPS_400_BAD_REQUEST)
-        if User.objects.filter(name=name).exist():
-            return Response({"error": "username already exists"},status=status.HTTPS_400_BAD_REQUEST)
-        
+        password = serializer.validated_data['password']
+        phone_number = serializer.validated_data['phoneNo'].strip()  # <- match your serializer field
+
+        if User.objects.filter(email=email).exists():
+            return Response({"error": "User with this email already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(name=name).exists():
+            return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
+
         with transaction.atomic():
-            user = User.objects.create_user(name=name,email=email,password=password,)
+            user = User.objects.create_user(
+                name=name,
+                email=email,
+                password=password,
+            )
             token, created = Token.objects.get_or_create(user=user)
-        return Response({"message": "User registerd successfully.","token":token.key},status=status.HTTP_201_CREATED)
-        
-    return Response({"error": "Invalid data provided."}, status=status.HTTP_400_BAD_REQUEST) 
+        return Response({"message": "User registered successfully.", "token": token.key}, status=status.HTTP_201_CREATED)
+
+    return Response({"error": "Invalid data provided."}, status=status.HTTP_400_BAD_REQUEST)
+
        
 @api_view(['POST'])
 @permission_classes([AllowAny])        

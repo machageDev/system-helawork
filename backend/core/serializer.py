@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from models import User, UserProfile
+from .models import User, UserProfile
 from .models import Employer
 from .models import Task
 from .models import WorkLog
