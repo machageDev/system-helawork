@@ -32,7 +32,7 @@ class ApiService{
         return{"success":false,"message":"Network error,please try again."};
       }
     }
-}
+
 
 Future<Map<String, dynamic>> login(String email, String password) async {
     final url = Uri.parse('apilogin');
@@ -53,3 +53,4 @@ Future<Map<String, dynamic>> login(String email, String password) async {
       return {"success": false, "message": "Error: $e"};
     }
   }
+}
