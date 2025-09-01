@@ -30,8 +30,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() {
         _isLoading = true;
       });
-
-      final result = await ApiService.register(
+      final apiService = ApiService();
+      final result = await apiService.register(
         _nameController.text.trim(),
         _emailController.text.trim(),
         _passwordController.text.trim(),
@@ -46,7 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Account created successfully")),
         );
-        Navigator.pop(context); // Go back to login screen
+        Navigator.pop(context); 
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result["message"] ?? "Registration failed")),
