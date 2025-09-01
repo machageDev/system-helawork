@@ -56,9 +56,22 @@ class TransactionLogSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class RegisterSerializer(serializers.ModelSerializer):
+    # Main field for API
+    phone_number = serializers.CharField(source='phoneNo', required=True)
+
     class Meta:
         model = User
-        fields = ['name', 'email', 'password','phoneNo'] 
+        fields = ['name', 'email', 'password', 'phone_number', 'phoneNo']
+        extra_kwargs = {
+            "phoneNo": {"write_only": True},  
+        }
+
+    def to_internal_value(self, data):
+        # Accept both phone_number and phoneNo in the request
+        if "phoneNo" in data and "phone_number" not in data:
+            data["phone_number"] = data["phoneNo"]
+        return super().to_internal_value(data)
+
         
 class LoginSerializer(serializers.ModelSerializer):
     class Meta:

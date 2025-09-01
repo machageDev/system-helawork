@@ -62,6 +62,7 @@ def otp(request):
 
     return render(request, 'otp.html')
 
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def apiregister(request):
@@ -70,31 +71,34 @@ def apiregister(request):
         name = serializer.validated_data['name'].strip()
         email = serializer.validated_data['email'].strip().lower()
         password = serializer.validated_data['password']
-        phone_number = serializer.validated_data['phoneNo'].strip()
+        phone_no = serializer.validated_data['phoneNo'].strip()   # ✅ use phoneNo here
 
         if User.objects.filter(email=email).exists():
-            return Response({"error": "User with this email already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "User with this email already exists"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         if User.objects.filter(name=name).exists():
-            return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Username already exists"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         with transaction.atomic():
             user = User(
                 name=name,
                 email=email,
-                phoneNo=phone_number,
+                phoneNo=phone_no,   
             )
-            
             user.set_password(password)
             user.save()
-
-            
 
         return Response(
             {"message": "User registered successfully."},
             status=status.HTTP_201_CREATED
         )
 
-    return Response({"error": "Invalid data provided."}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
        
 @api_view(['POST'])
