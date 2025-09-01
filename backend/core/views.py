@@ -1,6 +1,6 @@
 import random
+from core.models import User
 from django.shortcuts import redirect, render
-from rest_framework.authtoken.models import Token
 from django.urls import reverse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -87,10 +87,10 @@ def apiregister(request):
             user.set_password(password)
             user.save()
 
-            token, created = Token.objects.get_or_create(user=user)
+            
 
         return Response(
-            {"message": "User registered successfully.", "token": token.key},
+            {"message": "User registered successfully."},
             status=status.HTTP_201_CREATED
         )
 

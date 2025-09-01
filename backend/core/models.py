@@ -1,3 +1,4 @@
+import secrets
 import uuid
 from django.conf import settings
 from django.db import models
@@ -25,10 +26,14 @@ class User(models.Model):
     
 class UserToken(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="token")
-    key = models.CharField(max_length=255, unique=True, default=uuid.uuid4)
+    key = models.CharField(max_length=40, unique=True, blank=True)
 
-    def __str__(self):
-        return f"Token for {self.user.name}"
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = secrets.token_hex(20)
+        super().save(*args, **kwargs)
+
+
 
 class Employer(models.Model):
     company_name = models.CharField(max_length=255)
@@ -124,7 +129,7 @@ class UserProfile(models.Model):
         return f"{self.user.name}'s Profile"
 
 
-#  Signal to auto-create profile when a User is created
+
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
