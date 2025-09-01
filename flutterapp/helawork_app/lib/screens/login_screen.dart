@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:helawork_app/screens/register_screen.dart';
 import '../Api/api_service.dart';
 
 
@@ -127,7 +128,13 @@ Future<void> _login() async {
 
               // Forgot password
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  
+                  
+                  
+
+          
+                },
                 child: const Text(
                   "Forgot Password?",
                   style: TextStyle(color: Colors.orange),
@@ -139,9 +146,15 @@ Future<void> _login() async {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text("Don't have an account?",
-                      style: TextStyle(color: Colors.grey)),
+                      style: TextStyle(color: Colors.grey)), 
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                      );
+
+                    },
                     child: const Text(
                       "Register",
                       style: TextStyle(color: Colors.orange),

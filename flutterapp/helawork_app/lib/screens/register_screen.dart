@@ -18,18 +18,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _isLoading = false;
 
-  void _register() async {
-    if (_formKey.currentState!.validate()) {
-      if (_passwordController.text != _confirmPasswordController.text) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Passwords do not match")),
-        );
-        return;
-      }
+void _register() async {
+  if (_formKey.currentState!.validate()) {
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Passwords do not match")),
+      );
+      return;
+    }
 
-      setState(() {
-        _isLoading = true;
-      });
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
       final apiService = ApiService();
       final result = await apiService.register(
         _nameController.text.trim(),
@@ -37,6 +39,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _passwordController.text.trim(),
         _phoneController.text.trim(),
       );
+
+      if (!mounted) return;
 
       setState(() {
         _isLoading = false;
@@ -46,14 +50,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Account created successfully")),
         );
-        Navigator.pop(context); 
+        Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result["message"] ?? "Registration failed")),
         );
       }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Something went wrong. Please try again.")),
+      );
     }
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

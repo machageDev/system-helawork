@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService{
-  static const String baseUrl = 'http://192.168.188.100:8000';
+  static const String baseUrl = 'http://192.168.100.188:8000';
   static const String registerUrl = '$baseUrl/apiregister';
   static const String  loginUrl ='$baseUrl/apilogin';
 
@@ -14,11 +14,13 @@ class ApiService{
       try{
         final response = await http.post(
           url,
-          headers:{"content-Type ":"application/json"},
+          headers: {"Content-Type": "application/json"},
+
           body:jsonEncode({
             "name":name,
             "email":email,
             "password":password,
+            "confirmPassword":password,
             "phoneNO":phoneNO,
           }),
         );
@@ -29,6 +31,7 @@ class ApiService{
           return{"success":false,"message":jsonDecode(response.body)["error"]};
         }
       }catch(e){
+        print(e);
         return{"success":false,"message":"Network error,please try again."};
       }
     }
