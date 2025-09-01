@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'api_service.dart';
+import 'package:helawork_app/Api/api_service.dart' as ApiService;
 
 class DashboardPage extends StatefulWidget {
   @override

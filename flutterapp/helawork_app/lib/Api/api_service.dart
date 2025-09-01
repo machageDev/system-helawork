@@ -57,3 +57,16 @@ Future<Map<String, dynamic>> login(String email, String password) async {
     }
   }
 }
+   Future<Map<String, dynamic>> getActiveSession() async {
+    final response = await http.get(Uri.parse("active-session/"));
+    return json.decode(response.body);
+  }
+ Future<Map<String, dynamic>> getEarnings() async {
+    final response = await http.get(Uri.parse("earnings/"));
+    return json.decode(response.body);
+  }
+
+   Future<List<dynamic>> getTasks() async {
+    final response = await http.get(Uri.parse("tasks/"));
+    return json.decode(response.body);
+  }
