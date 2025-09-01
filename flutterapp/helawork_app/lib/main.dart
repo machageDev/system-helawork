@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:helawork_app/screens/login_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -52,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               const SizedBox(height: 30),
               Image.asset(
-                "assets/helawork.png", // <-- Replace with your image path
+                "assets/helawork.png", 
                 height: 180,
               ),
               const SizedBox(height: 40),
@@ -67,7 +68,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () {
-                  // TODO: Navigate to Login Screen
+                  Navigator.push (
+                   context,
+                   MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  );
                 },
                 child: const Text(
                   "Login",
