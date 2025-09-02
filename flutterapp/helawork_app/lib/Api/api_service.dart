@@ -19,7 +19,7 @@ Future<Map<String, dynamic>> register(String name, String email, String password
         "email": email,
         "password": password,
         "confirmPassword": confirmPassword,
-        "phoneNO": phoneNO,
+        "phone_number": phoneNO,
       }),
     );
 
