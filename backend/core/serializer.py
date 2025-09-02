@@ -56,15 +56,16 @@ class TransactionLogSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class RegisterSerializer(serializers.ModelSerializer):
-    # Main field for API
+    
     phone_number = serializers.CharField(source='phoneNo', required=True)
 
     class Meta:
         model = User
-        fields = ['name', 'email', 'password',  'phoneNo']
+        fields = ['name', 'email', 'password', 'phone_number']  
         extra_kwargs = {
-            "phoneNo": {"write_only": True},  
+            "password": {"write_only": True},  
         }
+
 
     def to_internal_value(self, data):
         # Accept both phone_number and phoneNo in the request
