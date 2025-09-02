@@ -4,7 +4,7 @@ from . import views
 
 urlpatterns = [
     
-    path('apilogin ',views.apilogin, name = 'apilogin'),
+    path('apilogin',views.apilogin, name = 'apilogin'),
     path('apiregister',views.apiregister,name='apiregister'),
     path('apiforgot_password',views.apiforgot_password, name = 'apiforgotpassword'),
     path('apicreate_profile',views.apicreate_user_profile,name='apicreaateprofile'),
