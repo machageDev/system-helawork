@@ -16,6 +16,7 @@ from core.serializer import LoginSerializer, ProofOfWorkSerializer, RegisterSeri
 from django.core.mail import send_mail
 from django.contrib import messages
 from asyncio import Task
+from django.contrib.auth.hashers import check_password
 from .models import ProofOfWork, User, WorkLog
 from rest_framework import serializers, viewsets, permissions, status
 
@@ -108,17 +109,29 @@ def apilogin(request):
     if serializer.is_valid():
         name = serializer.validated_data['name'].strip()
         password = serializer.validated_data['password']
-        
+
         try:
             user = User.objects.get(name=name)
-            
-            if user.password == password:
-                return Response({"message": "Login successful", "user_id": user.user_id, "name": user.name},status=status.HTTP_200_OK)
+
+            # Use check_password to verify hashed password
+            if check_password(password, user.password):
+                return Response(
+                    {
+                        "message": "Login successful",
+                        "user_id": user.user_id,
+                        "name": user.name
+                    },
+                    status=status.HTTP_200_OK
+                )
             else:
+                # Invalid password
                 return Response({"error": "invalid login"}, status=status.HTTP_400_BAD_REQUEST)
-            
+
         except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            # Do not reveal if user exists for security reasons
+            return Response({"error": "invalid login"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Serializer validation failed
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
