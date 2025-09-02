@@ -9,7 +9,7 @@ class ApiService{
   static const String  loginUrl ='$baseUrl/apilogin';
 
  Future<Map<String, dynamic>>register(
-    String name,String email, String password,String phoneNO ) async{
+    String name,String email, String password,String phoneNO,String confirmPassword, ) async{
       final url = Uri.parse(registerUrl);
       try{
         final response = await http.post(

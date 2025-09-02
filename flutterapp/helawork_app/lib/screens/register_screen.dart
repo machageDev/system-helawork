@@ -36,8 +36,10 @@ void _register() async {
       final result = await apiService.register(
         _nameController.text.trim(),
         _emailController.text.trim(),
-        _passwordController.text.trim(),
         _phoneController.text.trim(),
+        _passwordController.text.trim(), 
+        _confirmPasswordController.text.trim(),     
+        
       );
 
       if (!mounted) return;
