@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:helawork_app/home/dashboard_page.dart';
 import 'package:helawork_app/screens/register_screen.dart';
+import 'package:helawork_app/screens/forgot_password_screen.dart';
 import '../Api/api_service.dart';
 
 
@@ -135,11 +136,11 @@ Future<void> _login() async {
               // Forgot password
               TextButton(
                 onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context)=> const ForgotPasswordScreen()),
+                  );            
                   
-                  
-                  
-
-          
                 },
                 child: const Text(
                   "Forgot Password?",
