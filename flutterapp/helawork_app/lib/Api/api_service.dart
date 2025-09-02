@@ -38,7 +38,7 @@ Future<Map<String, dynamic>> register(String name, String email, String password
 
 
 Future<Map<String, dynamic>> login(String name, String password) async { 
-  final url = Uri.parse(loginUrl);
+  final url = Uri.parse(ApiService.loginUrl);
 
   try {
     final response = await http.post(

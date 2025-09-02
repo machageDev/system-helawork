@@ -76,7 +76,7 @@ Future<void> _login() async {
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  hintText: "Enter your email",
+                  hintText: "Enter your name",
                   hintStyle: const TextStyle(color: Colors.grey),
                   filled: true,
                   fillColor: const Color(0xFF1E1E2C),
