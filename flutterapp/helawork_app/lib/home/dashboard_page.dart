@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:helawork_app/Api/api_service.dart' as ApiService;
+import 'package:helawork_app/Api/api_service.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -18,18 +18,21 @@ class _DashboardPageState extends State<DashboardPage> {
     super.initState();
     loadDashboardData();
   }
-
   Future<void> loadDashboardData() async {
-    var session = await ApiService.getActiveSession();
-    var earnings = await ApiService.getEarnings();
-    var fetchedTasks = await ApiService.getTasks();
+  final apiService = ApiService(); 
 
-    setState(() {
-      activeSession = session["time"];
-      totalEarnings = earnings["amount"];
-      tasks = fetchedTasks;
-    });
-  }
+  var session = await apiService.getActiveSession(); 
+  var earnings = await apiService.getEarnings();
+  var fetchedTasks = await apiService.getTasks();
+
+  setState(() {
+    activeSession = session["time"];
+    totalEarnings = earnings["amount"];
+    tasks = fetchedTasks;
+  });
+}
+
+
 
   @override
   Widget build(BuildContext context) {
