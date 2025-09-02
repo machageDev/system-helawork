@@ -12,7 +12,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   final ApiService _apiService = ApiService();
@@ -22,7 +22,7 @@ Future<void> _login() async {
   setState(() => _isLoading = true);
 
   final response = await _apiService.login(
-    _emailController.text.trim(),
+    _nameController.text.trim(),
     _passwordController.text.trim(),
   );
 
@@ -74,7 +74,7 @@ Future<void> _login() async {
 
               // Email field
               TextField(
-                controller: _emailController,
+                controller: _nameController,
                 decoration: InputDecoration(
                   hintText: "Enter your email",
                   hintStyle: const TextStyle(color: Colors.grey),
