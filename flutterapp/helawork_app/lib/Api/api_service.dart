@@ -95,10 +95,6 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     return json.decode(response.body);
   }
 
-   Future<List<dynamic>> getTasks() async {
-    final response = await http.get(Uri.parse("tasks/"));
-    return json.decode(response.body);
-   }
     static Future<Map<String, dynamic>> getUserProfile() async {
     final response = await http.get(Uri.parse("$baseUrl/user/profile/"));
     if (response.statusCode == 200) {
@@ -108,7 +104,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     }
   }
 
-  // Get payment summary
+
   static Future<Map<String, dynamic>> getPaymentSummary() async {
     final response = await http.get(Uri.parse("$baseUrl/user/payment-summary/"));
     if (response.statusCode == 200) {
@@ -118,7 +114,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     }
   }
 
-  // Get tasks
+  
   static Future<List<dynamic>> getTasks() async {
     final response = await http.get(Uri.parse("$baseUrl/tasks/recent/"));
     if (response.statusCode == 200) {
