@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:helawork_app/home/dashboard_page.dart';
 import 'package:helawork_app/screens/register_screen.dart';
 import '../Api/api_service.dart';
 
@@ -31,7 +32,12 @@ Future<void> _login() async {
   if (response["success"]) {
     // Login success
     print("User data: ${response["data"]}");
-    // Navigate to home/dashboard page
+
+    // Navigate to dashboard page
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const DashboardPage ()),
+    );
   } else {
     // Login failed
     print("Error: ${response["message"]}");
