@@ -40,6 +40,8 @@ Future<Map<String, dynamic>> register(String name, String email, String password
 Future<Map<String, dynamic>> login(String name, String password) async { 
   final url = Uri.parse(ApiService.loginUrl);
 
+  print("Logging in with name: $name, password: $password");
+
   try {
     final response = await http.post(
       url,
@@ -47,17 +49,31 @@ Future<Map<String, dynamic>> login(String name, String password) async {
       body: jsonEncode({"name": name, "password": password}),
     );
 
+    print("HTTP status: ${response.statusCode}");
+    print("Raw response body: ${response.body}");
+
+    // Try to decode JSON safely
+    Map<String, dynamic> responseData;
+    try {
+      responseData = jsonDecode(response.body);
+    } catch (_) {
+      // Response is not JSON (likely HTML from CORS error)
+      return {
+        "success": false,
+        "message": "Invalid response from server",
+        "error": response.body,
+      };
+    }
+
     if (response.statusCode == 200) {
       return {
         "success": true,
-        "data": jsonDecode(response.body),
+        "data": responseData,
       };
     } else {
-      final responseData = jsonDecode(response.body);
-      print("Backend response: $responseData");
       return {
         "success": false,
-        "message": "Invalid credentials",
+        "message": responseData["error"] ?? "Invalid credentials",
         "error": responseData,
       };
     }
@@ -65,7 +81,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     print("Login error: $e");
     return {
       "success": false,
-      "message": "Error: $e",
+      "message": "Network or server error: $e",
     };
   }
 }
@@ -83,4 +99,32 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     final response = await http.get(Uri.parse("tasks/"));
     return json.decode(response.body);
    }
+    static Future<Map<String, dynamic>> getUserProfile() async {
+    final response = await http.get(Uri.parse("$baseUrl/user/profile/"));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Failed to load profile");
+    }
+  }
+
+  // Get payment summary
+  static Future<Map<String, dynamic>> getPaymentSummary() async {
+    final response = await http.get(Uri.parse("$baseUrl/user/payment-summary/"));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Failed to load payment summary");
+    }
+  }
+
+  // Get tasks
+  static Future<List<dynamic>> getTasks() async {
+    final response = await http.get(Uri.parse("$baseUrl/tasks/recent/"));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Failed to load tasks");
+    }
+  }
 }

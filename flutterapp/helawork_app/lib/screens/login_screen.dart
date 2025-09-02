@@ -31,7 +31,7 @@ Future<void> _login() async {
   setState(() => _isLoading = false);
 
   if (response["success"]) {
-    // Login success
+    
     print("User data: ${response["data"]}");
 
     // Navigate to dashboard page
@@ -40,7 +40,7 @@ Future<void> _login() async {
       MaterialPageRoute(builder: (context) => const DashboardPage ()),
     );
   } else {
-    // Login failed
+    
     print("Error: ${response["message"]}");
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(response["message"])),
