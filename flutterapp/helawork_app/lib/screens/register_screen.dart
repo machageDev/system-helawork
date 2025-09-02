@@ -54,12 +54,14 @@ void _register() async {
         );
         Navigator.pop(context);
       } else {
+        print("Registration failed: ${result["message"]}");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result["message"] ?? "Registration failed")),
         );
       }
     } catch (e) {
       if (!mounted) return;
+      print("Registration error: $e");
 
       setState(() {
         _isLoading = false;

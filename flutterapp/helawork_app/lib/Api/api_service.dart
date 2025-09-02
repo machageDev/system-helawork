@@ -8,33 +8,33 @@ class ApiService{
   static const String registerUrl = '$baseUrl/apiregister';
   static const String  loginUrl ='$baseUrl/apilogin';
 
- Future<Map<String, dynamic>>register(
-    String name,String email, String password,String phoneNO,String confirmPassword, ) async{
-      final url = Uri.parse(registerUrl);
-      try{
-        final response = await http.post(
-          url,
-          headers: {"Content-Type": "application/json"},
+Future<Map<String, dynamic>> register(String name, String email, String password, String phoneNO, String confirmPassword) async {
+  final url = Uri.parse(registerUrl);
+  try {
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "name": name,
+        "email": email,
+        "password": password,
+        "confirmPassword": confirmPassword,
+        "phoneNO": phoneNO,
+      }),
+    );
 
-          body:jsonEncode({
-            "name":name,
-            "email":email,
-            "password":password,
-            "confirmPassword":password,
-            "phoneNO":phoneNO,
-          }),
-        );
-        if (response.statusCode == 201){
-          return {"success":true};
-            
-        }else{
-          return{"success":false,"message":jsonDecode(response.body)["error"]};
-        }
-      }catch(e){
-        print(e);
-        return{"success":false,"message":"Network error,please try again."};
-      }
+    if (response.statusCode == 201) {
+      return {"success": true};
+    } else {
+      final responseData = jsonDecode(response.body);
+      print("Backend response: $responseData");
+      return {"success": false, "message": responseData["error"] ?? responseData.toString()};
     }
+  } catch (e) {
+    print("Registration error: $e");
+    return {"success": false, "message": "Network error, please try again."};
+  }
+}
 
 
 Future<Map<String, dynamic>> login(String email, String password) async {
