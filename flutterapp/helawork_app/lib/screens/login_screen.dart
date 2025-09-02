@@ -37,7 +37,7 @@ Future<void> _login() async {
     // Navigate to dashboard page
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const DashboardPage ()),
+      MaterialPageRoute(builder: (context) => DashboardPage ()),
     );
   } else {
     
