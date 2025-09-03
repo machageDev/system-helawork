@@ -123,4 +123,65 @@ Future<Map<String, dynamic>> login(String name, String password) async {
       throw Exception("Failed to load tasks");
     }
   }
+
+    Future<Map<String, dynamic>> getUserProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/userprofile/'),
+        headers: {
+          'Content-Type': 'application/json',
+          // Add authorization header if needed
+          // 'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return {
+          "success": true,
+          "data": UserProfile.fromJson(data),
+        };
+      } else {
+        return {
+          "success": false,
+          "message": "Failed to load profile: ${response.statusCode}",
+        };
+      }
+    } catch (e) {
+      return {
+        "success": false,
+        "message": "Network error: $e",
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> updateUserProfile(UserProfile profile) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/userprofile/${profile.id}/'),
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Authorization': 'Bearer $token',
+        },
+        body: json.encode(profile.toJson()),
+      );
+
+      if (response.statusCode == 200) {
+        return {
+          "success": true,
+          "message": "Profile updated successfully",
+        };
+      } else {
+        return {
+          "success": false,
+          "message": "Failed to update profile: ${response.statusCode}",
+        };
+      }
+    } catch (e) {
+      return {
+        "success": false,
+        "message": "Network error: $e",
+      };
+    }
+  }
 }

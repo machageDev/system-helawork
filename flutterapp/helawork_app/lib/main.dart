@@ -53,14 +53,14 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               const SizedBox(height: 30),
               Image.asset(
-                "assets/image.png", 
+                "assets/images/image.png", 
                 height: 180,
               ),
               const SizedBox(height: 40),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      Theme.of(context).colorScheme.primary, // deepPurple theme
+                      Theme.of(context).colorScheme.primary, 
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                       horizontal: 40, vertical: 15),
