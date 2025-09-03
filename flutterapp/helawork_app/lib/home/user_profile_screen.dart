@@ -1,7 +1,5 @@
-
 import 'package:flutter/material.dart';
 import 'package:helawork_app/Api/api_service.dart';
-
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -12,7 +10,7 @@ class UserProfileScreen extends StatefulWidget {
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
   final ApiService _apiService = ApiService();
-  UserProfile? _userProfile;
+  Map<String, dynamic>? _userProfile; // 👈 use Map instead of UserProfile
   bool _isLoading = true;
   String _errorMessage = '';
 
@@ -44,20 +42,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     if (_userProfile == null) return;
 
     setState(() => _isLoading = true);
-    
+
     final response = await _apiService.updateUserProfile(_userProfile!);
-    
+
     setState(() => _isLoading = false);
-    
-    if (response["success"]) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response["message"])),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response["message"])),
-      );
-    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(response["message"])),
+    );
   }
 
   @override
@@ -97,10 +89,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       CircleAvatar(
                         radius: 50,
                         backgroundColor: const Color(0xFF1E1E2C),
-                        backgroundImage: _userProfile?.profilePicture != null
-                            ? NetworkImage(_userProfile!.profilePicture!)
+                        backgroundImage: _userProfile?['profilePicture'] != null
+                            ? NetworkImage(_userProfile!['profilePicture'])
                             : null,
-                        child: _userProfile?.profilePicture == null
+                        child: _userProfile?['profilePicture'] == null
                             ? const Icon(
                                 Icons.person,
                                 size: 50,
@@ -111,11 +103,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       const SizedBox(height: 20),
 
                       // User ID
-                      _buildProfileItem("User ID", _userProfile?.userId.toString() ?? "N/A"),
+                      _buildProfileItem("User ID", _userProfile?['user_id']?.toString() ?? "N/A"),
                       const SizedBox(height: 15),
 
                       // Bio
-                      _buildProfileItem("Bio", _userProfile?.bio ?? "No bio yet"),
+                      _buildProfileItem("Bio", _userProfile?['bio'] ?? "No bio yet"),
                       const SizedBox(height: 25),
 
                       // Update Button

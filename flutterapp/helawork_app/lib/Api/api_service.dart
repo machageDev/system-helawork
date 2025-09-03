@@ -95,14 +95,6 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     return json.decode(response.body);
   }
 
-    static Future<Map<String, dynamic>> getUserProfile() async {
-    final response = await http.get(Uri.parse("$baseUrl/user/profile/"));
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception("Failed to load profile");
-    }
-  }
 
 
   static Future<Map<String, dynamic>> getPaymentSummary() async {
@@ -124,14 +116,12 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     }
   }
 
-    Future<Map<String, dynamic>> getUserProfile() async {
+  Future<Map<String, dynamic>> getUserProfile() async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/userprofile/'),
         headers: {
           'Content-Type': 'application/json',
-          // Add authorization header if needed
-          // 'Authorization': 'Bearer $token',
         },
       );
 
@@ -139,7 +129,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
         final data = json.decode(response.body);
         return {
           "success": true,
-          "data": UserProfile.fromJson(data),
+          "data": data, // return raw JSON Map
         };
       } else {
         return {
@@ -155,15 +145,14 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     }
   }
 
-  Future<Map<String, dynamic>> updateUserProfile(UserProfile profile) async {
+  Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) async {
     try {
       final response = await http.put(
-        Uri.parse('$baseUrl/userprofile/${profile.id}/'),
+        Uri.parse('$baseUrl/userprofile/${profile['user_id']}/'),
         headers: {
           'Content-Type': 'application/json',
-          // 'Authorization': 'Bearer $token',
         },
-        body: json.encode(profile.toJson()),
+        body: json.encode(profile),
       );
 
       if (response.statusCode == 200) {

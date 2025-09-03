@@ -21,11 +21,12 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> _loadData() async {
-    try {
-      final profile = await ApiService.getUserProfile();
-      final payments = await ApiService.getPaymentSummary();
-      final tasks = await ApiService.getTasks();
+  try {
+    final apiService = ApiService(); 
 
+    final profile = await apiService.getUserProfile();
+    final payments = await ApiService.getPaymentSummary();
+    final tasks = await ApiService.getTasks();
       setState(() {
         userName = profile["name"] ?? "User";
         totalEarnings = payments["total_earnings"]?.toDouble() ?? 0.0;
@@ -64,7 +65,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
 
-              // Logo in the middle
+              
               Center(
                 child: Column(
                   children: [
@@ -135,7 +136,7 @@ class _DashboardPageState extends State<DashboardPage> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(
               icon: Icon(Icons.account_balance_wallet), label: "Payment Summary"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
+                     BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
         ],
       ),
     );
