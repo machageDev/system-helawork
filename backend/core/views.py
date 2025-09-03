@@ -131,7 +131,7 @@ def apilogin(request):
             # Do not reveal if user exists for security reasons
             return Response({"error": "invalid login"}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Serializer validation failed
+    
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
