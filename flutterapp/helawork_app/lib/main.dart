@@ -53,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               const SizedBox(height: 30),
               Image.asset(
-                "assets/helawork.png", 
+                "assets/image.png", 
                 height: 180,
               ),
               const SizedBox(height: 40),
