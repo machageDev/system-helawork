@@ -61,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
                       Theme.of(context).colorScheme.primary, 
-                  foregroundColor: Colors.white,
+                  foregroundColor: Colors.blue,
                   padding: const EdgeInsets.symmetric(
                       horizontal: 40, vertical: 15),
                   shape: RoundedRectangleBorder(

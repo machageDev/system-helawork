@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:helawork_app/Api/api_service.dart';
 
@@ -13,6 +12,7 @@ class _DashboardPageState extends State<DashboardPage> {
   String userName = "User";
   double totalEarnings = 0.0;
   List<dynamic> recentTasks = [];
+  bool isDarkTheme = true; // theme state
 
   @override
   void initState() {
@@ -21,12 +21,12 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> _loadData() async {
-  try {
-    final apiService = ApiService(); 
+    try {
+      final apiService = ApiService();
 
-    final profile = await apiService.getUserProfile();
-    final payments = await ApiService.getPaymentSummary();
-    final tasks = await ApiService.getTasks();
+      final profile = await apiService.getUserProfile();
+      final payments = await ApiService.getPaymentSummary();
+      final tasks = await ApiService.getTasks();
       setState(() {
         userName = profile["name"] ?? "User";
         totalEarnings = payments["total_earnings"]?.toDouble() ?? 0.0;
@@ -37,16 +37,34 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return "Good Morning";
+    if (hour < 18) return "Good Afternoon";
+    return "Good Evening";
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bgColor = isDarkTheme ? Colors.black : Colors.white;
+    final textColor = isDarkTheme ? Colors.white : Colors.black;
+    final subTextColor = isDarkTheme ? Colors.white70 : Colors.grey[700];
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: bgColor,
         elevation: 0,
         actions: [
-          IconButton(icon: const Icon(Icons.notifications_none), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
+          IconButton(
+              icon: const Icon(Icons.notifications_none), onPressed: () {}),
+          IconButton(
+              icon: Icon(isDarkTheme ? Icons.dark_mode : Icons.light_mode),
+              onPressed: () {
+                setState(() {
+                  isDarkTheme = !isDarkTheme;
+                });
+              }),
         ],
       ),
       body: Padding(
@@ -56,40 +74,30 @@ class _DashboardPageState extends State<DashboardPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Greeting
-              const Text("Good Evening",
-                  style: TextStyle(color: Colors.white70, fontSize: 16)),
+              Text("${_getGreeting()},",
+                  style: TextStyle(color: subTextColor, fontSize: 16)),
               Text(userName,
-                  style: const TextStyle(
-                      color: Colors.white,
+                  style: TextStyle(
+                      color: textColor,
                       fontSize: 22,
                       fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
 
-              
-              Center(
-                child: Column(
-                  children: [
-                    Image.asset("assets/helawork_logo.png", height: 80),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                      ),
-                      onPressed: () {},
-                      child: const Text("View My Balances"),
-                    ),
-                  ],
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
+                onPressed: () {},
+                child: const Text("View My Balances"),
               ),
-
               const SizedBox(height: 20),
 
               // Recent Tasks
-              const Text("Recent Tasks",
+              Text("Recent Tasks",
                   style: TextStyle(
-                      color: Colors.white,
+                      color: textColor,
                       fontSize: 18,
                       fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
@@ -100,6 +108,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     task["title"],
                     "${task["hours"]} hours",
                     task["status"],
+                    textColor,
                   );
                 }).toList(),
               ),
@@ -114,12 +123,12 @@ class _DashboardPageState extends State<DashboardPage> {
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
                 children: [
-                  _buildFeature(Icons.timer, "Log Hours"),
-                  _buildFeature(Icons.assignment, "My Tasks"),
-                  _buildFeature(Icons.payment, "Payments"),
-                  _buildFeature(Icons.bar_chart, "Reports"),
-                  _buildFeature(Icons.card_giftcard, "Rewards"),
-                  _buildFeature(Icons.person, "Profile"),
+                  _buildFeature(Icons.timer, "Log Hours", textColor),
+                  _buildFeature(Icons.assignment, "My Tasks", textColor),
+                  _buildFeature(Icons.payment, "Payments", textColor),
+                  _buildFeature(Icons.bar_chart, "Reports", textColor),
+                  _buildFeature(Icons.card_giftcard, "Rewards", textColor),
+                  _buildFeature(Icons.person, "Profile", textColor),
                 ],
               ),
             ],
@@ -129,23 +138,27 @@ class _DashboardPageState extends State<DashboardPage> {
 
       // Bottom Navigation
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black,
+        backgroundColor: bgColor,
         selectedItemColor: Colors.green,
-        unselectedItemColor: Colors.white70,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+        unselectedItemColor: subTextColor,
+        items: [
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet), label: "Payment Summary"),
-                     BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
+            icon: Image.asset("assets/helawork_logo.png", height: 32),
+            label: "Helawork",
+          ),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.person), label: "Account"),
         ],
       ),
     );
   }
 
-  Widget _buildFeature(IconData icon, String label) {
+  Widget _buildFeature(IconData icon, String label, Color textColor) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: isDarkTheme ? Colors.grey[900] : Colors.grey[200],
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -153,13 +166,14 @@ class _DashboardPageState extends State<DashboardPage> {
         children: [
           Icon(icon, color: Colors.green, size: 28),
           const SizedBox(height: 10),
-          Text(label, style: const TextStyle(color: Colors.white)),
+          Text(label, style: TextStyle(color: textColor)),
         ],
       ),
     );
   }
 
-  Widget _buildTaskCard(String title, String hours, String status) {
+  Widget _buildTaskCard(
+      String title, String hours, String status, Color textColor) {
     Color statusColor;
     switch (status) {
       case "Approved":
@@ -179,7 +193,7 @@ class _DashboardPageState extends State<DashboardPage> {
       margin: const EdgeInsets.symmetric(vertical: 6),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: isDarkTheme ? Colors.grey[900] : Colors.grey[200],
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -187,12 +201,12 @@ class _DashboardPageState extends State<DashboardPage> {
         children: [
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(title,
-                style: const TextStyle(
-                    color: Colors.white,
+                style: TextStyle(
+                    color: textColor,
                     fontSize: 16,
                     fontWeight: FontWeight.bold)),
             Text(hours,
-                style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                style: TextStyle(color: textColor.withOpacity(0.7), fontSize: 14)),
           ]),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -201,7 +215,8 @@ class _DashboardPageState extends State<DashboardPage> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(status,
-                style: TextStyle(color: statusColor, fontWeight: FontWeight.bold)),
+                style: TextStyle(
+                    color: statusColor, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
