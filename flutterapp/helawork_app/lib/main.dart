@@ -77,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
         width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.black, Color(0xFF1B5E20)], // black → dark green
+            colors: [Colors.black, Color(0xFF1B5E20)], 
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
