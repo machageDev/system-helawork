@@ -13,7 +13,36 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'HELAWORK',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
+            textStyle: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(30)),
+            ),
+          ),
+        ),
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: Colors.white),
+          bodyMedium: TextStyle(color: Colors.white70),
+        ),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.green,
+          brightness: Brightness.dark,
+        ),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'Helawork'),
@@ -34,51 +63,70 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: Text(widget.title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            )),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                "Welcome to Helawork",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.black, Color(0xFF1B5E20)], // black → dark green
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "Welcome to",
+                  style: TextStyle(
+                    fontSize: 22,
+                    color: Colors.white70,
+                    letterSpacing: 1.2,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              Image.asset(
-                "assets/images/image.png", 
-                height: 180,
-              ),
-              const SizedBox(height: 40),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.primary, 
-                  foregroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 40, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                const SizedBox(height: 10),
+                const Text(
+                  "HELAWORK",
+                  style: TextStyle(
+                    fontSize: 38,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.greenAccent,
+                    letterSpacing: 2,
+                  ),
                 ),
-                onPressed: () {
-                  Navigator.push (
-                   context,
-                   MaterialPageRoute(builder: (context) => const LoginScreen()),
-                  );
-                },
-                child: const Text(
-                  "Login",
-                  style: TextStyle(fontSize: 18),
+                const SizedBox(height: 30),
+                Hero(
+                  tag: "logo",
+                  child: Image.asset(
+                    "assets/images/image.png",
+                    height: 200,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 40),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginScreen()),
+                    );
+                  },
+                  child: const Text("Get Started"),
+                ),
+              ],
+            ),
           ),
         ),
       ),
