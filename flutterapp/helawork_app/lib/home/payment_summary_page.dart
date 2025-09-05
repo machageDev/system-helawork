@@ -1,19 +1,73 @@
 import 'package:flutter/material.dart';
+import 'package:helawork_app/Api/api_service.dart';
 
-class PaymentSummaryPage extends StatelessWidget {
+class PaymentSummaryPage extends StatefulWidget {
   const PaymentSummaryPage({super.key});
 
   @override
+  State<PaymentSummaryPage> createState() => _PaymentSummaryPageState();
+}
+
+class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
+  Map<String, dynamic>? paymentData;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPaymentSummary();
+  }
+
+  Future<void> _loadPaymentSummary() async {
+    try {
+      final data = await ApiService.getPaymentSummary();
+      setState(() {
+        paymentData = data;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error loading payment summary: $e")),
+      );
+    }
+  }
+
+  Future<void> _withdraw() async {
+    try {
+      final result = await ApiService.withdrawMpesa();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Withdraw: ${result['ResponseDescription']}")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Withdraw failed: $e")),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: CircularProgressIndicator(color: Colors.blue)),
+      );
+    }
+
+    if (paymentData == null) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: Text("No data", style: TextStyle(color: Colors.white))),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,
-        title: const Text(
-          "Payment Summary",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text("Payment Summary", style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -25,7 +79,7 @@ class PaymentSummaryPage extends StatelessWidget {
               iconColor: Colors.blue,
               title: "Total Approved Hours",
               subtitle: "This month",
-              value: "47.2",
+              value: "${paymentData!['total_hours']}",
               unit: "hours",
             ),
             const SizedBox(height: 12),
@@ -34,7 +88,7 @@ class PaymentSummaryPage extends StatelessWidget {
               iconColor: Colors.blue,
               title: "Hourly Rate",
               subtitle: "Current rate",
-              value: "\$4.97",
+              value: "\Ksh${paymentData!['hourly_rate']}",
               unit: "per hour",
             ),
             const SizedBox(height: 12),
@@ -43,12 +97,12 @@ class PaymentSummaryPage extends StatelessWidget {
               iconColor: Colors.orange,
               title: "Total Payment",
               subtitle: "Ready for withdrawal",
-              value: "\$234.50",
-              unit: "USD",
+              value: "Ksh${paymentData!['total_payment']}",
+              unit: paymentData!['currency'],
               highlight: true,
             ),
             const SizedBox(height: 16),
-            // Payment Breakdown
+            
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -65,10 +119,10 @@ class PaymentSummaryPage extends StatelessWidget {
                           fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   _buildBreakdownRow(
-                      "Base earnings (47.2h × \$4.97)", "\$234.48"),
-                  _buildBreakdownRow("Bonus payments", "\$0.02"),
+                      "Base earnings", "Ksh${paymentData!['breakdown']['base_earnings']}"),
+                  _buildBreakdownRow("Bonus payments", "\$${paymentData!['breakdown']['bonus']}"),
                   const Divider(color: Colors.white24),
-                  _buildBreakdownRow("Total", "\$234.50",
+                  _buildBreakdownRow("Total", "Ksh${paymentData!['breakdown']['total']}",
                       highlight: true),
                 ],
               ),
@@ -84,7 +138,7 @@ class PaymentSummaryPage extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                onPressed: () {},
+                onPressed: _withdraw,
                 icon: const Icon(Icons.phone_iphone, color: Colors.white),
                 label: const Text(
                   "Withdraw via M-PESA",
@@ -129,8 +183,7 @@ class PaymentSummaryPage extends StatelessWidget {
                           fontSize: 15,
                           fontWeight: FontWeight.w600)),
                   Text(subtitle,
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 13)),
+                      style: const TextStyle(color: Colors.white70, fontSize: 13)),
                 ],
               ),
             ],
@@ -145,8 +198,7 @@ class PaymentSummaryPage extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   )),
               Text(unit,
-                  style:
-                      const TextStyle(color: Colors.white70, fontSize: 13)),
+                  style: const TextStyle(color: Colors.white70, fontSize: 13)),
             ],
           )
         ],

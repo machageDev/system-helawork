@@ -97,15 +97,6 @@ Future<Map<String, dynamic>> login(String name, String password) async {
 
 
 
-  static Future<Map<String, dynamic>> getPaymentSummary() async {
-    final response = await http.get(Uri.parse("payment-summary"));
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception("Failed to load payment summary");
-    }
-  }
-
   
   static Future<List<dynamic>> getTasks() async {
     final response = await http.get(Uri.parse("recent"));
@@ -173,4 +164,25 @@ Future<Map<String, dynamic>> login(String name, String password) async {
       };
     }
   }
+
+   // Get payment summary
+  static Future<Map<String, dynamic>> getPaymentSummary() async {
+    final response = await http.get(Uri.parse("$baseUrl/payment_summary/"));
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception("Failed to load payment summary");
+    }
+  }
+
+  // Withdraw payment via M-PESA
+  static Future<Map<String, dynamic>> withdrawMpesa() async {
+    final response = await http.get(Uri.parse("$baseUrl/withdraw_mpesa/"));
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception("Failed to initiate withdrawal");
+    }
+  }
+
 }
