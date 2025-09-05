@@ -96,6 +96,6 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/images/helawork_logo.png"  
+  image_path: "assets/images/helaworklogo.png"  
   adaptive_icon_background: "#0F111A" 
-  adaptive_icon_foreground: "assets/icons/helawork_logo.png"
+  adaptive_icon_foreground: "assets/images/helaworklogo.png"

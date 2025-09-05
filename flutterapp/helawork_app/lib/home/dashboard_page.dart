@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:helawork_app/Api/api_service.dart';
+import 'package:helawork_app/home/payment_summary_page.dart';
+import 'package:helawork_app/home/user_profile_screen.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -12,50 +14,72 @@ class _DashboardPageState extends State<DashboardPage> {
   String userName = "User";
   double totalEarnings = 0.0;
   List<dynamic> recentTasks = [];
-  bool isDarkTheme = true; 
+  bool isDarkTheme = true;
+
+  int _selectedIndex = 0; // Track selected bottom nav item
 
   @override
-void initState() {
-  super.initState();
-  _loadData();
-}
+  void initState() {
+    super.initState();
+    _loadData();
+  }
 
-Future<void> _loadData() async {
-  try {
-    final apiService = ApiService();
+  Future<void> _loadData() async {
+    try {
+      final apiService = ApiService();
 
-    final profile = await apiService.getUserProfile();
-    final payments = await ApiService.getPaymentSummary();
-    final tasks = await ApiService.getTasks();
+      final profile = await apiService.getUserProfile();
+      final payments = await ApiService.getPaymentSummary();
+      final tasks = await ApiService.getTasks();
 
+      setState(() {
+        userName = (profile["name"] != null &&
+                profile["name"].toString().isNotEmpty)
+            ? profile["name"]
+            : "User";
 
+        totalEarnings = payments["total_earnings"]?.toDouble() ?? 0.0;
+        recentTasks = tasks;
+      });
+    } catch (e) {
+      debugPrint("Error loading data: $e");
+    }
+  }
+
+  String _getGreeting(String name) {
+    final hour = DateTime.now().hour;
+
+    if (hour < 12) {
+      return "Good Morning, $name 👋";
+    } else if (hour < 18) {
+      return "Good Afternoon, $name 👋";
+    } else {
+      return "Good Evening, $name 👋";
+    }
+  }
+
+  void _onItemTapped(int index) {
     setState(() {
-      
-      userName = (profile["name"] != null && profile["name"].toString().isNotEmpty)
-          ? profile["name"]
-          : "User";
-
-      totalEarnings = payments["total_earnings"]?.toDouble() ?? 0.0;
-      recentTasks = tasks;
+      _selectedIndex = index;
     });
-  } catch (e) {
-    debugPrint("Error loading data: $e");
+
+    if (index == 0) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const DashboardPage()),
+      );
+    } else if (index == 1) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const PaymentSummaryPage()),
+      );
+    } else if (index == 2) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const UserProfileScreen()),
+      );
+    }
   }
-}
-
-
-String _getGreeting(String name) {
-  final hour = DateTime.now().hour;
-
-  if (hour < 12) {
-    return "Good Morning, $name 👋";
-  } else if (hour < 18) {
-    return "Good Afternoon, $name 👋";
-  } else {
-    return "Good Evening, $name 👋";
-  }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -142,8 +166,7 @@ String _getGreeting(String name) {
                   _buildFeature(Icons.timer, "Log Hours", textColor),
                   _buildFeature(Icons.assignment, "My Tasks", textColor),
                   _buildFeature(Icons.payment, "Payments", textColor),
-                  _buildFeature(Icons.bar_chart, "Reports", textColor),                  
-                  
+                  _buildFeature(Icons.bar_chart, "Reports", textColor),
                 ],
               ),
             ],
@@ -153,16 +176,16 @@ String _getGreeting(String name) {
 
       // Bottom Navigation
       bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
         backgroundColor: bgColor,
         selectedItemColor: Colors.green,
         unselectedItemColor: subTextColor,
-        items: [
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: "Home"),
-         
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.money),label:"payment Summary"),
-          const BottomNavigationBarItem(
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.money), label: "Payment Summary"),
+          BottomNavigationBarItem(
               icon: Icon(Icons.person), label: "Account"),
         ],
       ),
@@ -238,3 +261,6 @@ String _getGreeting(String name) {
     );
   }
 }
+
+
+
