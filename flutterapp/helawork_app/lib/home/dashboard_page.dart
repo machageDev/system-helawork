@@ -12,7 +12,7 @@ class _DashboardPageState extends State<DashboardPage> {
   String userName = "User";
   double totalEarnings = 0.0;
   List<dynamic> recentTasks = [];
-  bool isDarkTheme = true; // theme state
+  bool isDarkTheme = true; 
 
   @override
   void initState() {
@@ -37,11 +37,12 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  String _getGreeting() {
+  String _getGreeting(String name) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return "Good Morning";
-    if (hour < 18) return "Good Afternoon";
-    return "Good Evening";
+
+    if (hour < 12) return "Good Morning, $name 👋";
+    if (hour < 18) return "Good Afternoon, $name 👋";
+    return "Good Evening, $name 👋";
   }
 
   @override
@@ -74,13 +75,17 @@ class _DashboardPageState extends State<DashboardPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Greeting
-              Text("${_getGreeting()},",
-                  style: TextStyle(color: subTextColor, fontSize: 16)),
-              Text(userName,
-                  style: TextStyle(
-                      color: textColor,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold)),
+              Text(
+                _getGreeting(userName),
+                style: TextStyle(color: subTextColor, fontSize: 16),
+              ),
+              Text(
+                userName,
+                style: TextStyle(
+                    color: textColor,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 20),
 
               ElevatedButton(
@@ -115,7 +120,6 @@ class _DashboardPageState extends State<DashboardPage> {
 
               const SizedBox(height: 20),
 
-              // Feature Grid
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -126,8 +130,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   _buildFeature(Icons.timer, "Log Hours", textColor),
                   _buildFeature(Icons.assignment, "My Tasks", textColor),
                   _buildFeature(Icons.payment, "Payments", textColor),
-                  _buildFeature(Icons.bar_chart, "Reports", textColor),
-                  _buildFeature(Icons.card_giftcard, "Rewards", textColor),
+                  _buildFeature(Icons.bar_chart, "Reports", textColor),                  
                   _buildFeature(Icons.person, "Profile", textColor),
                 ],
               ),
@@ -145,7 +148,7 @@ class _DashboardPageState extends State<DashboardPage> {
           const BottomNavigationBarItem(
               icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(
-            icon: Image.asset("assets/helawork_logo.png", height: 32),
+            icon: Image.asset("assets/images/helawork_logo.png", height: 32),
             label: "Helawork",
           ),
           const BottomNavigationBarItem(
@@ -206,7 +209,8 @@ class _DashboardPageState extends State<DashboardPage> {
                     fontSize: 16,
                     fontWeight: FontWeight.bold)),
             Text(hours,
-                style: TextStyle(color: textColor.withOpacity(0.7), fontSize: 14)),
+                style: TextStyle(
+                    color: textColor.withOpacity(0.7), fontSize: 14)),
           ]),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
