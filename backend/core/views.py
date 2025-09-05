@@ -72,7 +72,7 @@ def apiregister(request):
         name = serializer.validated_data['name'].strip()
         email = serializer.validated_data['email'].strip().lower()
         password = serializer.validated_data['password']
-        phone_no = serializer.validated_data['phoneNo'].strip()   # ✅ use phoneNo here
+        phone_no = serializer.validated_data['phoneNo'].strip()   
 
         if User.objects.filter(email=email).exists():
             return Response(
