@@ -15,35 +15,47 @@ class _DashboardPageState extends State<DashboardPage> {
   bool isDarkTheme = true; 
 
   @override
-  void initState() {
-    super.initState();
-    _loadData();
+void initState() {
+  super.initState();
+  _loadData();
+}
+
+Future<void> _loadData() async {
+  try {
+    final apiService = ApiService();
+
+    final profile = await apiService.getUserProfile();
+    final payments = await ApiService.getPaymentSummary();
+    final tasks = await ApiService.getTasks();
+
+
+    setState(() {
+      
+      userName = (profile["name"] != null && profile["name"].toString().isNotEmpty)
+          ? profile["name"]
+          : "User";
+
+      totalEarnings = payments["total_earnings"]?.toDouble() ?? 0.0;
+      recentTasks = tasks;
+    });
+  } catch (e) {
+    debugPrint("Error loading data: $e");
   }
+}
 
-  Future<void> _loadData() async {
-    try {
-      final apiService = ApiService();
 
-      final profile = await apiService.getUserProfile();
-      final payments = await ApiService.getPaymentSummary();
-      final tasks = await ApiService.getTasks();
-      setState(() {
-        userName = profile["name"] ?? "User";
-        totalEarnings = payments["total_earnings"]?.toDouble() ?? 0.0;
-        recentTasks = tasks;
-      });
-    } catch (e) {
-      debugPrint("Error loading data: $e");
-    }
-  }
+String _getGreeting(String name) {
+  final hour = DateTime.now().hour;
 
-  String _getGreeting(String name) {
-    final hour = DateTime.now().hour;
-
-    if (hour < 12) return "Good Morning, $name 👋";
-    if (hour < 18) return "Good Afternoon, $name 👋";
+  if (hour < 12) {
+    return "Good Morning, $name 👋";
+  } else if (hour < 18) {
+    return "Good Afternoon, $name 👋";
+  } else {
     return "Good Evening, $name 👋";
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -131,7 +143,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   _buildFeature(Icons.assignment, "My Tasks", textColor),
                   _buildFeature(Icons.payment, "Payments", textColor),
                   _buildFeature(Icons.bar_chart, "Reports", textColor),                  
-                  _buildFeature(Icons.person, "Profile", textColor),
+                  
                 ],
               ),
             ],
@@ -147,10 +159,9 @@ class _DashboardPageState extends State<DashboardPage> {
         items: [
           const BottomNavigationBarItem(
               icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(
-            icon: Image.asset("assets/images/helawork_logo.png", height: 32),
-            label: "Helawork",
-          ),
+         
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.money),label:"payment Summary"),
           const BottomNavigationBarItem(
               icon: Icon(Icons.person), label: "Account"),
         ],

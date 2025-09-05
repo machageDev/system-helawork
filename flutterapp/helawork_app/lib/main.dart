@@ -9,13 +9,13 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
 
   final loginTime = prefs.getInt("loginTime");
-  final name = prefs.getString("username");
+  final username = prefs.getString("username");
 
   bool isLoggedIn = false;
 
-  if (loginTime != null && name != null) {
+  if (loginTime != null && username != null) {
     final now = DateTime.now().millisecondsSinceEpoch;
-    final sevenDays = 7 * 24 * 60 * 60 * 1000;
+    final sevenDays = 7 * 24 * 60 * 60 * 1000; 
 
     if (now - loginTime < sevenDays) {
       isLoggedIn = true;
@@ -24,7 +24,7 @@ void main() async {
       await prefs.clear();
     }
   }
-  
+
   runApp(MyApp(isLoggedIn: isLoggedIn));
 }
 
@@ -134,7 +134,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     letterSpacing: 2,
                   ),
                 ),
-                
+                const SizedBox(height: 30),
+                Hero(
+                  tag: "logo",
+                  child: Image.asset(
+                    "assets/images/image.png",
+                    height: 200,
+                  ),
+                ),
                 const SizedBox(height: 40),
                 ElevatedButton(
                   onPressed: () {
