@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:helawork_app/home/dashboard_page.dart';
 import 'package:helawork_app/screens/register_screen.dart';
 import 'package:helawork_app/screens/forgot_password_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart'; 
 import '../Api/api_service.dart';
-
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,34 +18,54 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   final ApiService _apiService = ApiService();
 
-
-Future<void> _login() async {
-  setState(() => _isLoading = true);
-
-  final response = await _apiService.login(
-    _nameController.text.trim(),
-    _passwordController.text.trim(),
-  );
-
-  setState(() => _isLoading = false);
-
-  if (response["success"]) {
-    
-    print("User data: ${response["data"]}");
-
-    // Navigate to dashboard page
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => DashboardPage ()),
-    );
-  } else {
-    
-    print("Error: ${response["message"]}");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(response["message"])),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus(); // ✅ check if already logged in
   }
-}
+
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool("isLoggedIn") ?? false;
+
+    if (isLoggedIn) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const DashboardPage()),
+      );
+    }
+  }
+
+  Future<void> _login() async {
+    setState(() => _isLoading = true);
+
+    final response = await _apiService.login(
+      _nameController.text.trim(),
+      _passwordController.text.trim(),
+    );
+
+    setState(() => _isLoading = false);
+
+    if (response["success"]) {
+      print("User data: ${response["data"]}");
+
+      //  Save login state
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool("isLoggedIn", true);
+      await prefs.setString("Name", _nameController.text.trim());
+      await prefs.setInt("loginTime", DateTime.now().millisecondsSinceEpoch);
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const DashboardPage()),
+      );
+    } else {
+      print("Error: ${response["message"]}");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response["message"])),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +98,7 @@ Future<void> _login() async {
               ),
               const SizedBox(height: 30),
 
-              // Email field
+              // Name field
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -139,8 +158,7 @@ Future<void> _login() async {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context)=> const ForgotPasswordScreen()),
-                  );            
-                  
+                  );
                 },
                 child: const Text(
                   "Forgot Password?",
@@ -160,7 +178,6 @@ Future<void> _login() async {
                         context,
                         MaterialPageRoute(builder: (context) => const RegisterScreen()),
                       );
-
                     },
                     child: const Text(
                       "Register",

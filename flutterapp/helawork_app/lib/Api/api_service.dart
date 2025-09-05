@@ -98,7 +98,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
 
 
   static Future<Map<String, dynamic>> getPaymentSummary() async {
-    final response = await http.get(Uri.parse("$baseUrl/user/payment-summary/"));
+    final response = await http.get(Uri.parse("payment-summary"));
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
@@ -108,7 +108,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
 
   
   static Future<List<dynamic>> getTasks() async {
-    final response = await http.get(Uri.parse("$baseUrl/tasks/recent/"));
+    final response = await http.get(Uri.parse("recent"));
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
@@ -119,7 +119,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
   Future<Map<String, dynamic>> getUserProfile() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/userprofile/'),
+        Uri.parse('userprofile'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -129,7 +129,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
         final data = json.decode(response.body);
         return {
           "success": true,
-          "data": data, // return raw JSON Map
+          "data": data, 
         };
       } else {
         return {
@@ -148,7 +148,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
   Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) async {
     try {
       final response = await http.put(
-        Uri.parse('$baseUrl/userprofile/${profile['user_id']}/'),
+        Uri.parse('userprofile/${profile['user_id']}'),
         headers: {
           'Content-Type': 'application/json',
         },

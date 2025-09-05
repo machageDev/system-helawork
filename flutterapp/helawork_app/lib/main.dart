@@ -1,12 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:helawork_app/screens/login_screen.dart';
+import 'package:helawork_app/home/dashboard_page.dart'; 
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final prefs = await SharedPreferences.getInstance();
+
+  final loginTime = prefs.getInt("loginTime");
+  final name = prefs.getString("username");
+
+  bool isLoggedIn = false;
+
+  if (loginTime != null && name != null) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final sevenDays = 7 * 24 * 60 * 60 * 1000;
+
+    if (now - loginTime < sevenDays) {
+      isLoggedIn = true;
+    } else {
+      
+      await prefs.clear();
+    }
+  }
+  
+  runApp(MyApp(isLoggedIn: isLoggedIn));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+  const MyApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +69,11 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Helawork'),
+
+      // If logged in → go to Dashboard, else show login page
+      home: isLoggedIn
+          ? const DashboardPage()
+          : const MyHomePage(title: 'Helawork'),
     );
   }
 }
@@ -106,14 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     letterSpacing: 2,
                   ),
                 ),
-                const SizedBox(height: 30),
-                Hero(
-                  tag: "logo",
-                  child: Image.asset(
-                    "assets/images/image.png",
-                    height: 200,
-                  ),
-                ),
+                
                 const SizedBox(height: 40),
                 ElevatedButton(
                   onPressed: () {
@@ -123,7 +144,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           builder: (context) => const LoginScreen()),
                     );
                   },
-                  child: const Text("Get Started"),
+                  child: const Text("login"),
                 ),
               ],
             ),
