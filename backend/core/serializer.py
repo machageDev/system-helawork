@@ -36,18 +36,55 @@ class ProofOfWorkSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+
+
 class PaymentSerializer(serializers.ModelSerializer):
-    amount = serializers.ReadOnlyField()  # amount can be calculated automatically
+    user_name = serializers.CharField(source="user.name", read_only=True)
+    employer_name = serializers.CharField(source="employer.name", read_only=True)
+    task_title = serializers.CharField(source="task.title", read_only=True)
 
     class Meta:
         model = Payment
-        fields = '__all__'
+        fields = [
+            "id",
+            "user",
+            "user_name",
+            "employer",
+            "employer_name",
+            "task",
+            "task_title",
+            "total_hours",
+            "amount",
+            "created_at",
+            "is_paid",
+            "mpesa_receipt",
+        ]
+        read_only_fields = ["amount", "created_at", "mpesa_receipt"]
+
+    def create(self, validated_data):
+        payment = Payment.objects.create(**validated_data)
+        payment.calculate_amount()
+        payment.save()
+        return payment
 
 
 class PaymentRateSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source="user.name", read_only=True)
+    employer_name = serializers.CharField(source="employer.name", read_only=True)
+
     class Meta:
         model = PaymentRate
-        fields = '__all__'
+        fields = [
+            "id",
+            "user",
+            "user_name",
+            "employer",
+            "employer_name",
+            "rate_per_hour",
+            "effective_from",
+            "effective_to",
+        ]
+
 
 
 class TransactionLogSerializer(serializers.ModelSerializer):
