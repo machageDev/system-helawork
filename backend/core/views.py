@@ -12,12 +12,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import transaction
 from rest_framework import status
-from core.serializer import LoginSerializer, ProofOfWorkSerializer, RegisterSerializer, TaskSerializer, UserProfileSerializer, WorkLogSerializer
+from core.serializer import LoginSerializer, PaymentSerializer, ProofOfWorkSerializer, RegisterSerializer, TaskSerializer, UserProfileSerializer, WorkLogSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
 from asyncio import Task
 from django.contrib.auth.hashers import check_password
-from .models import ProofOfWork, User, WorkLog
+from .models import Payment, ProofOfWork, User, WorkLog
 from rest_framework import serializers, viewsets, permissions, status
 
 # Step 1: Generate and send OTP
@@ -302,3 +302,64 @@ def apiproof_detail(request):
     elif request.method == 'DELETE':
         proof.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)    
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def list_payments(request):
+    payments = Payment.objects.all()
+    serializer = PaymentSerializer(payments, many=True)
+    return Response(serializer.data)
+
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_payment(request):
+    serializer = PaymentSerializer(data=request.data)
+    if serializer.is_valid():
+        payment = serializer.save()
+        return Response(PaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+@api_view(['PUT'])
+@permission_classes([AllowAny])
+def update_payment(request, pk):
+    try:
+        payment = Payment.objects.get(pk=pk)
+    except Payment.DoesNotExist:
+        return Response({"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = PaymentSerializer(payment, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+# ✅ Withdraw via M-PESA (mock for now, replace with Daraja B2C logic later)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def withdraw_mpesa(request, pk):
+    try:
+        payment = Payment.objects.get(pk=pk)
+    except Payment.DoesNotExist:
+        return Response({"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if payment.is_paid:
+        return Response({"error": "Payment already processed"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Here you would call Daraja API and update receipt
+    payment.is_paid = True
+    payment.mpesa_receipt = "MPESA12345"  # mock receipt
+    payment.save()
+
+    return Response({
+        "message": "Withdraw request processed successfully",
+        "payment": PaymentSerializer(payment).data
+    }, status=status.HTTP_200_OK)
+    
