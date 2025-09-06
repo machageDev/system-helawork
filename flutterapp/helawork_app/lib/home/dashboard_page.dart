@@ -12,11 +12,11 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   String userName = "User";
-  double totalEarnings = 0.0;
-  List<dynamic> recentTasks = [];
-  bool isDarkTheme = true;
-
-  int _selectedIndex = 0; // Track selected bottom nav item
+  int inProgress = 0;
+  int completed = 0;
+  double totalPayments = 0.0;
+  List<dynamic> activeTasks = [];
+  List<dynamic> recentPayments = [];
 
   @override
   void initState() {
@@ -29,79 +29,52 @@ class _DashboardPageState extends State<DashboardPage> {
       final apiService = ApiService();
 
       final profile = await apiService.getUserProfile();
-      final payments = await ApiService.getPaymentSummary();
       final tasks = await ApiService.getTasks();
+      final payments = await ApiService.getPaymentSummary();
 
       setState(() {
-        userName = (profile["name"] != null &&
-                profile["name"].toString().isNotEmpty)
-            ? profile["name"]
-            : "User";
+        userName = profile["name"] ?? "User";
 
-        totalEarnings = payments["total_earnings"]?.toDouble() ?? 0.0;
-        recentTasks = tasks;
+        inProgress = tasks.where((t) => t["status"] == "In Progress").length;
+        completed = tasks.where((t) => t["status"] == "Completed").length;
+        totalPayments = payments["total_earnings"]?.toDouble() ?? 0.0;
+
+        activeTasks = tasks.take(3).toList();
+        recentPayments = payments["recent"] ?? [];
       });
     } catch (e) {
       debugPrint("Error loading data: $e");
     }
   }
 
-  String _getGreeting(String name) {
-    final hour = DateTime.now().hour;
-
-    if (hour < 12) {
-      return "Good Morning, $name 👋";
-    } else if (hour < 18) {
-      return "Good Afternoon, $name 👋";
-    } else {
-      return "Good Evening, $name 👋";
-    }
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    if (index == 0) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const DashboardPage()),
-      );
-    } else if (index == 1) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const PaymentSummaryPage()),
-      );
-    } else if (index == 2) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const UserProfileScreen()),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final bgColor = isDarkTheme ? Colors.black : Colors.white;
-    final textColor = isDarkTheme ? Colors.white : Colors.black;
-    final subTextColor = isDarkTheme ? Colors.white70 : Colors.grey[700];
-
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        backgroundColor: bgColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        title: Text(
+          "Hi, $userName 👋",
+          style: const TextStyle(color: Colors.white, fontSize: 20),
+        ),
         actions: [
           IconButton(
-              icon: const Icon(Icons.notifications_none), onPressed: () {}),
+            icon: const Icon(Icons.notifications, color: Colors.white),
+            onPressed: () {},
+          ),
           IconButton(
-              icon: Icon(isDarkTheme ? Icons.dark_mode : Icons.light_mode),
-              onPressed: () {
-                setState(() {
-                  isDarkTheme = !isDarkTheme;
-                });
-              }),
+            icon: const CircleAvatar(
+              backgroundColor: Colors.green,
+              child: Icon(Icons.person, color: Colors.white),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const UserProfileScreen()),
+              );
+            },
+          ),
         ],
       ),
       body: Padding(
@@ -110,127 +83,92 @@ class _DashboardPageState extends State<DashboardPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Greeting
-              Text(
-                _getGreeting(userName),
-                style: TextStyle(color: subTextColor, fontSize: 16),
-              ),
-              Text(
-                userName,
-                style: TextStyle(
-                    color: textColor,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                ),
-                onPressed: () {},
-                child: const Text("View My Balances"),
-              ),
-              const SizedBox(height: 20),
-
-              // Recent Tasks
-              Text("Recent Tasks",
-                  style: TextStyle(
-                      color: textColor,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
-
-              Column(
-                children: recentTasks.map((task) {
-                  return _buildTaskCard(
-                    task["title"],
-                    "${task["hours"]} hours",
-                    task["status"],
-                    textColor,
-                  );
-                }).toList(),
-              ),
-
-              const SizedBox(height: 20),
-
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+              // Quick Summary
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildFeature(Icons.timer, "Log Hours", textColor),
-                  _buildFeature(Icons.assignment, "My Tasks", textColor),
-                  _buildFeature(Icons.payment, "Payments", textColor),
-                  _buildFeature(Icons.bar_chart, "Reports", textColor),
+                  _buildStatCard("In Progress", "$inProgress", Icons.work, Colors.orange),
+                  _buildStatCard("Completed", "$completed", Icons.check_circle, Colors.green),
+                  _buildStatCard("Payments", "Ksh $totalPayments", Icons.payment, Colors.blue),
                 ],
+              ),
+              const SizedBox(height: 20),
+
+              // Active Tasks
+              const Text("Active Tasks",
+                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              ...activeTasks.map((task) => _buildTaskCard(
+                    task["title"],
+                    "Due: ${task["deadline"] ?? 'N/A'}",
+                    task["status"],
+                  )),
+              const SizedBox(height: 20),
+
+              // Recent Payments
+              const Text("Recent Payments",
+                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              ...recentPayments.map((p) => _buildPaymentRow(
+                    p["task"],
+                    "Ksh ${p["amount"]}",
+                    p["date"],
+                    p["status"],
+                  )),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PaymentSummaryPage()),
+                  );
+                },
+                child: const Text("View All Payments", style: TextStyle(color: Colors.green)),
               ),
             ],
           ),
         ),
       ),
-
-      // Bottom Navigation
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        backgroundColor: bgColor,
-        selectedItemColor: Colors.green,
-        unselectedItemColor: subTextColor,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.money), label: "Payment Summary"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.person), label: "Account"),
-        ],
-      ),
     );
   }
 
-  Widget _buildFeature(IconData icon, String label, Color textColor) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Container(
+      width: 110,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDarkTheme ? Colors.grey[900] : Colors.grey[200],
+        color: const Color(0xFF1E1E1E),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: Colors.green, size: 28),
-          const SizedBox(height: 10),
-          Text(label, style: TextStyle(color: textColor)),
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 8),
+          Text(value,
+              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(title, style: const TextStyle(color: Colors.grey, fontSize: 14)),
         ],
       ),
     );
   }
 
-  Widget _buildTaskCard(
-      String title, String hours, String status, Color textColor) {
+  Widget _buildTaskCard(String title, String deadline, String status) {
     Color statusColor;
     switch (status) {
-      case "Approved":
-        statusColor = Colors.green;
-        break;
       case "In Progress":
         statusColor = Colors.orange;
         break;
-      case "Rejected":
-        statusColor = Colors.red;
+      case "Completed":
+        statusColor = Colors.green;
         break;
       default:
         statusColor = Colors.grey;
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDarkTheme ? Colors.grey[900] : Colors.grey[200],
+        color: const Color(0xFF1E1E1E),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -238,29 +176,33 @@ class _DashboardPageState extends State<DashboardPage> {
         children: [
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(title,
-                style: TextStyle(
-                    color: textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold)),
-            Text(hours,
-                style: TextStyle(
-                    color: textColor.withOpacity(0.7), fontSize: 14)),
+                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(deadline, style: const TextStyle(color: Colors.grey, fontSize: 14)),
           ]),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(status,
-                style: TextStyle(
-                    color: statusColor, fontWeight: FontWeight.bold)),
-          ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(8)),
+            child: Text(status, style: const TextStyle(color: Colors.white)),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentRow(String task, String amount, String date, String status) {
+    Color statusColor = status == "Paid" ? Colors.green : Colors.orange;
+    return ListTile(
+      tileColor: const Color(0xFF1E1E1E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      title: Text(task, style: const TextStyle(color: Colors.white)),
+      subtitle: Text(date, style: const TextStyle(color: Colors.grey)),
+      trailing: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(amount, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
 }
-
-
-

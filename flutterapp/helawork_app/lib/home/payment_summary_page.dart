@@ -88,7 +88,7 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
               iconColor: Colors.blue,
               title: "Hourly Rate",
               subtitle: "Current rate",
-              value: "\Ksh${paymentData!['hourly_rate']}",
+              value: "Ksh${paymentData!['hourly_rate']}",
               unit: "per hour",
             ),
             const SizedBox(height: 12),
