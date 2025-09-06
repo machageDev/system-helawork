@@ -18,6 +18,10 @@ class _DashboardPageState extends State<DashboardPage> {
   List<dynamic> activeTasks = [];
   List<dynamic> recentPayments = [];
 
+  int _selectedIndex = 0; // for BottomNavigation
+  final Color bgColor = const Color(0xFF121212);
+  final Color subTextColor = Colors.grey;
+
   @override
   void initState() {
     super.initState();
@@ -47,10 +51,28 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const PaymentSummaryPage()),
+      );
+    } else if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const UserProfileScreen()),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -127,6 +149,20 @@ class _DashboardPageState extends State<DashboardPage> {
             ],
           ),
         ),
+      ),
+
+      // ✅ Bottom Navigation Bar added here
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        backgroundColor: bgColor,
+        selectedItemColor: Colors.green,
+        unselectedItemColor: subTextColor,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.money), label: "Payment Summary"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
+        ],
       ),
     );
   }
