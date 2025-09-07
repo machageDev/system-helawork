@@ -23,7 +23,9 @@ from rest_framework import serializers, viewsets, permissions, status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render
 from django.db.models import Sum
-
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
 
 
@@ -397,3 +399,41 @@ def employer_dashboard(request):
         "completed_tasks": completed_tasks,
     }
     return render(request, "dashboard.html", context)
+
+
+def login_view(request):
+    """
+    Handle user login functionality
+    """
+    # If user is already authenticated, redirect to dashboard
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        # Authenticate user
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            # Login successful
+            login(request, user)
+            messages.success(request, f'Welcome back, {username}!')
+            return redirect('dashboard')
+        else:
+            # Login failed
+            messages.error(request, 'Invalid username or password. Please try again.')
+            return render(request, 'login.html', {'username': username})
+    
+    # GET request - show login form
+    return render(request, 'login.html')
+
+@login_required
+def logout_view(request):
+    """
+    Handle user logout
+    """
+    logout(request)
+    messages.success(request, 'You have been successfully logged out.')
+    return redirect('login')

@@ -1,103 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helawork sytem</title>
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-    <title>SB Admin 2 - Login</title>
+    <style>
+        /* Reset & Base Styles */
+        *,
+        *:before,
+        *:after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <!-- Custom fonts for this template-->
-    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+        body {
+            background-color: #080710;
+            font-family: 'Poppins', sans-serif;
+            color: #ffffff;
+        }
 
-    <!-- Custom styles for this template-->
-    <link href="css/sb-admin-2.min.css" rel="stylesheet">
+        /* Navbar */
+        .navbar {
+            background-color: #2C3E50;
+            padding: 15px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+
+        .navbar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Background Shapes */
+        .background {
+            position: absolute;
+            width: 100%;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            top: 10%;
+            left: 20%;
+        }
+
+        /* Login Form */
+        form {
+            width: 400px;
+            background-color: rgba(255, 255, 255, 0.13);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 40px rgba(8, 7, 16, 0.6);
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        form h3 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input {
+            display: block;
+            width: 100%;
+            height: 45px;
+            background-color: rgba(255, 255, 255, 0.07);
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 5px;
+            font-size: 14px;
+            color: white;
+            border: none;
+        }
+
+        ::placeholder {
+            color: #e5e5e5;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            background-color: #ffffff;
+            color: #080710;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            border: none;
+        }
+
+        button:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Social Login */
+        .social {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .social div {
+            width: 150px;
+            border-radius: 5px;
+            padding: 8px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.27);
+            color: #eaf0fb;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .social div:hover {
+            background-color: rgba(255, 255, 255, 0.47);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            form {
+                width: 90%;
+                padding: 30px;
+            }
+        }
+    </style>
 </head>
+<body>
 
-<body class="bg-gradient-primary">
-
-    <div class="container">
-
-        <!-- Outer Row -->
-        <div class="row justify-content-center">
-
-            <div class="col-xl-10 col-lg-12 col-md-9">
-
-                <div class="card o-hidden border-0 shadow-lg my-5">
-                    <div class="card-body p-0">
-                        <!-- Nested Row within Card Body -->
-                        <div class="row">
-                            <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
-                            <div class="col-lg-6">
-                                <div class="p-5">
-                                    <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
-                                    </div>
-                                    <form class="user">
-                                        <div class="form-group">
-                                            <input type="email" class="form-control form-control-user"
-                                                id="exampleInputEmail" aria-describedby="emailHelp"
-                                                placeholder="Enter Email Address...">
-                                        </div>
-                                        <div class="form-group">
-                                            <input type="password" class="form-control form-control-user"
-                                                id="exampleInputPassword" placeholder="Password">
-                                        </div>
-                                        <div class="form-group">
-                                            <div class="custom-control custom-checkbox small">
-                                                <input type="checkbox" class="custom-control-input" id="customCheck">
-                                                <label class="custom-control-label" for="customCheck">Remember
-                                                    Me</label>
-                                            </div>
-                                        </div>
-                                        <a href="index.html" class="btn btn-primary btn-user btn-block">
-                                            Login
-                                        </a>
-                                        <hr>
-                                        <a href="index.html" class="btn btn-google btn-user btn-block">
-                                            <i class="fab fa-google fa-fw"></i> Login with Google
-                                        </a>
-                                        <a href="index.html" class="btn btn-facebook btn-user btn-block">
-                                            <i class="fab fa-facebook-f fa-fw"></i> Login with Facebook
-                                        </a>
-                                    </form>
-                                    <hr>
-                                    <div class="text-center">
-                                        <a class="small" href="forgot-password.html">Forgot Password?</a>
-                                    </div>
-                                    <div class="text-center">
-                                        <a class="small" href="register.html">Create an Account!</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <h2>HELAWORK SYSYTEM</h2>
+        <div>
+            <a href="{% url 'dashboard' %}">Dashboard</a>
         </div>
-
     </div>
 
-    <!-- Bootstrap core JavaScript-->
-    <script src="vendor/jquery/jquery.min.js"></script>
-    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- Background Shapes -->
+    <div class="background">
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
 
-    <!-- Core plugin JavaScript-->
-    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+    <!-- Login Form -->
+    <form method="POST" action="{% url 'login' %}">
+        {% csrf_token %}
+        <h3>Login</h3>
 
-    <!-- Custom scripts for all pages-->
-    <script src="js/sb-admin-2.min.js"></script>
+        <label for="username">Username</label>
+        <input type="text" name="username" placeholder="Enter username" id="username">
+
+        <label for="password">Password</label>
+        <input type="password" name="password" placeholder="Enter password" id="password">
+
+        <button type="submit">Log In</button>
+
+        
+       
+    </form>
 
 </body>
-
 </html>
