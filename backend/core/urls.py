@@ -11,6 +11,8 @@ urlpatterns = [
     path('apiworklogs', views.apiworklog_list, name='worklog-list'),
     path('worklogs', views.apiworklog_detail, name='worklog-detail'),
     path('proofs', views.apiproof_detail, name='proof-list'),
-    
+    path('apilistpayments',views.list_payments,name='list_payments'),
+    path('apiupdatepayments',views.update_payment,name='update_payments'),
+    path('apipaymentsummary',views.apipayment_summary,name='apipayment_summary')
     
 ]

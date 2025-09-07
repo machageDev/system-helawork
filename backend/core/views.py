@@ -19,8 +19,9 @@ from asyncio import Task
 from django.contrib.auth.hashers import check_password
 from .models import Payment, ProofOfWork, User, WorkLog
 from rest_framework import serializers, viewsets, permissions, status
+from rest_framework.permissions import IsAuthenticated
 
-# Step 1: Generate and send OTP
+
 def send_otp(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -50,7 +51,7 @@ def send_otp(request):
     return render(request, 'forgot_password.html')
 
 
-# Step 2: Verify OTP
+
 def otp(request):
     if request.method == 'POST':
         entered_otp = request.POST.get('otp')
@@ -113,7 +114,7 @@ def apilogin(request):
         try:
             user = User.objects.get(name=name)
 
-            # Use check_password to verify hashed password
+            
             if check_password(password, user.password):
                 return Response(
                     {
@@ -124,11 +125,11 @@ def apilogin(request):
                     status=status.HTTP_200_OK
                 )
             else:
-                # Invalid password
+                
                 return Response({"error": "invalid login"}, status=status.HTTP_400_BAD_REQUEST)
 
         except User.DoesNotExist:
-            # Do not reveal if user exists for security reasons
+        
             return Response({"error": "invalid login"}, status=status.HTTP_400_BAD_REQUEST)
 
     
@@ -172,14 +173,7 @@ def apicreate_user_profile(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def create_task(request):
-    serializer = TaskSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @api_view(['GET'])
@@ -202,31 +196,6 @@ def get_task(request, pk):
     return Response(serializer.data)
 
 
-@api_view(['PUT'])
-@permission_classes([AllowAny])
-def update_task(request, pk):
-    try:
-        task = Task.objects.get(pk=pk)
-    except Task.DoesNotExist:
-        return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
-
-    serializer = TaskSerializer(task, data=request.data, partial=True)  # partial=True → allows partial update
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['DELETE'])
-@permission_classes([AllowAny])
-def delete_task(request, pk):
-    try:
-        task = Task.objects.get(pk=pk)
-    except Task.DoesNotExist:
-        return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
-
-    task.delete()
-    return Response({'message': 'Task deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET', 'POST'])
 def apiworklog_list(request):
@@ -322,13 +291,18 @@ def create_payment(request):
         return Response(PaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def recent_payments(request):
+    recent = Payment.objects.filter(user=request.user).order_by('-date')[:3]
+    serializer = PaymentSerializer(recent, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['PUT'])
 @permission_classes([AllowAny])
-def update_payment(request, pk):
+def update_payment(request):
     try:
-        payment = Payment.objects.get(pk=pk)
+        payment = Payment.objects.get()
     except Payment.DoesNotExist:
         return Response({"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -339,9 +313,45 @@ def update_payment(request, pk):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def apipayment_summary(request):
+    try:
+        #  Query all payments for logged-in user
+        payments = Payment.objects.filter(user=request.user)
 
+        # Total hours & rates (assuming stored in Payment model or user profile)
+        total_hours = sum(p.hours for p in payments) if payments.exists() else 0
+        hourly_rate = request.user.profile.hourly_rate if hasattr(request.user, "profile") else 0
+        total_payment = sum(p.amount for p in payments)
 
-# ✅ Withdraw via M-PESA (mock for now, replace with Daraja B2C logic later)
+        
+        breakdown = {
+            "base_earnings": sum(p.amount for p in payments if p.type == "base"),
+            "bonus": sum(p.amount for p in payments if p.type == "bonus"),
+            "total": total_payment
+        }
+
+        # Last 3 recent payments
+        recent_payments = payments.order_by("-date")[:3]
+        recent_serializer = PaymentSerializer(recent_payments, many=True)
+
+        #  Response payload
+        data = {
+            "total_hours": total_hours,
+            "hourly_rate": hourly_rate,
+            "total_payment": total_payment,
+            "currency": "Ksh",
+            "breakdown": breakdown,
+            "recent": recent_serializer.data
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+#  Withdraw via M-PESA (mock for now, replace with Daraja B2C logic later)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def withdraw_mpesa(request, pk):
