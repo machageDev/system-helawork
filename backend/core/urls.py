@@ -18,6 +18,8 @@ urlpatterns = [
     
     
     #employer urls
-    path('dashboard',views.employer_dashboard,name='employer_dashboard')
+    path('dashboard',views.employer_dashboard,name='employer_dashboard'),
+    path('login',views.login_view,name='login_view'),
+    path('logout/', views.logout_view, name='logout'),
     
 ]

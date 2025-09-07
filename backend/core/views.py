@@ -426,7 +426,7 @@ def login_view(request):
             messages.error(request, 'Invalid username or password. Please try again.')
             return render(request, 'login.html', {'username': username})
     
-    # GET request - show login form
+    
     return render(request, 'login.html')
 
 @login_required
