@@ -7,6 +7,7 @@ class ApiService{
   static const String baseUrl = 'http://192.168.100.188:8000';
   static const String registerUrl = '$baseUrl/apiregister';
   static const String  loginUrl ='$baseUrl/apilogin';
+  static const String paymentsummaryUrl='$baseUrl/apipaymentsummary';
 
 Future<Map<String, dynamic>> register(String name, String email, String password, String phoneNO, String confirmPassword) async {
   final url = Uri.parse(registerUrl);
@@ -87,11 +88,11 @@ Future<Map<String, dynamic>> login(String name, String password) async {
 }
 
    Future<Map<String, dynamic>> getActiveSession() async {
-    final response = await http.get(Uri.parse("active-session/"));
+    final response = await http.get(Uri.parse("active_session"));
     return json.decode(response.body);
   }
  Future<Map<String, dynamic>> getEarnings() async {
-    final response = await http.get(Uri.parse("earnings/"));
+    final response = await http.get(Uri.parse("earnings"));
     return json.decode(response.body);
   }
 
@@ -165,9 +166,9 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     }
   }
 
-   // Get payment summary
+   
   static Future<Map<String, dynamic>> getPaymentSummary() async {
-    final response = await http.get(Uri.parse("$baseUrl/payment_summary/"));
+    final response = await http.get(Uri.parse(paymentsummaryUrl));
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
