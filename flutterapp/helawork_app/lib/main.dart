@@ -5,32 +5,11 @@ import 'package:helawork_app/home/dashboard_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  final prefs = await SharedPreferences.getInstance();
-
-  final loginTime = prefs.getInt("loginTime");
-  final username = prefs.getString("username");
-
-  bool isLoggedIn = false;
-
-  if (loginTime != null && username != null) {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final sevenDays = 7 * 24 * 60 * 60 * 1000; 
-
-    if (now - loginTime < sevenDays) {
-      isLoggedIn = true;
-    } else {
-      
-      await prefs.clear();
-    }
-  }
-
-  runApp(MyApp(isLoggedIn: isLoggedIn));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final bool isLoggedIn;
-  const MyApp({super.key, required this.isLoggedIn});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +31,7 @@ class MyApp extends StatelessWidget {
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(30)),
             ),
@@ -69,12 +47,67 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-
-      // If logged in → go to Dashboard, else show login page
-      home: isLoggedIn
-          ? const DashboardPage()
-          : const MyHomePage(title: 'Helawork'),
+      home: const AuthWrapper(),
     );
+  }
+}
+
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  bool _isLoading = true;
+  bool _isLoggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthStatus();
+  }
+
+  Future<void> _checkAuthStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final loginTime = prefs.getInt("loginTime");
+    final username = prefs.getString("username");
+
+    bool loggedIn = false;
+
+    if (loginTime != null && username != null) {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final sevenDays = 7 * 24 * 60 * 60 * 1000; 
+
+      if (now - loginTime < sevenDays) {
+        loggedIn = true;
+      } else {
+        // Session expired, clear stored data
+        await prefs.clear();
+      }
+    }
+
+    setState(() {
+      _isLoggedIn = loggedIn;
+      _isLoading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+          ),
+        ),
+      );
+    }
+
+    return _isLoggedIn ? const DashboardPage() : const MyHomePage(title: 'Helawork');
   }
 }
 
@@ -151,7 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           builder: (context) => const LoginScreen()),
                     );
                   },
-                  child: const Text("login"),
+                  child: const Text("Login"),
                 ),
               ],
             ),
