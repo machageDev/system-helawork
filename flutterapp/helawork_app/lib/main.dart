@@ -62,6 +62,7 @@ class AuthWrapper extends StatefulWidget {
 class _AuthWrapperState extends State<AuthWrapper> {
   bool _isLoading = true;
   bool _isLoggedIn = false;
+  bool _showLoginButton = false;
 
   @override
   void initState() {
@@ -70,28 +71,39 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 
   Future<void> _checkAuthStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final loginTime = prefs.getInt("loginTime");
-    final username = prefs.getString("username");
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final loginTime = prefs.getInt("loginTime");
+      final username = prefs.getString("username");
 
-    bool loggedIn = false;
+      bool loggedIn = false;
 
-    if (loginTime != null && username != null) {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final sevenDays = 7 * 24 * 60 * 60 * 1000; 
+      if (loginTime != null && username != null && username.isNotEmpty) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        final sevenDays = 7 * 24 * 60 * 60 * 1000; 
 
-      if (now - loginTime < sevenDays) {
-        loggedIn = true;
-      } else {
-        // Session expired, clear stored data
-        await prefs.clear();
+        if (now - loginTime < sevenDays) {
+          loggedIn = true;
+        } else {
+          await prefs.clear();
+        }
       }
-    }
 
-    setState(() {
-      _isLoggedIn = loggedIn;
-      _isLoading = false;
-    });
+      // Add a small delay to show the loading animation
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      setState(() {
+        _isLoggedIn = loggedIn;
+        _isLoading = false;
+        _showLoginButton = !loggedIn; 
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _isLoggedIn = false;
+        _showLoginButton = true;
+      });
+    }
   }
 
   @override
@@ -100,33 +112,45 @@ class _AuthWrapperState extends State<AuthWrapper> {
       return const Scaffold(
         backgroundColor: Colors.black,
         body: Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Loading...',
+                style: TextStyle(color: Colors.white70),
+              ),
+            ],
           ),
         ),
       );
     }
 
-    return _isLoggedIn ? const DashboardPage() : const MyHomePage(title: 'Helawork');
+    
+    if (_isLoggedIn) {
+      return const DashboardPage();
+    }
+
+    
+    return _showLoginButton 
+        ? MyHomePageWithLogin(title: 'Helawork') 
+        : const MyHomePage(title: 'Helawork');
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends StatelessWidget {
+  final String title;
   const MyHomePage({super.key, required this.title});
 
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(widget.title,
+        title: Text(title,
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20,
@@ -175,20 +199,113 @@ class _MyHomePageState extends State<MyHomePage> {
                     height: 200,
                   ),
                 ),
-                const SizedBox(height: 40),
-                ElevatedButton(
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class MyHomePageWithLogin extends StatelessWidget {
+  final String title;
+  const MyHomePageWithLogin({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: Text(title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            )),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+      ),
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.black, Color(0xFF1B5E20)], 
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Stack(
+          children: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Welcome to",
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: Colors.white70,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      "HELAWORK",
+                      style: TextStyle(
+                        fontSize: 38,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.greenAccent,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    Hero(
+                      tag: "logo",
+                      child: Image.asset(
+                        "assets/images/image.png",
+                        height: 200,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Login button at the bottom (like Airtel Money)
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                           builder: (context) => const LoginScreen()),
                     );
                   },
-                  child: const Text("Login"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: const Text(
+                    "Login",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
