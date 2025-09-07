@@ -1,0 +1,87 @@
+/* ===== Global ===== */
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f6f8;
+    color: #333;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+    width: 220px;
+    height: 100vh;
+    background-color: #1a1a2e;
+    color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding-top: 20px;
+}
+
+.sidebar .sidebar-brand {
+    font-size: 1.2rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.sidebar li {
+    list-style: none;
+}
+
+.sidebar a {
+    display: block;
+    padding: 12px 20px;
+    color: #ddd;
+    transition: 0.3s;
+}
+
+.sidebar a:hover {
+    background: #16213e;
+    color: #fff;
+}
+
+/* ===== Navbar (Topbar) ===== */
+.navbar {
+    margin-left: 220px;
+    background: #fff;
+    padding: 15px 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ===== Main Content ===== */
+.main {
+    margin-left: 220px;
+    padding: 20px;
+}
+
+.card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* ===== Footer ===== */
+.footer {
+    margin-left: 220px;
+    background: #f8f9fa;
+    padding: 10px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #666;
+}

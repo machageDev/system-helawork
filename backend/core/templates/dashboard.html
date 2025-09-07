@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard | HelaWork{% endblock %}
+{% block page_title %}Employer Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+
+    <!-- Total Employees -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Employees</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_employees }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Projects -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Active Projects</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_projects }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Payments -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Pending Payments</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">Ksh {{ pending_payments }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-money-bill fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completed Tasks -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Tasks Completed (This Month)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ tasks_completed }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Charts Section -->
+<div class="row">
+
+    <!-- Workforce Overview Chart -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Workforce Overview</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="workforceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expense Breakdown -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Expense Breakdown</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie pt-4">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+                <div class="mt-4 text-center small">
+                    <span class="mr-2"><i class="fas fa-circle text-primary"></i> Salaries</span>
+                    <span class="mr-2"><i class="fas fa-circle text-success"></i> Bonuses</span>
+                    <span class="mr-2"><i class="fas fa-circle text-warning"></i> Operations</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for activity in recent_activity %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ activity.message }}
+                            <span class="badge bg-secondary">{{ activity.date }}</span>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item">No recent activity</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Workforce Overview (Line Chart Example)
+    const workforceCtx = document.getElementById('workforceChart');
+    new Chart(workforceCtx, {
+        type: 'line',
+        data: {
+            labels: {{ workforce_labels|safe }},
+            datasets: [{
+                label: 'Active Employees',
+                data: {{ workforce_data|safe }},
+                borderColor: 'rgba(78, 115, 223, 1)',
+                backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                fill: true,
+            }]
+        },
+        options: { responsive: true }
+    });
+
+    // Expense Breakdown (Pie Chart Example)
+    const expenseCtx = document.getElementById('expenseChart');
+    new Chart(expenseCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Salaries', 'Bonuses', 'Operations'],
+            datasets: [{
+                data: {{ expense_data|safe }},
+                backgroundColor: ['#4e73df', '#1cc88a', '#f6c23e'],
+                hoverOffset: 4
+            }]
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,242 @@
+/* HelaWork Dashboard — Custom overrides and layout helpers
+   Save as core/static/css/helawork-dashboard.css
+   Uses SB Admin 2 color palette so colors remain unchanged.
+*/
+
+/* Palette (SB Admin 2)
+   --primary:  #4e73df
+   --success:  #1cc88a
+   --info:     #36b9cc
+   --warning:  #f6c23e
+   --danger:   #e74a3b
+   --gray-800: #5a5c69 (dark)
+*/
+:root{
+  --hw-primary: #4e73df;
+  --hw-success: #1cc88a;
+  --hw-info:    #36b9cc;
+  --hw-warning: #f6c23e;
+  --hw-danger:  #e74a3b;
+  --hw-gray-800:#5a5c69;
+  --hw-card-bg: #ffffff;
+  --hw-text-dark:#212529;
+  --hw-text-light:#f8f9fa;
+}
+
+/* Basic body & transition */
+body.transition {
+  transition: background-color .25s ease, color .25s ease;
+}
+
+/* Dark / Light theme helpers */
+body.dark-mode {
+  background-color: #121212;
+  color: var(--hw-text-light);
+}
+body.light-mode {
+  background-color: #f8f9fa;
+  color: var(--hw-text-dark);
+}
+
+/* Sidebar */
+ul.sidebar {
+  background: linear-gradient(180deg, var(--hw-primary) 0%, #2e59d9 100%);
+  color: #fff;
+  padding-top: 1rem;
+}
+ul.sidebar .sidebar-brand {
+  padding: 1.1rem 1rem;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+ul.sidebar .sidebar-brand .sidebar-brand-icon {
+  font-size: 1.45rem;
+}
+ul.sidebar .nav-item {
+  margin: .1rem 0;
+}
+ul.sidebar .nav-link {
+  color: rgba(255,255,255,0.95);
+  padding: .85rem 1rem;
+  display:flex;
+  align-items:center;
+}
+ul.sidebar .nav-link i {
+  width: 1.4rem;
+  text-align:center;
+  margin-right: .6rem;
+  opacity: .95;
+}
+ul.sidebar .nav-link:hover,
+ul.sidebar .nav-item.active .nav-link {
+  background-color: rgba(255,255,255,0.06);
+  text-decoration: none;
+  color: #ffffff;
+}
+
+/* Sidebar small text dividers */
+.sidebar-divider {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  margin: .7rem 0;
+}
+
+/* Topbar */
+.navbar.topbar {
+  padding: .5rem 1rem;
+  background: linear-gradient(180deg, #ffffff, #f8f9fc);
+}
+body.dark-mode .navbar.topbar {
+  background: rgba(0,0,0,0.15);
+  backdrop-filter: blur(4px);
+  color: var(--hw-text-light);
+}
+.navbar.topbar h4 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.topbar .img-profile {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Card overrides */
+.card {
+  border-radius: .6rem;
+  box-shadow: 0 6px 18px rgba(28, 40, 63, 0.06);
+}
+body.dark-mode .card {
+  background-color: #1f1f1f;
+  color: var(--hw-text-light);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+}
+.card .card-header {
+  background: transparent;
+  border-bottom: none;
+  padding: .9rem 1rem;
+}
+.card .card-body {
+  padding: 1rem;
+}
+
+/* Stat cards - colored left border */
+.card.border-left-primary {
+  border-left: .35rem solid var(--hw-primary);
+}
+.card.border-left-success { border-left: .35rem solid var(--hw-success); }
+.card.border-left-info    { border-left: .35rem solid var(--hw-info); }
+.card.border-left-warning { border-left: .35rem solid var(--hw-warning); }
+.card.border-left-danger  { border-left: .35rem solid var(--hw-danger); }
+
+/* KPIs numbers */
+.kpi-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: inherit;
+}
+.kpi-label {
+  font-size: .75rem;
+  letter-spacing: .4px;
+  color: rgba(0,0,0,0.6);
+}
+body.dark-mode .kpi-label { color: rgba(255,255,255,0.65); }
+
+/* Progress bar small */
+.progress-sm { height: .6rem; border-radius: 10px; }
+.progress-sm .progress-bar { border-radius: 10px; }
+
+/* Chart containers */
+.chart-area, .chart-pie {
+  min-height: 220px;
+}
+
+/* Recent activity list */
+.list-group-item {
+  border-radius: .35rem;
+  margin-bottom: .5rem;
+}
+body.dark-mode .list-group-item {
+  background: #222;
+  border: none;
+  color: var(--hw-text-light);
+}
+
+/* Buttons */
+.btn-quick {
+  padding: .45rem .6rem;
+  border-radius: .45rem;
+  font-size: .9rem;
+}
+
+/* small badges */
+.badge-hw {
+  background: var(--hw-gray-800);
+  color: #fff;
+  padding: .35rem .5rem;
+  font-size: .75rem;
+  border-radius: .35rem;
+}
+
+/* Utilities */
+.text-primary { color: var(--hw-primary) !important; }
+.text-success { color: var(--hw-success) !important; }
+.text-info    { color: var(--hw-info) !important; }
+.text-warning { color: var(--hw-warning) !important; }
+.text-danger  { color: var(--hw-danger) !important; }
+
+/* Footer */
+.sticky-footer {
+  padding: 1rem 0;
+  background: #fff;
+}
+body.dark-mode .sticky-footer {
+  background: transparent;
+  color: var(--hw-text-light);
+}
+
+/* Responsive tweaks */
+@media (max-width: 991px) {
+  ul.sidebar { width: 100%; position: relative; }
+  #content-wrapper { margin-left: 0; }
+  .chart-area, .chart-pie { min-height: 200px; }
+}
+
+/* Sidebar collapsed helper */
+#sidebar.collapsed {
+  width: 80px !important;
+}
+#sidebar.collapsed .sidebar-brand-text,
+#sidebar.collapsed .nav-link span {
+  display: none;
+}
+#sidebar.collapsed .nav-link i {
+  margin-right: 0;
+}
+
+/* Small UI helpers for theme toggle button */
+#theme-toggle { min-width: 40px; min-height: 36px; border-radius: 6px; }
+#theme-toggle i { margin-right: 0; }
+
+/* Minor fix: ensure topbar icons remain visible in dark-mode */
+body.dark-mode .topbar .fa, body.dark-mode .topbar .nav-link {
+  color: var(--hw-text-light);
+}
+
+/* Avatar fallback — circle with initials if image missing */
+.avatar-fallback {
+  width:36px;height:36px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-weight:600;color:#fff;background:var(--hw-gray-800);
+}
+
+/* Utility spacing */
+.mt-1 { margin-top:.25rem; }
+.mt-2 { margin-top:.5rem; }
+.mb-1 { margin-bottom:.25rem; }
+.mb-2 { margin-bottom:.5rem; }
+.p-1 { padding:.25rem; }
+.p-2 { padding:.5rem; }
+
+/* End of file */

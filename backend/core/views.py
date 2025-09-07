@@ -15,11 +15,16 @@ from rest_framework import status
 from core.serializer import LoginSerializer, PaymentSerializer, ProofOfWorkSerializer, RegisterSerializer, TaskSerializer, UserProfileSerializer, WorkLogSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
-from asyncio import Task
+from .models import Employee,  Task, Payment
+
 from django.contrib.auth.hashers import check_password
-from .models import Payment, ProofOfWork, User, WorkLog
+from .models import Employee, Payment, ProofOfWork, User, WorkLog
 from rest_framework import serializers, viewsets, permissions, status
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import render
+from django.db.models import Sum
+
+
 
 
 def send_otp(request):
@@ -372,4 +377,23 @@ def withdraw_mpesa(request, pk):
         "message": "Withdraw request processed successfully",
         "payment": PaymentSerializer(payment).data
     }, status=status.HTTP_200_OK)
-    
+ 
+ 
+
+
+def employer_dashboard(request):
+    total_employees = Employee.objects.count()
+    active_projects = Task.objects.filter(is_approved=True).count()  # example
+    pending_payments = Payment.objects.filter(status="Pending").aggregate(total=Sum("amount"))["total"] or 0
+
+    active_tasks = Task.objects.filter(is_approved=False).count()
+    completed_tasks = Task.objects.filter(is_approved=True).count()
+
+    context = {
+        "total_employees": total_employees,
+        "active_projects": active_projects,
+        "pending_payments": pending_payments,
+        "active_tasks": active_tasks,
+        "completed_tasks": completed_tasks,
+    }
+    return render(request, "dashboard.html", context)

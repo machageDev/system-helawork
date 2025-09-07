@@ -267,12 +267,7 @@ select {
   word-wrap: normal;
 }
 
-button,
-[type="button"],
-[type="reset"],
-[type="submit"] {
-  -webkit-appearance: button;
-}
+
 
 button:not(:disabled),
 [type="button"]:not(:disabled),
@@ -328,10 +323,7 @@ progress {
   height: auto;
 }
 
-[type="search"] {
-  outline-offset: -2px;
-  -webkit-appearance: none;
-}
+
 
 [type="search"]::-webkit-search-decoration {
   -webkit-appearance: none;
@@ -3546,15 +3538,6 @@ input[type="button"].btn-block {
   border-bottom-left-radius: 0;
 }
 
-.custom-control {
-  position: relative;
-  z-index: 1;
-  display: block;
-  min-height: 1.5rem;
-  padding-left: 1.5rem;
-  -webkit-print-color-adjust: exact;
-  color-adjust: exact;
-}
 
 .custom-control-inline {
   display: inline-flex;
