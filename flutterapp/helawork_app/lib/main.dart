@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:helawork_app/screens/login_screen.dart';
-import 'package:helawork_app/home/dashboard_page.dart'; 
+import 'package:helawork_app/home/dashboard_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,7 +62,6 @@ class AuthWrapper extends StatefulWidget {
 class _AuthWrapperState extends State<AuthWrapper> {
   bool _isLoading = true;
   bool _isLoggedIn = false;
-  bool _showLoginButton = false;
 
   @override
   void initState() {
@@ -80,7 +79,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
       if (loginTime != null && username != null && username.isNotEmpty) {
         final now = DateTime.now().millisecondsSinceEpoch;
-        final sevenDays = 7 * 24 * 60 * 60 * 1000; 
+        final sevenDays = 7 * 24 * 60 * 60 * 1000;
 
         if (now - loginTime < sevenDays) {
           loggedIn = true;
@@ -89,19 +88,16 @@ class _AuthWrapperState extends State<AuthWrapper> {
         }
       }
 
-      // Add a small delay to show the loading animation
       await Future.delayed(const Duration(milliseconds: 500));
 
       setState(() {
         _isLoggedIn = loggedIn;
         _isLoading = false;
-        _showLoginButton = !loggedIn; 
       });
     } catch (e) {
       setState(() {
         _isLoading = false;
         _isLoggedIn = false;
-        _showLoginButton = true;
       });
     }
   }
@@ -129,82 +125,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
       );
     }
 
-    
+    //  If logged in → go to Dashboard
     if (_isLoggedIn) {
       return const DashboardPage();
     }
 
-    
-    return _showLoginButton 
-        ? MyHomePageWithLogin(title: 'Helawork') 
-        : const MyHomePage(title: 'Helawork');
-  }
-}
-
-class MyHomePage extends StatelessWidget {
-  final String title;
-  const MyHomePage({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: Text(title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            )),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-      ),
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.black, Color(0xFF1B5E20)], 
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  "Welcome to",
-                  style: TextStyle(
-                    fontSize: 22,
-                    color: Colors.white70,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  "HELAWORK",
-                  style: TextStyle(
-                    fontSize: 38,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.greenAccent,
-                    letterSpacing: 2,
-                  ),
-                ),
-                const SizedBox(height: 30),
-                Hero(
-                  tag: "logo",
-                  child: Image.asset(
-                    "assets/images/image.png",
-                    height: 200,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+    // If not logged in → always show welcome with login button
+    return const MyHomePageWithLogin(title: 'Helawork');
   }
 }
 
@@ -229,7 +156,7 @@ class MyHomePageWithLogin extends StatelessWidget {
         width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.black, Color(0xFF1B5E20)], 
+            colors: [Colors.black, Color(0xFF1B5E20)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -272,7 +199,6 @@ class MyHomePageWithLogin extends StatelessWidget {
                 ),
               ),
             ),
-            // Login button at the bottom (like Airtel Money)
             Positioned(
               bottom: 40,
               left: 0,

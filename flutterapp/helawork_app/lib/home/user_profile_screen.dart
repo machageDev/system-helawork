@@ -10,7 +10,7 @@ class UserProfileScreen extends StatefulWidget {
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
   final ApiService _apiService = ApiService();
-  Map<String, dynamic>? _userProfile; // 👈 use Map instead of UserProfile
+  Map<String, dynamic>? _userProfile; 
   bool _isLoading = true;
   String _errorMessage = '';
 
