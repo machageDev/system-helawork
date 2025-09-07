@@ -130,4 +130,13 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
-    
+
+
+class PayrollReport(models.Model):
+    employer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payroll_reports")
+    month = models.DateField()  #
+    total_expense = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Payroll Report {self.month} by {self.employer.username}"    
