@@ -83,25 +83,16 @@ class ProofOfWork(models.Model):
     def __str__(self):
         return f"Proof for {self.task.title} by {self.user.name}"
 
-
 class Payment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payments")
-    employer = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name="payments")
-    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="payments")
-    total_hours = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_paid = models.BooleanField(default=False)
-    mpesa_receipt = models.CharField(max_length=100, blank=True, null=True)
-
-    def calculate_amount(self):
-        
-        rate = self.user.hourly_rate
-        self.amount = Decimal(self.total_hours) * Decimal(rate)
-        return self.amount
-
-    def __str__(self):
-        return f"Payment {self.amount} for {self.task.title} ({self.user.name})"
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="User")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Amount")
+    date = models.DateTimeField(default=timezone.now, verbose_name="Payment Date")
+    status = models.CharField(
+        max_length=20,
+        choices=[("Paid", "Paid"), ("Pending", "Pending")],
+        default="Paid",
+        verbose_name="Payment Status"
+    )
     
     
 class PaymentRate(models.Model):

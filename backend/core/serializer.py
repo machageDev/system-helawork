@@ -39,27 +39,9 @@ class ProofOfWorkSerializer(serializers.ModelSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source="user.name", read_only=True)
-    employer_name = serializers.CharField(source="employer.name", read_only=True)
-    task_title = serializers.CharField(source="task.title", read_only=True)
-
     class Meta:
         model = Payment
-        fields = [
-            "id",
-            "user",
-            "user_name",
-            "employer",
-            "employer_name",
-            "task",
-            "task_title",
-            "total_hours",
-            "amount",
-            "created_at",
-            "is_paid",
-            "mpesa_receipt",
-        ]
-        read_only_fields = ["amount", "created_at", "mpesa_receipt"]
+        fields = ['id', 'task_name', 'amount', 'date', 'status']
 
     def create(self, validated_data):
         payment = Payment.objects.create(**validated_data)
