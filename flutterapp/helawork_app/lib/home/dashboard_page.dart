@@ -11,14 +11,14 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  String userName = "User";
+  String userName = "";
   int inProgress = 0;
   int completed = 0;
   double totalPayments = 0.0;
   List<dynamic> activeTasks = [];
   List<dynamic> recentPayments = [];
 
-  int _selectedIndex = 0; // for BottomNavigation
+  int _selectedIndex = 0; 
   final Color bgColor = const Color(0xFF121212);
   final Color subTextColor = Colors.grey;
 

@@ -102,7 +102,8 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
               highlight: true,
             ),
             const SizedBox(height: 16),
-            
+
+            // Payment Breakdown
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -120,14 +121,41 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
                   const SizedBox(height: 12),
                   _buildBreakdownRow(
                       "Base earnings", "Ksh${paymentData!['breakdown']['base_earnings']}"),
-                  _buildBreakdownRow("Bonus payments", "\$${paymentData!['breakdown']['bonus']}"),
+                  _buildBreakdownRow(
+                      "Bonus payments", "Ksh${paymentData!['breakdown']['bonus']}"),
                   const Divider(color: Colors.white24),
-                  _buildBreakdownRow("Total", "Ksh${paymentData!['breakdown']['total']}",
+                  _buildBreakdownRow(
+                      "Total", "Ksh${paymentData!['breakdown']['total']}",
                       highlight: true),
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+
+            // ✅ Recent Payments Section
+            const Text("Recent Payments",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            if (paymentData!['recent'] != null &&
+                paymentData!['recent'].isNotEmpty)
+              ...paymentData!['recent']
+                  .take(3)
+                  .map<Widget>((p) => _buildRecentPaymentTile(
+                        p["task"] ?? "Task",
+                        "Ksh${p["amount"]}",
+                        p["date"] ?? "",
+                        p["status"] ?? "Paid",
+                      ))
+                  .toList()
+            else
+              const Text("No recent payments",
+                  style: TextStyle(color: Colors.white70)),
+
             const Spacer(),
+
             // Withdraw button
             SizedBox(
               width: double.infinity,
@@ -198,7 +226,7 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
                     fontWeight: FontWeight.bold,
                   )),
               Text(unit,
-                  style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                  style: const TextStyle(color: Colors.white70, fontSize: 13))
             ],
           )
         ],
@@ -221,6 +249,46 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
                 fontWeight: highlight ? FontWeight.bold : FontWeight.normal,
                 fontSize: 15,
               )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentPaymentTile(
+      String task, String amount, String date, String status) {
+    Color statusColor = status == "Paid" ? Colors.green : Colors.orange;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(task,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold)),
+                Text(date,
+                    style: const TextStyle(color: Colors.white70, fontSize: 13)),
+              ]),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(amount,
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
+              Text(status,
+                  style: TextStyle(
+                      color: statusColor, fontWeight: FontWeight.bold)),
+            ],
+          ),
         ],
       ),
     );
