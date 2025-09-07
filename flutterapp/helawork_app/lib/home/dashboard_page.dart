@@ -18,8 +18,11 @@ class _DashboardPageState extends State<DashboardPage> {
   List<dynamic> activeTasks = [];
   List<dynamic> recentPayments = [];
 
-  int _selectedIndex = 0; 
-  final Color bgColor = const Color(0xFF121212);
+  int _selectedIndex = 0;
+
+
+  final Color bgColor = Colors.black87;
+  final Color cardColor = Colors.grey.shade900;
   final Color subTextColor = Colors.grey;
 
   @override
@@ -47,14 +50,12 @@ class _DashboardPageState extends State<DashboardPage> {
         recentPayments = payments["recent"] ?? [];
       });
     } catch (e) {
-      debugPrint("Error loading data: $e");
+      debugPrint(" Error loading data: $e");
     }
   }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
 
     if (index == 1) {
       Navigator.push(
@@ -77,13 +78,15 @@ class _DashboardPageState extends State<DashboardPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          "Hi, $userName 👋",
+          "Hi, $userName ",
           style: const TextStyle(color: Colors.white, fontSize: 20),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications, color: Colors.white),
-            onPressed: () {},
+            onPressed: () {
+              // TODO: Notifications screen
+            },
           ),
           IconButton(
             icon: const CircleAvatar(
@@ -99,13 +102,15 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      body: RefreshIndicator(
+        onRefresh: _loadData,
         child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Quick Summary
+              // 🔹 Quick Summary
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -116,27 +121,37 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               const SizedBox(height: 20),
 
-              // Active Tasks
-              const Text("Active Tasks",
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              //  Active Tasks
+              const Text(
+                "Active Tasks",
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 10),
-              ...activeTasks.map((task) => _buildTaskCard(
-                    task["title"],
-                    "Due: ${task["deadline"] ?? 'N/A'}",
-                    task["status"],
-                  )),
+              if (activeTasks.isEmpty)
+                const Text("No active tasks", style: TextStyle(color: Colors.grey))
+              else
+                ...activeTasks.map((task) => _buildTaskCard(
+                      task["title"] ?? "Untitled Task",
+                      "Due: ${task["deadline"] ?? 'N/A'}",
+                      task["status"] ?? "Unknown",
+                    )),
               const SizedBox(height: 20),
 
               // Recent Payments
-              const Text("Recent Payments",
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                "Recent Payments",
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 10),
-              ...recentPayments.map((p) => _buildPaymentRow(
-                    p["task"],
-                    "Ksh ${p["amount"]}",
-                    p["date"],
-                    p["status"],
-                  )),
+              if (recentPayments.isEmpty)
+                const Text("No recent payments", style: TextStyle(color: Colors.grey))
+              else
+                ...recentPayments.map((p) => _buildPaymentRow(
+                      p["task"] ?? "Unknown Task",
+                      "Ksh ${p["amount"] ?? 0}",
+                      p["date"] ?? "N/A",
+                      p["status"] ?? "Pending",
+                    )),
               TextButton(
                 onPressed: () {
                   Navigator.push(
@@ -151,7 +166,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
 
-      // ✅ Bottom Navigation Bar added here
+      //  Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -160,27 +175,31 @@ class _DashboardPageState extends State<DashboardPage> {
         unselectedItemColor: subTextColor,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.money), label: "Payment Summary"),
+          BottomNavigationBarItem(icon: Icon(Icons.money), label: "Payments"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
         ],
       ),
     );
   }
 
+ 
+
   Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Container(
       width: 110,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           Icon(icon, color: color, size: 28),
           const SizedBox(height: 8),
-          Text(value,
-              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+          ),
           Text(title, style: const TextStyle(color: Colors.grey, fontSize: 14)),
         ],
       ),
@@ -204,7 +223,7 @@ class _DashboardPageState extends State<DashboardPage> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -228,7 +247,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildPaymentRow(String task, String amount, String date, String status) {
     Color statusColor = status == "Paid" ? Colors.green : Colors.orange;
     return ListTile(
-      tileColor: const Color(0xFF1E1E1E),
+      tileColor: cardColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       title: Text(task, style: const TextStyle(color: Colors.white)),
       subtitle: Text(date, style: const TextStyle(color: Colors.grey)),
