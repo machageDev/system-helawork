@@ -402,10 +402,7 @@ def employer_dashboard(request):
 
 
 def login_view(request):
-    """
-    Handle user login functionality
-    """
-    # If user is already authenticated, redirect to dashboard
+    
     if request.user.is_authenticated:
         return redirect('dashboard')
     
