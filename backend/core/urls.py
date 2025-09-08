@@ -22,4 +22,9 @@ urlpatterns = [
     path('login',views.login_view,name='login'),
     path('logout', views.logout_view, name='logout'),
     
+    path("pay", views.make_payment, name="make_payment"),
+    path("apimpesacallback", views.mpesa_callback, name="mpesa_callback"),
+
+
+    
 ]

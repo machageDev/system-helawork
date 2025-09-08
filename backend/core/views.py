@@ -434,3 +434,58 @@ def logout_view(request):
     logout(request)
     messages.success(request, 'You have been successfully logged out.')
     return redirect('login')
+
+from django.http import JsonResponse
+from .mpesa import stk_push
+
+def make_payment(request):
+    # Example: hardcoded values for testing
+    phone = "2547XXXXXXXX"  
+    amount = 10
+
+    response = stk_push(phone, amount)
+    return JsonResponse(response)
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@csrf_exempt
+def mpesa_callback(request):
+    """
+    Callback handler from Safaricom for STK Push.
+    This will update Payment table when payment is successful.
+    """
+    data = json.loads(request.body.decode('utf-8'))
+    print("M-PESA Callback Data:", data)  # Debugging
+
+    try:
+        result_code = data['Body']['stkCallback']['ResultCode']
+        result_desc = data['Body']['stkCallback']['ResultDesc']
+        checkout_request_id = data['Body']['stkCallback']['CheckoutRequestID']
+
+        if result_code == 0:
+            # Payment successful
+            amount = data['Body']['stkCallback']['CallbackMetadata']['Item'][0]['Value']
+            mpesa_code = data['Body']['stkCallback']['CallbackMetadata']['Item'][1]['Value']
+            phone = data['Body']['stkCallback']['CallbackMetadata']['Item'][4]['Value']
+
+            # Here, update your Payment model
+            from .models import Payment, User
+            user = User.objects.filter(phoneNo=phone).first()
+            if user:
+                Payment.objects.create(
+                    user=user,
+                    employer=None,  # you can assign if known
+                    task=None,      # you can assign if known
+                    amount=amount,
+                    is_paid=True
+                )
+
+        return JsonResponse({"ResultDesc": result_desc, "ResultCode": result_code})
+
+    except Exception as e:
+        print("Error processing callback:", str(e))
+        return JsonResponse({"error": str(e)})
