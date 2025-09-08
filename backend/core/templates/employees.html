@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Employees{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Employees</h2>
+
+    {% if employees %}
+        <table class="table table-striped table-bordered shadow-sm">
+            <thead class="table-dark">
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Position</th>
+                    <th>Date Hired</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for employee in employees %}
+                <tr>
+                    <td>{{ employee.user.username }}</td>
+                    <td>{{ employee.user.email }}</td>
+                    <td>{{ employee.position }}</td>
+                    <td>{{ employee.date_hired|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info">No employees found.</div>
+    {% endif %}
+</div>
+{% endblock %}

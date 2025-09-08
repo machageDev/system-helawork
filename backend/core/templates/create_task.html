@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create Task{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Create New Task</h2>
+
+    <form method="post" class="card shadow p-4">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="title" class="form-label">Task Title</label>
+            <input type="text" name="title" id="title" class="form-control" placeholder="Enter task title" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Task Description</label>
+            <textarea name="description" id="description" class="form-control" rows="4" placeholder="Enter task description" required></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="user" class="form-label">Assign to User (optional)</label>
+            <input type="text" name="user" id="user" class="form-control" placeholder="Enter user ID">
+        </div>
+
+        <div class="mb-3 form-check">
+            <input type="checkbox" name="is_approved" id="is_approved" class="form-check-input">
+            <label for="is_approved" class="form-check-label">Approved</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create Task</button>
+        <a href="{% url 'task_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

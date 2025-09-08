@@ -489,3 +489,41 @@ def mpesa_callback(request):
     except Exception as e:
         print("Error processing callback:", str(e))
         return JsonResponse({"error": str(e)})
+    
+from .models import Task
+
+def task_list(request):
+    tasks = Task.objects.all().select_related("employer", "user")
+    return render(request, "task.html", {"tasks": tasks})    
+from .models import Task, User
+
+def create_task(request):
+    if request.method == "POST":
+        title = request.POST.get("title")
+        description = request.POST.get("description")
+        user_id = request.POST.get("user")
+        is_approved = True if request.POST.get("is_approved") else False
+
+        user = None
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                user = None
+
+        Task.objects.create(
+            title=title,
+            description=description,
+            employer=request.user.employer,  
+            user=user,
+            is_approved=is_approved,
+        )
+        return redirect("task_list")
+
+    return render(request, "create_task.html")
+
+from .models import Employee
+
+def employee_list(request):
+    employees = Employee.objects.select_related("user").all()
+    return render(request, "employee.html", {"employees": employees})
