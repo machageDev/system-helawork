@@ -170,3 +170,10 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_ROOT = BASE_DIR / "staticfiles"  # for collectstatic (in production)
+
+# daraja
+DARAJA_CONSUMER_KEY = "your_consumer_key"
+DARAJA_CONSUMER_SECRET = "your_consumer_secret"
+DARAJA_SHORTCODE = "174379"  # Test shortcode
+DARAJA_PASSKEY = "your_passkey"
+DARAJA_BASE_URL = "https://sandbox.safaricom.co.ke"
