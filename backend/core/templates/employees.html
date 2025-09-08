@@ -15,6 +15,7 @@
                     <th>Email</th>
                     <th>Position</th>
                     <th>Date Hired</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -24,6 +25,13 @@
                     <td>{{ employee.user.email }}</td>
                     <td>{{ employee.position }}</td>
                     <td>{{ employee.date_hired|date:"M d, Y" }}</td>
+                    <td>
+                        <a href="{% url 'edit_employee' employee.id %}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="{% url 'delete_employee' employee.id %}" class="btn btn-sm btn-danger"
+                           onclick="return confirm('Are you sure you want to delete {{ employee.user.username }}?');">
+                           Delete
+                        </a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

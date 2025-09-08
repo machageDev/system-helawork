@@ -527,3 +527,18 @@ from .models import Employee
 def employee_list(request):
     employees = Employee.objects.select_related("user").all()
     return render(request, "employee.html", {"employees": employees})
+def edit_employee(request, employee_id):
+    employee = get_object_or_404(Employee, id=employee_id)
+
+    if request.method == "POST":
+        position = request.POST.get("position")
+        employee.position = position
+        employee.save()
+        return redirect("employee_list")
+
+    return render(request, "edit_employee.html", {"employee": employee})
+
+def delete_employee(request, employee_id):
+    employee = get_object_or_404(Employee, id=employee_id)
+    employee.delete()
+    return redirect("employee_list")
