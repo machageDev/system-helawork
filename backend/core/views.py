@@ -1,6 +1,6 @@
 import random
 from core.models import User
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -459,7 +459,7 @@ def mpesa_callback(request):
     This will update Payment table when payment is successful.
     """
     data = json.loads(request.body.decode('utf-8'))
-    print("M-PESA Callback Data:", data)  # Debugging
+    print("M-PESA Callback Data:", data)  
 
     try:
         result_code = data['Body']['stkCallback']['ResultCode']
@@ -467,12 +467,12 @@ def mpesa_callback(request):
         checkout_request_id = data['Body']['stkCallback']['CheckoutRequestID']
 
         if result_code == 0:
-            # Payment successful
+            
             amount = data['Body']['stkCallback']['CallbackMetadata']['Item'][0]['Value']
             mpesa_code = data['Body']['stkCallback']['CallbackMetadata']['Item'][1]['Value']
             phone = data['Body']['stkCallback']['CallbackMetadata']['Item'][4]['Value']
 
-            # Here, update your Payment model
+            
             from .models import Payment, User
             user = User.objects.filter(phoneNo=phone).first()
             if user:
