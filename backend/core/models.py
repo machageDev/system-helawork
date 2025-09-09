@@ -148,3 +148,13 @@ class Worker(models.Model):
 
     def __str__(self):
         return self.user.name  
+    
+class TaskCompletion(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    task_name = models.CharField(max_length=255)        
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    completed_at = models.DateTimeField(auto_now_add=True)
+    paid = models.BooleanField(default=False)          
+
+    def __str__(self):
+        return f"{self.user.username} - {self.task_name} - {'Paid' if self.paid else 'Unpaid'}"    

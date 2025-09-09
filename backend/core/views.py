@@ -27,6 +27,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
+from django.http import JsonResponse
+from .mpesa import stk_push
 
 
 def send_otp(request):
@@ -438,13 +440,16 @@ def logout_view(request):
 from django.http import JsonResponse
 from .mpesa import stk_push
 
+from django.http import JsonResponse
+
 def make_payment(request):
-    # Example: hardcoded values for testing
-    phone = "2547XXXXXXXX"  
-    amount = 10
+    # Use a valid sandbox test number
+    phone = "254700000000"  
+    amount = 10  # Amount to be paid
 
     response = stk_push(phone, amount)
     return JsonResponse(response)
+
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
@@ -456,39 +461,51 @@ import json
 def mpesa_callback(request):
     """
     Callback handler from Safaricom for STK Push.
-    This will update Payment table when payment is successful.
+    Updates Payment table when payment is successful.
     """
-    data = json.loads(request.body.decode('utf-8'))
-    print("M-PESA Callback Data:", data)  
-
     try:
-        result_code = data['Body']['stkCallback']['ResultCode']
-        result_desc = data['Body']['stkCallback']['ResultDesc']
-        checkout_request_id = data['Body']['stkCallback']['CheckoutRequestID']
+        data = json.loads(request.body.decode('utf-8'))
+        print("M-PESA Callback Data:", data)  # Replace with logging in production
 
-        if result_code == 0:
-            
-            amount = data['Body']['stkCallback']['CallbackMetadata']['Item'][0]['Value']
-            mpesa_code = data['Body']['stkCallback']['CallbackMetadata']['Item'][1]['Value']
-            phone = data['Body']['stkCallback']['CallbackMetadata']['Item'][4]['Value']
+        body = data.get("Body", {}).get("stkCallback", {})
+        result_code = body.get("ResultCode")
+        result_desc = body.get("ResultDesc", "")
+        checkout_request_id = body.get("CheckoutRequestID", "")
 
-            
-            from .models import Payment, User
-            user = User.objects.filter(phoneNo=phone).first()
-            if user:
-                Payment.objects.create(
-                    user=user,
-                    employer=None,  # you can assign if known
-                    task=None,      # you can assign if known
-                    amount=amount,
-                    is_paid=True
-                )
+        if result_code == 0:  # Success
+            metadata = body.get("CallbackMetadata", {}).get("Item", [])
+
+            # Extract values dynamically instead of hardcoding indexes
+            amount = None
+            mpesa_code = None
+            phone = None
+
+            for item in metadata:
+                if item.get("Name") == "Amount":
+                    amount = item.get("Value")
+                elif item.get("Name") == "MpesaReceiptNumber":
+                    mpesa_code = item.get("Value")
+                elif item.get("Name") == "PhoneNumber":
+                    phone = item.get("Value")
+
+            # Only save if all necessary data exists
+            if amount and mpesa_code and phone:
+                from .models import Payment, User
+                user = User.objects.filter(phoneNo=phone).first()
+                if user:
+                    Payment.objects.create(
+                        user=user,
+                        employer=None,   # Add logic to link employer if needed
+                        task=None,       # Add logic to link task if needed
+                        amount=amount,
+                        is_paid=True
+                    )
 
         return JsonResponse({"ResultDesc": result_desc, "ResultCode": result_code})
-
     except Exception as e:
-        print("Error processing callback:", str(e))
-        return JsonResponse({"error": str(e)})
+        print("Callback processing error:", str(e))
+        return JsonResponse({"ResultDesc": "Internal Server Error", "ResultCode": 1})
+
     
 from .models import Task
 

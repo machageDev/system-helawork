@@ -13,6 +13,12 @@ def stk_push(phone_number, amount, account_reference="HelaWork", transaction_des
     access_token = get_access_token()
     api_url = f"{settings.DARAJA_BASE_URL}/mpesa/stkpush/v1/processrequest"
 
+    #  Ensure phone number is in correct Safaricom format (2547XXXXXXXX)
+    if phone_number.startswith("0"):
+        phone_number = "254" + phone_number[1:]
+    elif phone_number.startswith("+"):
+        phone_number = phone_number[1:]
+
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     password = base64.b64encode(
         (settings.DARAJA_SHORTCODE + settings.DARAJA_PASSKEY + timestamp).encode("utf-8")

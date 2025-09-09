@@ -166,14 +166,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  # global static folder
+    BASE_DIR / "static",  
 ]
 
-STATIC_ROOT = BASE_DIR / "staticfiles"  # for collectstatic (in production)
+STATIC_ROOT = BASE_DIR / "staticfiles"  
 
 # daraja
-DARAJA_CONSUMER_KEY = "your_consumer_key"
-DARAJA_CONSUMER_SECRET = "your_consumer_secret"
-DARAJA_SHORTCODE = "174379"  # Test shortcode
+DARAJA_CONSUMER_KEY = "XSgLM7QN5cadTlEHSgrjRGyiJadbzYnSVLA4Te3mhvjRGMln"
+DARAJA_CONSUMER_SECRET = "YtIksAfmJmYW988gbx1nG0vNwRexsJ6DWUtAgG3iBGB3SvKzAk9fAGHsd3rbfAbv"
+DARAJA_SHORTCODE = "174379" 
 DARAJA_PASSKEY = "your_passkey"
 DARAJA_BASE_URL = "https://sandbox.safaricom.co.ke"

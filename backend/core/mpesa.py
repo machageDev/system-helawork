@@ -17,12 +17,10 @@ from requests.auth import HTTPBasicAuth
 # MPESA_CALLBACK_URL = 'https://yourdomain.com/api/mpesa/callback/'
 
 
-
-
-
-
-
-
+import requests
+from requests.auth import HTTPBasicAuth
+import datetime
+import base64
 
 def get_access_token():
     consumer_key = "XSgLM7QN5cadTlEHSgrjRGyiJadbzYnSVLA4Te3mhvjRGMln"
@@ -30,21 +28,16 @@ def get_access_token():
     api_url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
 
     response = requests.get(api_url, auth=HTTPBasicAuth(consumer_key, consumer_secret))
-    json_response = response.json()
-    return json_response['access_token']
-
-
-
+    return response.json()['access_token']
 
 def stk_push(phone_number, amount):
     access_token = get_access_token()
     api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
-    headers = {"Authorization": "Bearer %s" % access_token}
+    headers = {"Authorization": f"Bearer {access_token}"}
 
-    shortcode = "174379"  # Test Paybill
-    passkey = "YOUR_PASSKEY"
+    shortcode = "174379"
+    passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"
     timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-
     password = base64.b64encode((shortcode + passkey + timestamp).encode()).decode("utf-8")
 
     payload = {
@@ -53,13 +46,24 @@ def stk_push(phone_number, amount):
         "Timestamp": timestamp,
         "TransactionType": "CustomerPayBillOnline",
         "Amount": amount,
-        "PartyA": phone_number,   
+        "PartyA": phone_number,
         "PartyB": shortcode,
         "PhoneNumber": phone_number,
-        "CallBackURL": "https://yourdomain.com/api/mpesa/callback",
+        "CallBackURL": "https://webhook.site/your-webhook-id",
         "AccountReference": "HelaWork",
         "TransactionDesc": "Payment for services"
     }
 
     response = requests.post(api_url, json=payload, headers=headers)
     return response.json()
+
+# Example usage
+result = stk_push("254700000000", 10)
+print(result)
+
+
+
+
+
+
+
