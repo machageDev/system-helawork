@@ -141,7 +141,7 @@ class PayrollReport(models.Model):
     def __str__(self):
         return f"Payroll Report {self.month} by {self.employer.username}"    
     
-class Employee(models.Model):
+class Worker(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     position = models.CharField(max_length=100)
     date_hired = models.DateField(auto_now_add=True)

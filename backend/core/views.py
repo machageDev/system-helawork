@@ -15,10 +15,10 @@ from rest_framework import status
 from core.serializer import LoginSerializer, PaymentSerializer, ProofOfWorkSerializer, RegisterSerializer, TaskSerializer, UserProfileSerializer, WorkLogSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
-from .models import Employee,  Task, Payment
+from .models import Worker,  Task, Payment
 
 from django.contrib.auth.hashers import check_password
-from .models import Employee, Payment, ProofOfWork, User, WorkLog
+from .models import Worker, Payment, ProofOfWork, User, WorkLog
 from rest_framework import serializers, viewsets, permissions, status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render
@@ -384,15 +384,15 @@ def withdraw_mpesa(request, pk):
 
 
 def employer_dashboard(request):
-    total_employees = Employee.objects.count()
-    active_projects = Task.objects.filter(is_approved=True).count()  # example
+    total_employees = Worker.objects.count()
+    active_projects = Task.objects.filter(is_approved=True).count()  
     pending_payments = Payment.objects.filter(status="Pending").aggregate(total=Sum("amount"))["total"] or 0
 
     active_tasks = Task.objects.filter(is_approved=False).count()
     completed_tasks = Task.objects.filter(is_approved=True).count()
 
     context = {
-        "total_employees": total_employees,
+        "total_workers": total_employees,
         "active_projects": active_projects,
         "pending_payments": pending_payments,
         "active_tasks": active_tasks,
@@ -522,23 +522,43 @@ def create_task(request):
 
     return render(request, "create_task.html")
 
-from .models import Employee
+
 
 def employee_list(request):
-    employees = Employee.objects.select_related("user").all()
-    return render(request, "employees.html", {"employees": employees})
+    workers = Worker.objects.select_related("user").all()
+    return render(request, "employees.html", {"employees": workers})
 def edit_employee(request, employee_id):
-    employee = get_object_or_404(Employee, id=employee_id)
+    employee = get_object_or_404(Worker, id=employee_id)
 
     if request.method == "POST":
         position = request.POST.get("position")
-        employee.position = position
-        employee.save()
+        Worker.position = position
+        Worker.save()
         return redirect("employee_list")
 
     return render(request, "edit_employee.html", {"employee": employee})
 
 def delete_employee(request, employee_id):
-    employee = get_object_or_404(Employee, id=employee_id)
+    employee = get_object_or_404(Worker, id=employee_id)
     employee.delete()
     return redirect("employee_list")
+
+
+def create_worker(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        position = request.POST.get("position")
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists!")
+            return redirect("create_employee")
+
+        user = User.objects.create_user(username=username, email=email, password=password)
+        Worker.objects.create(user=user, position=position)
+
+        messages.success(request, f"Employee {username} created successfully!")
+        return redirect("employees")  
+
+    return render(request, "create_employee.html")
