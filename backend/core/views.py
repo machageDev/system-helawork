@@ -553,7 +553,7 @@ def create_worker(request):
         password = request.POST.get("password")
         position = request.POST.get("position")
 
-        # create user
+        #
         user = User.objects.create(
             name=name,
             email=email,
@@ -562,7 +562,7 @@ def create_worker(request):
         user.set_password(password)
         user.save()
 
-        # create worker
+        
         Worker.objects.create(
             user=user,
             position=position

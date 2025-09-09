@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}Add Worker{% endblock %}
-
+{% block page_title %}Worker Page{% endblock %}
 {% block content %}
 <div class="container mt-4">
     <h2 class="mb-4">Add New Worker</h2>
@@ -23,13 +23,16 @@
             <label class="form-label">Password</label>
             <input type="password" name="password" class="form-control" required>
         </div>
-
+        <div class="mb-3">
+            <label class="form-label">Phone Number</label>
+            <input type="text" name="phoneNo" class="form-control" required>
+        </div>
         <div class="mb-3">
             <label class="form-label">Position</label>
             <input type="text" name="position" class="form-control" required>
         </div>
 
-        <button type="submit" class="btn btn-success">Create Employee</button>
+        <button type="submit" class="btn btn-success">Create Worker</button>
         <a href="{% url 'worker_list' %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
