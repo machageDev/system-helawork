@@ -526,7 +526,7 @@ from .models import Employee
 
 def employee_list(request):
     employees = Employee.objects.select_related("user").all()
-    return render(request, "employee.html", {"employees": employees})
+    return render(request, "employees.html", {"employees": employees})
 def edit_employee(request, employee_id):
     employee = get_object_or_404(Employee, id=employee_id)
 

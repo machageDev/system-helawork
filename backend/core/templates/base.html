@@ -30,11 +30,11 @@
             </a>
 
             <li><a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Dashboard</a></li>
-            <li><a href="#"><i class="fas fa-users"></i> Employees</a></li>
-            <li><a href="#"><i class="fas fa-tasks"></i> Tasks</a></li>
-            <li><a href="#"><i class="fas fa-money-bill"></i> Payments</a></li>
+            <li><a href="{%url 'employee_list'%}"><i class="fas fa-users"></i> Employees</a></li>
+            <li><a href="{% url 'task_list'%}"><i class="fas fa-tasks"></i> Tasks</a></li>
+            <li><a href="{%url 'make_payment'%}"><i class="fas fa-money-bill"></i> Payments</a></li>
             <li><a href="#"><i class="fas fa-chart-bar"></i> Reports</a></li>
-            <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+            <li><a href=""><i class="fas fa-cog"></i> Settings</a></li>
         </ul>
         <!-- End Sidebar -->
 
