@@ -27,9 +27,9 @@ urlpatterns = [
     path("pay", views.make_payment, name="make_payment"),
     path("apimpesacallback", views.mpesa_callback, name="mpesa_callback"),    
     path("tasks", views.task_list, name="task_list"),
-    path("employees", views.employee_list, name="employee_list"),
-    path("employees/<int:employee_id>/edit/", views.edit_employee, name="edit_employee"),
-    path("employees/<int:employee_id>/delete/", views.delete_employee, name="delete_employee"),
+    path('worker_list', views.worker_list, name="worker_list"),
+    path("employees/<int:employee_id>/edit/", views.edit_worker, name="edit_employee"),
+    path("employees/<int:employee_id>/delete/", views.delete_worker, name="delete_employee"),
     path('create_worker',views.create_worker,name="create_employee")
 
 

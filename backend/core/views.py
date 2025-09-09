@@ -26,7 +26,7 @@ from django.db.models import Sum
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-
+from django.contrib.auth import get_user_model
 
 
 def send_otp(request):
@@ -524,41 +524,51 @@ def create_task(request):
 
 
 
-def employee_list(request):
+def worker_list(request):
     workers = Worker.objects.select_related("user").all()
-    return render(request, "employees.html", {"employees": workers})
-def edit_employee(request, employee_id):
-    employee = get_object_or_404(Worker, id=employee_id)
+    return render(request, "worker.html", {"workers": workers})
+def edit_worker(request, employee_id):
+    employee = get_object_or_404(Worker, id=worker_list)
 
     if request.method == "POST":
         position = request.POST.get("position")
         Worker.position = position
         Worker.save()
-        return redirect("employee_list")
+        return redirect("worker_list")
 
-    return render(request, "edit_employee.html", {"employee": employee})
+    return render(request, "edit_worker.html", {"worker": Worker})
 
-def delete_employee(request, employee_id):
-    employee = get_object_or_404(Worker, id=employee_id)
+def delete_worker(request, employee_id):
+    employee = get_object_or_404(Worker, id=Worker)
     employee.delete()
-    return redirect("employee_list")
+    return redirect("worker_list")
 
+User = get_user_model()
 
 def create_worker(request):
     if request.method == "POST":
-        username = request.POST.get("username")
+        name = request.POST.get("name")
         email = request.POST.get("email")
+        phoneNo = request.POST.get("phoneNo")
         password = request.POST.get("password")
         position = request.POST.get("position")
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists!")
-            return redirect("create_employee")
+        # create user
+        user = User.objects.create(
+            name=name,
+            email=email,
+            phoneNo=phoneNo
+        )
+        user.set_password(password)
+        user.save()
 
-        user = User.objects.create_user(username=username, email=email, password=password)
-        Worker.objects.create(user=user, position=position)
+        # create worker
+        Worker.objects.create(
+            user=user,
+            position=position
+        )
 
-        messages.success(request, f"Employee {username} created successfully!")
-        return redirect("employees")  
+        messages.success(request, f"Worker {name} created successfully!")
+        return redirect("worker_list")
 
-    return render(request, "create_employee.html")
+    return render(request, "create_worker.html")

@@ -147,5 +147,4 @@ class Worker(models.Model):
     date_hired = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return self.user.username
-    
+        return self.user.name  
