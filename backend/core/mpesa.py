@@ -30,36 +30,32 @@ def get_access_token():
     response = requests.get(api_url, auth=HTTPBasicAuth(consumer_key, consumer_secret))
     return response.json()['access_token']
 
+import requests
+from django.conf import settings
+
 def stk_push(phone_number, amount):
-    access_token = get_access_token()
-    api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
-    headers = {"Authorization": f"Bearer {access_token}"}
-
-    shortcode = "174379"
-    passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"
-    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-    password = base64.b64encode((shortcode + passkey + timestamp).encode()).decode("utf-8")
-
+    url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
+    headers = {"Authorization": f"Bearer {settings.MPESA_ACCESS_TOKEN}"}
     payload = {
-        "BusinessShortCode": shortcode,
-        "Password": password,
-        "Timestamp": timestamp,
+        "BusinessShortCode": settings.BUSINESS_SHORT_CODE,
+        "Password": settings.PASSWORD,
+        "Timestamp": settings.TIMESTAMP,
         "TransactionType": "CustomerPayBillOnline",
         "Amount": amount,
         "PartyA": phone_number,
-        "PartyB": shortcode,
+        "PartyB": settings.BUSINESS_SHORT_CODE,
         "PhoneNumber": phone_number,
-        "CallBackURL": "https://webhook.site/your-webhook-id",
+        "CallBackURL": settings.CALLBACK_URL,
         "AccountReference": "HelaWork",
-        "TransactionDesc": "Payment for services"
+        "TransactionDesc": "Payment for work",
     }
+    response = requests.post(url, json=payload, headers=headers)
 
-    response = requests.post(api_url, json=payload, headers=headers)
-    return response.json()
+    try:
+        return response.json()
+    except ValueError:
+        return {"error": "Invalid response from M-Pesa"}
 
-# Example usage
-result = stk_push("254700000000", 10)
-print(result)
 
 
 

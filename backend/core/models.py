@@ -8,7 +8,7 @@ from decimal import Decimal
 from django.contrib.auth.hashers import make_password, check_password
 from django.db.models.signals import post_save
 
-class User(models.Model):
+class AppUser(models.Model):
     user_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100,default="Anonymous")
     email = models.EmailField(unique=True)
@@ -25,7 +25,7 @@ class User(models.Model):
         return self.name
     
 class UserToken(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="token")
+    user = models.OneToOneField(AppUser, on_delete=models.CASCADE, related_name="token")
     key = models.CharField(max_length=40, unique=True, blank=True)
 
     def save(self, *args, **kwargs):
@@ -48,7 +48,7 @@ class Task(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     employer = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name="tasks")
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="tasks")
+    user = models.ForeignKey(AppUser, on_delete=models.SET_NULL, null=True, blank=True, related_name="tasks")
     is_approved = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -59,7 +59,7 @@ class Task(models.Model):
 class WorkLog(models.Model):
     
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="worklogs")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="worklogs")
+    user = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name="worklogs")
     start_time = models.DateTimeField(default=timezone.now)
     end_time = models.DateTimeField(null=True, blank=True)
 
@@ -75,7 +75,7 @@ class WorkLog(models.Model):
 
 class ProofOfWork(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="proofs")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="proofs")
+    user = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name="proofs")
     description = models.TextField()
     file_upload = models.FileField(upload_to="proofs/", blank=True, null=True)  # optional file
     submitted_at = models.DateTimeField(auto_now_add=True)
@@ -84,7 +84,7 @@ class ProofOfWork(models.Model):
         return f"Proof for {self.task.title} by {self.user.name}"
 
 class Payment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="User")
+    user = models.ForeignKey(AppUser, on_delete=models.CASCADE, verbose_name="User")
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Amount")
     date = models.DateTimeField(default=timezone.now, verbose_name="Payment Date")
     status = models.CharField(
@@ -96,7 +96,7 @@ class Payment(models.Model):
     
     
 class PaymentRate(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="rates")
+    user = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name="rates")
     employer = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name="rates")
     rate_per_hour = models.DecimalField(max_digits=10, decimal_places=2)
     effective_from = models.DateTimeField()
@@ -133,8 +133,8 @@ def save_user_profile(sender, instance, **kwargs):
 
 
 class PayrollReport(models.Model):
-    employer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payroll_reports")
-    month = models.DateField()  #
+    employer = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name="payroll_reports")
+    month = models.DateField()  
     total_expense = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -142,15 +142,14 @@ class PayrollReport(models.Model):
         return f"Payroll Report {self.month} by {self.employer.username}"    
     
 class Worker(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    position = models.CharField(max_length=100)
+    user = models.OneToOneField("core.User", on_delete=models.CASCADE)   
     date_hired = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return self.user.name  
     
 class TaskCompletion(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(AppUser, on_delete=models.CASCADE)
     task_name = models.CharField(max_length=255)        
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     completed_at = models.DateTimeField(auto_now_add=True)

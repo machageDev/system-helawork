@@ -1,5 +1,5 @@
 import random
-from core.models import User
+from core.models import AppUser
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from rest_framework.decorators import api_view, permission_classes
@@ -34,7 +34,7 @@ from .mpesa import stk_push
 def send_otp(request):
     if request.method == 'POST':
         email = request.POST.get('email')
-        user = User.objects.filter(email=email).first()
+        user = AppUser.objects.filter(email=email).first()
 
         if user:
             otp = random.randint(100000, 999999)  # Generate 6-digit OTP
@@ -84,7 +84,7 @@ def apiregister(request):
         password = serializer.validated_data['password']
         phone_no = serializer.validated_data['phoneNo'].strip()   
 
-        if User.objects.filter(email=email).exists():
+        if AppUser.objects.filter(email=email).exists():
             return Response(
                 {"error": "User with this email already exists"},
                 status=status.HTTP_400_BAD_REQUEST
@@ -568,7 +568,7 @@ def create_worker(request):
         email = request.POST.get("email")
         phoneNo = request.POST.get("phoneNo")
         password = request.POST.get("password")
-        position = request.POST.get("position")
+       
 
         #
         user = User.objects.create(
@@ -582,7 +582,7 @@ def create_worker(request):
         
         Worker.objects.create(
             user=user,
-            position=position
+            
         )
 
         messages.success(request, f"Worker {name} created successfully!")
