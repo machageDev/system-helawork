@@ -5,17 +5,17 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">Edit Employee: {{ employee.user.username }}</h2>
+    <h2 class="mb-4">Edit Worker: {{ worker.user.username }}</h2>
 
     <form method="post" class="card shadow p-4">
         {% csrf_token %}
         <div class="mb-3">
             <label for="position" class="form-label">Position</label>
             <input type="text" id="position" name="position" class="form-control"
-                   value="{{ employee.position }}" required>
+                   value="{{ worker.position }}" required>
         </div>
         <button type="submit" class="btn btn-success">Save Changes</button>
-        <a href="{% url 'employee_list' %}" class="btn btn-secondary">Cancel</a>
+        <a href="{% url 'worker_list' %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
 {% endblock %}

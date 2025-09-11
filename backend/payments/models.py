@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 
 from django.conf import settings
-from core.models import Employee  
+from core.models import Worker
 
 class Payment(models.Model):
     STATUS_CHOICES = [
@@ -12,7 +12,7 @@ class Payment(models.Model):
         ("Failed", "Failed"),
     ]
 
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="payments")
+    worker = models.ForeignKey(Worker, on_delete=models.CASCADE, related_name="payments")
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     phone_number = models.CharField(max_length=15)   # e.g., 2547XXXXXXXX
     transaction_id = models.CharField(max_length=100, blank=True, null=True)  # M-Pesa receipt number

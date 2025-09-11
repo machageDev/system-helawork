@@ -1,8 +1,10 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from .models import TaskCompletion
+
 from django.shortcuts import redirect
 from django.contrib import messages
+
+from core.models import TaskCompletion
 from .utils import stk_push
 
 def pay_worker(request):
