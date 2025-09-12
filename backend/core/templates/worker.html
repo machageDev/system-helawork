@@ -12,7 +12,7 @@
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between">
                 <h6 class="m-0 font-weight-bold text-primary">All Workers</h6>
-                <a href="{% url 'create_employee' %}" class="btn btn-sm btn-primary">
+                <a href="{% url 'core:create_worker' %}" class="btn btn-sm btn-primary">
                     + Add Worker
                 </a>
             </div>
@@ -37,8 +37,8 @@
                                     <td>{{ worker.position }}</td>
                                     <td>{{ worker.date_hired|date:"M d, Y" }}</td>
                                     <td>
-                                        <a href="{% url 'edit_employee' worker.id %}" class="btn btn-sm btn-warning">Edit</a>
-                                        <a href="{% url 'delete_employee' worker.id %}" class="btn btn-sm btn-danger"
+                                        <a href="{% url 'core:edit_employee' worker.id %}" class="btn btn-sm btn-warning">Edit</a>
+                                        <a href="{% url 'core:delete_employee' worker.id %}" class="btn btn-sm btn-danger"
                                            onclick="return confirm('Are you sure you want to delete {{ worker.user.name }}?');">
                                            Delete
                                         </a>

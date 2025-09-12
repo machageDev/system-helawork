@@ -179,8 +179,9 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / "staticfiles"  
 
 # daraja
-DARAJA_CONSUMER_KEY = "XSgLM7QN5cadTlEHSgrjRGyiJadbzYnSVLA4Te3mhvjRGMln"
-DARAJA_CONSUMER_SECRET = "YtIksAfmJmYW988gbx1nG0vNwRexsJ6DWUtAgG3iBGB3SvKzAk9fAGHsd3rbfAbv"
-DARAJA_SHORTCODE = "174379" 
-DARAJA_PASSKEY = "your_passkey"
-DARAJA_BASE_URL = "https://sandbox.safaricom.co.ke"
+MPESA_CONSUMER_KEY = "XSgLM7QN5cadTlEHSgrjRGyiJadbzYnSVLA4Te3mhvjRGMln"
+MPESA_CONSUMER_SECRET = "YtIksAfmJmYW988gbx1nG0vNwRexsJ6DWUtAgG3iBGB3SvKzAk9fAGHsd3rbfAbv"
+BUSINESS_SHORT_CODE = "174379" 
+PASSKEY = "your_passkey"
+MPESA_BASE_URL = "https://sandbox.safaricom.co.ke"
+MPESA_ENVIRONMENT = "sandbox"
