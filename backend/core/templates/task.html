@@ -5,7 +5,12 @@
 {% block page_title %}Task Page{% endblock %}
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">Task List</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Task List</h2>
+        <a href="{% url 'create_task' %}" class="btn btn-primary">
+            + Add Task
+        </a>
+    </div>
 
     {% if tasks %}
         <table class="table table-striped table-bordered">

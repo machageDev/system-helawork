@@ -3,34 +3,42 @@
 
 {% block title %}Add Worker{% endblock %}
 {% block page_title %}Worker Page{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4">Add New Worker</h2>
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow p-4">
+                <h2 class="mb-4">Add New Worker</h2>
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label class="form-label">name</label>
-            <input type="text" name="name" class="form-control" required>
-        </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
 
-        <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input type="email" name="email" class="form-control" required>
-        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
 
-        <div class="mb-3">
-            <label class="form-label">Password</label>
-            <input type="password" name="password" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Phone Number</label>
-            <input type="text" name="phoneNo" class="form-control" required>
-        </div>
-       
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
 
-        <button type="submit" class="btn btn-success">Create Worker</button>
-        <a href="{% url 'worker_list' %}" class="btn btn-secondary">Cancel</a>
-    </form>
+                    <div class="mb-3">
+                        <label class="form-label">Phone Number</label>
+                        <input type="text" name="phoneNo" class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Create Worker</button>
+                    <a href="{% url 'worker_list' %}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
 {% endblock %}
