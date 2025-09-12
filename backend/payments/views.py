@@ -11,10 +11,10 @@ from core.models import TaskCompletion
 
 # 1. Generate access token
 def generate_mpesa_token():
-    url = f"{settings.DARAJA_BASE_URL}/oauth/v1/generate?grant_type=client_credentials"
+    url = f"{settings.MPESA_BASE_URL}/oauth/v1/generate?grant_type=client_credentials"
     response = requests.get(
         url,
-        auth=HTTPBasicAuth(settings.DARAJA_CONSUMER_KEY, settings.DARAJA_CONSUMER_SECRET)
+        auth=HTTPBasicAuth(settings.MPESA_CONSUMER_KEY, settings.MPESA_CONSUMER_SECRET)
     )
     response.raise_for_status()
     return response.json()["access_token"]
@@ -23,24 +23,25 @@ def generate_mpesa_token():
 # 2. Send B2C payment
 def send_b2c_payment(phone_number, amount):
     access_token = generate_mpesa_token()
-    url = f"{settings.DARAJA_BASE_URL}/mpesa/b2c/v1/paymentrequest"
+    url = f"{settings.MPESA_BASE_URL}/mpesa/b2c/v1/paymentrequest"
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json"
     }
 
     payload = {
-        "InitiatorName": settings.DARAJA_INITIATOR_NAME,       # put in settings.py
-        "SecurityCredential": settings.DARAJA_SECURITY_CREDENTIAL, # encrypted password
-        "CommandID": "BusinessPayment",
-        "Amount": amount,
-        "PartyA": settings.DARAJA_SHORTCODE,   # e.g. "600000" in sandbox
-        "PartyB": phone_number,
-        "Remarks": "Task reward",
-        "QueueTimeOutURL": "https://yourdomain.com/api/b2c/timeout",
-        "ResultURL": "https://yourdomain.com/api/b2c/result",
-        "Occasion": "Task Payment"
-    }
+    "InitiatorName": "testapi",  # use your Daraja initiator name
+    "SecurityCredential": "your_generated_security_credential",
+    "CommandID": "BusinessPayment",
+    "Amount": amount,
+    "PartyA": settings.BUSINESS_SHORT_CODE,   # instead of DARAJA_SHORTCODE
+    "PartyB": phone_number,
+    "Remarks": "Task reward",
+    "QueueTimeOutURL": "https://yourdomain.com/api/b2c/timeout",
+    "ResultURL": "https://yourdomain.com/api/b2c/result",
+    "Occasion": "Task Payment"
+}
+
 
     response = requests.post(url, json=payload, headers=headers)
     return response.json()
@@ -57,7 +58,7 @@ def pay_worker(request):
     else:
         messages.error(request, f"Payment failed: {response.get('errorMessage')}")
 
-    return redirect("employer_dashboard")
+    return redirect("core:employer_dashboard")
 
 
 # 4. Pay all workers who completed tasks

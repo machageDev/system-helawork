@@ -401,7 +401,7 @@ def employer_dashboard(request):
         "active_tasks": active_tasks,
         "completed_tasks": completed_tasks,
     }
-    return render(request, "dashboard.html", context)
+    return render(request, "core/dashboard.html", context)
 
 
 def login_view(request):
