@@ -27,6 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
+# your_project/settings.py
+
+# ...other settings
+
 
 
 

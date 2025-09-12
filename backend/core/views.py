@@ -1,5 +1,5 @@
 import random
-from core.models import User
+
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from rest_framework.decorators import api_view, permission_classes
@@ -10,13 +10,12 @@ from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from rest_framework import status
 from core.serializer import LoginSerializer, PaymentSerializer, ProofOfWorkSerializer, RegisterSerializer, TaskSerializer, UserProfileSerializer, WorkLogSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
 from .models import Worker,  Task, Payment
-
 from django.contrib.auth.hashers import check_password
 from .models import Worker, Payment, ProofOfWork, User, WorkLog
 from rest_framework import serializers, viewsets, permissions, status
@@ -26,9 +25,9 @@ from django.db.models import Sum
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from .mpesa import stk_push
+
 
 
 def send_otp(request):
@@ -437,10 +436,7 @@ def logout_view(request):
     messages.success(request, 'You have been successfully logged out.')
     return redirect('login')
 
-from django.http import JsonResponse
-from .mpesa import stk_push
 
-from django.http import JsonResponse
 
 def make_payment(request):
     # Use a valid sandbox test number
@@ -495,8 +491,8 @@ def mpesa_callback(request):
                 if user:
                     Payment.objects.create(
                         user=user,
-                        employer=None,   # Add logic to link employer if needed
-                        task=None,       # Add logic to link task if needed
+                        employer=None,   
+                        task=None,       
                         amount=amount,
                         is_paid=True
                     )
@@ -507,7 +503,7 @@ def mpesa_callback(request):
         return JsonResponse({"ResultDesc": "Internal Server Error", "ResultCode": 1})
 
     
-from .models import Task
+
 
 def task_list(request):
     tasks = Task.objects.all().select_related("employer", "user")
@@ -545,7 +541,7 @@ def worker_list(request):
     workers = Worker.objects.select_related("user").all()
     return render(request, "worker.html", {"workers": workers})
 def edit_worker(request, employee_id):
-    employee = get_object_or_404(Worker, id=worker_list)
+    worker = get_object_or_404(Worker, id=worker_list)
 
     if request.method == "POST":
         position = request.POST.get("position")
@@ -555,12 +551,10 @@ def edit_worker(request, employee_id):
 
     return render(request, "edit_worker.html", {"worker": Worker})
 
-def delete_worker(request, employee_id):
-    employee = get_object_or_404(Worker, id=Worker)
-    employee.delete()
+def delete_worker(request):
+    worker = get_object_or_404()
+    worker.delete()
     return redirect("worker_list")
-
-User = get_user_model()
 
 def create_worker(request):
     if request.method == "POST":
@@ -568,23 +562,27 @@ def create_worker(request):
         email = request.POST.get("email")
         phoneNo = request.POST.get("phoneNo")
         password = request.POST.get("password")
-       
-
-        #
-        user = User.objects.create(
-            name=name,
-            email=email,
-            phoneNo=phoneNo
-        )
-        user.set_password(password)
-        user.save()
-
         
-        Worker.objects.create(
-            user=user,
-                    )
+        try:
+            # Use a transaction to ensure both user and worker are created successfully
+            with transaction.atomic():
+                
+                user = User.objects.create(
+                    email=email,
+                    password=password,
+                    name=name,
+                    phoneNo=phoneNo
+                )
+                
+                
+                Worker.objects.create(user=user)
 
-        messages.success(request, f"Worker {name} created successfully!")
-        return redirect("worker_list")
+                messages.success(request, f"Worker {name} created successfully!")
+                return redirect("worker_list")
+
+        except IntegrityError:
+            
+            messages.error(request, "A user with this email or phone number already exists.")
+            return render(request, "create_worker.html")
 
     return render(request, "create_worker.html")
