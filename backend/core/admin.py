@@ -8,7 +8,7 @@ from .models import (
 )
 
 # Simple registration
-admin.site.register(User)
+
 admin.site.register(UserToken)
 admin.site.register(Employer)
 admin.site.register(Task)

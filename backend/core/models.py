@@ -7,6 +7,8 @@ from django.utils import timezone
 from decimal import Decimal
 from django.contrib.auth.hashers import make_password, check_password
 from django.db.models.signals import post_save
+from django.contrib.auth import get_user_model
+
 
 class User(models.Model):
     user_id = models.AutoField(primary_key=True)
@@ -35,25 +37,25 @@ class UserToken(models.Model):
 
 
 
-class Employer(models.Model):
-    company_name = models.CharField(max_length=255)
+class Employer(models.Model):    
+    username = models.CharField(max_length=255)
+    password = models.CharField(max_length=128,null=True,blank=True)
     contact_email = models.EmailField()
     phone_number = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
         return self.company_name
 
-
+User = get_user_model()  
 class Task(models.Model):
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=255)
     description = models.TextField()
-    employer = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name="tasks")
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="tasks")
     is_approved = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return self.title
+    employer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="employer_tasks")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="assigned_tasks", null=True, blank=True, default=1)
+
 
 
 class WorkLog(models.Model):
@@ -142,11 +144,12 @@ class PayrollReport(models.Model):
         return f"Payroll Report {self.month} by {self.employer.username}"    
     
 class Worker(models.Model):
-    user = models.OneToOneField("core.User", on_delete=models.CASCADE)   
+    user = models.ForeignKey("core.User", on_delete=models.CASCADE) 
     date_hired = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return self.user.name  
+        return self.user.name
+  
     
 class TaskCompletion(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

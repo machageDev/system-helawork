@@ -385,7 +385,7 @@ def withdraw_mpesa(request, pk):
  
  
 
-
+@login_required
 def employer_dashboard(request):
     total_employees = Worker.objects.count()
     active_projects = Task.objects.filter(is_approved=True).count()  
@@ -401,24 +401,24 @@ def employer_dashboard(request):
         "active_tasks": active_tasks,
         "completed_tasks": completed_tasks,
     }
-    return render(request, "core/dashboard.html", context)
+    return render(request, "dashboard.html", context)
 
 
 def login_view(request):
     
-    if request.user.is_authenticated:
+    if request.employer.is_authenticated:
         return redirect('dashboard')
     
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         
-        # Authenticate user
-        user = authenticate(request, username=username, password=password)
         
-        if user is not None:
+        employer = authenticate(request, username=username, password=password)
+        
+        if employer is not None:
             # Login successful
-            login(request, user)
+            login(request, employer)
             messages.success(request, f'Welcome back, {username}!')
             return redirect('dashboard')
         else:
@@ -438,36 +438,30 @@ def logout_view(request):
     messages.success(request, 'You have been successfully logged out.')
     return redirect('login')
 
-
-
-
-    
-
-
+@login_required
 def task_list(request):
     tasks = Task.objects.all().select_related("employer", "user")
     return render(request, "task.html", {"tasks": tasks})    
-from .models import Task, User
-
+@login_required
 def create_task(request):
     if request.method == "POST":
         title = request.POST.get("title")
         description = request.POST.get("description")
-        user_id = request.POST.get("user")
+        user_id = request.POST.get("user")  
         is_approved = True if request.POST.get("is_approved") else False
 
-        user = None
+        worker = None
         if user_id:
             try:
-                user = User.objects.get(id=user_id)
-            except User.DoesNotExist:
-                user = None
+                worker = Worker.objects.get(user_id=user_id)
+            except Worker.DoesNotExist:
+                worker = None
 
         Task.objects.create(
             title=title,
             description=description,
-            employer=request.user.employer,  
-            user=user,
+            employer=User.objects.get(pk=request.user.pk),  
+            user=worker.user if worker else None,          
             is_approved=is_approved,
         )
         return redirect("task_list")
