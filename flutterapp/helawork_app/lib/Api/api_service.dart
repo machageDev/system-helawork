@@ -13,7 +13,7 @@ class ApiService{
   static const String active_sessionUrl = '$baseUrl/apiactivesession';
   static const String earningUrl = '$baseUrl/apiearing';
 
-Future<Map<String, dynamic>> register(String name, String email, String password, String phoneNO, String confirmPassword) async {
+Future<Map<String, dynamic>> register(String name, String email,String phoneNO, String password,  String confirmPassword) async {
   final url = Uri.parse(registerUrl);
   try {
     final response = await http.post(

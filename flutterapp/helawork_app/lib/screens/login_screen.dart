@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus(); // ✅ check if already logged in
+    _checkLoginStatus(); 
   }
 
   Future<void> _checkLoginStatus() async {
