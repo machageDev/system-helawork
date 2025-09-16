@@ -4,8 +4,6 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
 
     <title>HelaWork - Login</title>
 
@@ -146,6 +144,7 @@
             background-color: #3a5ecc;
         }
         
+        /* Additional options
         /* Additional options */
         .login-options {
             display: flex;
@@ -154,28 +153,28 @@
             margin-top: 20px;
             font-size: 14px;
         }
-        
+
         .remember-me {
             display: flex;
             align-items: center;
         }
-        
+
         .remember-me input {
             margin-right: 8px;
         }
-        
+
         /* Responsive design */
         @media (min-width: 992px) {
             .login-image {
                 display: flex;
             }
         }
-        
+
         @media (max-width: 768px) {
             .login-container {
                 flex-direction: column;
             }
-            
+
             .login-form-container {
                 padding: 30px;
             }
@@ -191,15 +190,15 @@
                 <p>Streamline your workflow and boost productivity.</p>
             </div>
         </div>
-        
+
         <div class="login-form-container">
             <div class="logo">
                 <h1>HelaWork</h1>
             </div>
-            
+
             <div class="welcome-message">
                 <h2>Welcome Back!</h2>
-                
+                <p>Please log in to continue</p>
             </div>
 
             <!-- Django Login Form -->
@@ -207,24 +206,25 @@
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" name="username" class="form-control" placeholder="Enter your username" required>
+                    <input id="username" type="text" name="username" class="form-control" placeholder="Enter your username" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                    <input id="password" type="password" name="password" class="form-control" placeholder="Enter your password" required>
                 </div>
-                
+
                 <button type="submit" class="btn-login">
                     Login
                 </button>
             </form>
-            
+
             <div class="login-options">
                 <div class="remember-me">
-                    <input type="checkbox" id="remember">
+                    <input type="checkbox" id="remember" name="remember">
                     <label for="remember">Remember me</label>
                 </div>
+                
             </div>
         </div>
     </div>

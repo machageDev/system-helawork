@@ -401,33 +401,28 @@ def employer_dashboard(request):
         "active_tasks": active_tasks,
         "completed_tasks": completed_tasks,
     }
-    return render(request, "dashboard.html", context)
+    return render(request, "core/dashboard.html", context)
 
 
 def login_view(request):
-    
     if request.employer.is_authenticated:
-        return redirect('dashboard')
-    
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        
-        
+        return redirect("core:employer_dashboard")  
+
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
         employer = authenticate(request, username=username, password=password)
-        
+
         if employer is not None:
-            # Login successful
             login(request, employer)
-            messages.success(request, f'Welcome back, {username}!')
-            return redirect('dashboard')
+            messages.success(request, f"Welcome back, {username}!")
+            return redirect("core:employer_dashboard")  
         else:
-            # Login failed
-            messages.error(request, 'Invalid username or password. Please try again.')
-            return render(request, 'login.html', {'username': username})
-    
-    
-    return render(request, 'login.html')
+            messages.error(request, "Invalid username or password. Please try again.")
+            return render(request, "core/login.html", {"username": username})
+
+    return render(request, "core/login.html")
 
 @login_required
 def logout_view(request):
@@ -497,7 +492,7 @@ def create_worker(request):
         password = request.POST.get("password")
         
         try:
-            # Use a transaction to ensure both user and worker are created successfully
+            
             with transaction.atomic():
                 
                 user = User.objects.create(

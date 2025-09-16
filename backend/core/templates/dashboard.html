@@ -2,20 +2,24 @@
 {% load static %}
 
 {% block title %}Dashboard | HelaWork{% endblock %}
-{% block page_title %}Manager Dashboard{% endblock %}
+{% block page_title %}Employer Dashboard{% endblock %}
+<p>Welcome, {{ request.user.username }}!</p>
 
 {% block content %}
 <div class="row">
 
-    <!-- Total Employees -->
+    <!-- Total Workers -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Total Workers</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_employees }}</div>
+                            Total Workers
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_employees }}
+                        </div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-users fa-2x text-gray-300"></i>
@@ -32,8 +36,11 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Active Projects</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_projects }}</div>
+                            Active Projects
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ active_projects }}
+                        </div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-tasks fa-2x text-gray-300"></i>
@@ -50,8 +57,11 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Pending Payments</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">Ksh {{ pending_payments }}</div>
+                            Pending Payments
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            Ksh {{ pending_payments }}
+                        </div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-money-bill fa-2x text-gray-300"></i>
@@ -68,8 +78,11 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            Tasks Completed (This Month)</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ tasks_completed }}</div>
+                            Tasks Completed (This Month)
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ tasks_completed }}
+                        </div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-check-circle fa-2x text-gray-300"></i>
@@ -163,7 +176,7 @@
         options: { responsive: true }
     });
 
-    // Expense Breakdown (Pie Chart Example)
+    // Expense Breakdown (Doughnut Chart Example)
     const expenseCtx = document.getElementById('expenseChart');
     new Chart(expenseCtx, {
         type: 'doughnut',

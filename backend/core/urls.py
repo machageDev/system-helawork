@@ -20,7 +20,7 @@ urlpatterns = [
     #employer urls
 
    
-    path('dashboard',views.employer_dashboard,name='dashboard'),
+    path('dashboard',views.employer_dashboard,name='employer_dashboard'),
     path('login',views.login_view,name='login'),
     path('logout', views.logout_view, name='logout'),
     path("tasks/create", views.create_task, name="create_task"),      
