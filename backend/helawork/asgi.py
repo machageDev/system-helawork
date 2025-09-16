@@ -14,6 +14,3 @@ from django.core.asgi import get_asgi_application
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'helawork.settings')
 
 application = get_asgi_application()
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'core:employer_dashboard'   
-LOGOUT_REDIRECT_URL = 'login'

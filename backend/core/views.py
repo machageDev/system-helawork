@@ -303,10 +303,13 @@ def withdraw_mpesa(request, pk):
         "message": "Withdraw request processed successfully",
         "payment": PaymentSerializer(payment).data
     }, status=status.HTTP_200_OK)
- 
 
-@login_required
+
 def employer_dashboard(request):
+    #  Check if employer is logged in
+    if not request.session.get('employer_id'):
+        return redirect('login')
+
     total_employees = User.objects.count()
     active_projects = Task.objects.filter(is_approved=True).count()  
     pending_payments = Payment.objects.filter(status="Pending").aggregate(total=Sum("amount"))["total"] or 0
@@ -320,28 +323,33 @@ def employer_dashboard(request):
         "pending_payments": pending_payments,
         "active_tasks": active_tasks,
         "completed_tasks": completed_tasks,
+        "employer_name": request.session.get("employer_name")  # ✅ Show who is logged in
     }
+
     return render(request, "dashboard.html", context)
 
 def login_view(request):
-    if request.session.get("employer_id"):  
-        return redirect("employer_dashboard")
+    if request.session.get('employer_id'):
+        return redirect(request.GET.get('next', 'employer_dashboard'))
 
-    if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
         try:
             employer = Employer.objects.get(username=username, password=password)
-           
-            request.session["employer_id"] = employer.id
-            messages.success(request, f"Welcome back, {username}!")
-            return redirect("employer_dashboard")
-        except Employer.DoesNotExist:
-            messages.error(request, "Invalid username or password.")
-            return render(request, "login.html", {"username": username})
+            
+            request.session['employer_id'] = employer.id
+            request.session['employer_name'] = employer.username
 
-    return render(request, "login.html")
+            return redirect(request.GET.get('next', 'employer_dashboard'))
+
+        except Employer.DoesNotExist:
+            messages.error(request, "Invalid credentials")
+            return render(request, 'login.html')
+
+    return render(request, 'login.html')
+
 
 
 def logout_view(request):
@@ -350,13 +358,11 @@ def logout_view(request):
     return redirect("login")
 
 
-@login_required
+
 def task_list(request):
     tasks = Task.objects.all().select_related("employer", "user")
     return render(request, "task.html", {"tasks": tasks})
 
-
-@login_required
 def create_task(request):
     if request.method == "POST":
         title = request.POST.get("title")
@@ -383,14 +389,13 @@ def create_task(request):
     return render(request, "create_task.html", {"users": user})
 
 
-@login_required
 def worker_list(request):
     
     users = User.objects.all()
     return render(request, "worker.html", {"users": users})
 
 
-@login_required
+
 def edit_worker(request, worker_id):
     worker = get_object_or_404(User, id=worker_id)
 
@@ -408,14 +413,14 @@ def edit_worker(request, worker_id):
     return render(request, "edit_worker.html", {"worker": worker})
 
 
-@login_required
+
 def delete_worker(request, worker_id):
     worker = get_object_or_404(User, id=worker_id)
     worker.delete()
     messages.success(request, "Worker deleted successfully.")
     return redirect("worker_list")
 
-@login_required
+
 def create_worker(request):
     if request.method == "POST":
         name = request.POST.get("name")
