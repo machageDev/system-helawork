@@ -24,22 +24,20 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Email</th>
-                                    <th>Position</th>
-                                    <th>Date Hired</th>
+                                    <th>Phone</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for user in userss %}
+                                {% for user in users %}
                                 <tr>
-                                    <td>{{ worker.name }}</td>
-                                    <td>{{ worker.email }}</td>
-                                    <td>-</td> <!-- No position field anymore -->
-                                    <td>-</td> <!-- No date_hired field anymore -->
+                                    <td>{{ user.name }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.phoneNo }}</td>
                                     <td>
-                                        <a href="{% url 'edit_employee' worker.id %}" class="btn btn-sm btn-warning">Edit</a>
-                                        <a href="{% url 'delete_employee' worker.id %}" class="btn btn-sm btn-danger"
-                                           onclick="return confirm('Are you sure you want to delete {{ worker.name }}?');">
+                                        <a href="{% url 'edit_employee' user.id %}" class="btn btn-sm btn-warning">Edit</a>
+                                        <a href="{% url 'delete_employee' user.id %}" class="btn btn-sm btn-danger"
+                                           onclick="return confirm('Are you sure you want to delete {{ user.name }}?');">
                                            Delete
                                         </a>
                                     </td>
