@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:helawork_app/home/dashboard_page.dart';
-import 'package:helawork_app/screens/register_screen.dart';
-import 'package:helawork_app/screens/forgot_password_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart'; 
 import '../Api/api_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,24 +15,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   final ApiService _apiService = ApiService();
 
-  @override
-  void initState() {
-    super.initState();
-    _checkLoginStatus(); 
-  }
-
-  Future<void> _checkLoginStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isLoggedIn = prefs.getBool("isLoggedIn") ?? false;
-
-    if (isLoggedIn) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const DashboardPage()),
-      );
-    }
-  }
-
   Future<void> _login() async {
     setState(() => _isLoading = true);
 
@@ -49,12 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (response["success"]) {
       print("User data: ${response["data"]}");
 
-      //  Save login state
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool("isLoggedIn", true);
-      await prefs.setString("Name", _nameController.text.trim());
-      await prefs.setInt("loginTime", DateTime.now().millisecondsSinceEpoch);
-
+      // ✅ Directly navigate after login (no SharedPreferences auto-login)
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const DashboardPage()),
@@ -149,42 +123,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text("Login", style: TextStyle(fontSize: 16)),
                 ),
-              ),
-              const SizedBox(height: 15),
-
-              // Forgot password
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context)=> const ForgotPasswordScreen()),
-                  );
-                },
-                child: const Text(
-                  "Forgot Password?",
-                  style: TextStyle(color: Colors.orange),
-                ),
-              ),
-
-              // Register text
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Don't have an account?",
-                      style: TextStyle(color: Colors.grey)), 
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                      );
-                    },
-                    child: const Text(
-                      "Register",
-                      style: TextStyle(color: Colors.orange),
-                    ),
-                  ),
-                ],
               ),
             ],
           ),
