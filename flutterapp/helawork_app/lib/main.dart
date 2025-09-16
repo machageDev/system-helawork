@@ -72,26 +72,11 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Future<void> _checkAuthStatus() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final loginTime = prefs.getInt("loginTime");
       final username = prefs.getString("username");
-
-      bool loggedIn = false;
-
-      if (loginTime != null && username != null && username.isNotEmpty) {
-        final now = DateTime.now().millisecondsSinceEpoch;
-        final sevenDays = 7 * 24 * 60 * 60 * 1000;
-
-        if (now - loginTime < sevenDays) {
-          loggedIn = true;
-        } else {
-          await prefs.clear();
-        }
-      }
-
-      await Future.delayed(const Duration(milliseconds: 500));
+      final isLoggedIn = prefs.getBool("isLoggedIn") ?? false;
 
       setState(() {
-        _isLoggedIn = loggedIn;
+        _isLoggedIn = isLoggedIn && username != null && username.isNotEmpty;
         _isLoading = false;
       });
     } catch (e) {
@@ -108,30 +93,14 @@ class _AuthWrapperState extends State<AuthWrapper> {
       return const Scaffold(
         backgroundColor: Colors.black,
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Loading...',
-                style: TextStyle(color: Colors.white70),
-              ),
-            ],
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
           ),
         ),
       );
     }
 
-    //  If logged in → go to Dashboard
-    if (_isLoggedIn) {
-      return const DashboardPage();
-    }
-
-    // If not logged in → always show welcome with login button
-    return const MyHomePageWithLogin(title: 'Helawork');
+    return _isLoggedIn ? const DashboardPage() : const MyHomePageWithLogin(title: 'Helawork');
   }
 }
 
@@ -209,8 +178,7 @@ class MyHomePageWithLogin extends StatelessWidget {
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const LoginScreen()),
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
