@@ -1,8 +1,5 @@
 from django.db import models
-
 from django.contrib.auth.hashers import make_password, check_password
-
-
 
 class User(models.Model):
     user_id = models.AutoField(primary_key=True)

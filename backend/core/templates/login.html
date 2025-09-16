@@ -202,7 +202,7 @@
             </div>
 
             <!-- Django Login Form -->
-            <form method="post" action="{% url 'core:login' %}">
+            <form method="post" action="{% url 'login' %}">
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="username">Username</label>

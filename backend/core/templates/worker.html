@@ -12,12 +12,12 @@
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between">
                 <h6 class="m-0 font-weight-bold text-primary">All Workers</h6>
-                <a href="{% url 'core:create_worker' %}" class="btn btn-sm btn-primary">
+                <a href="{% url 'create_worker' %}" class="btn btn-sm btn-primary">
                     + Add Worker
                 </a>
             </div>
             <div class="card-body">
-                {% if workers %}
+                {% if users %}
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered mb-0">
                             <thead class="table-dark">
@@ -30,16 +30,16 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for worker in workers %}
+                                {% for user in userss %}
                                 <tr>
-                                    <td>{{ worker.user.name }}</td>
-                                    <td>{{ worker.user.email }}</td>
-                                    <td>{{ worker.position }}</td>
-                                    <td>{{ worker.date_hired|date:"M d, Y" }}</td>
+                                    <td>{{ worker.name }}</td>
+                                    <td>{{ worker.email }}</td>
+                                    <td>-</td> <!-- No position field anymore -->
+                                    <td>-</td> <!-- No date_hired field anymore -->
                                     <td>
-                                        <a href="{% url 'core:edit_employee' worker.id %}" class="btn btn-sm btn-warning">Edit</a>
-                                        <a href="{% url 'core:delete_employee' worker.id %}" class="btn btn-sm btn-danger"
-                                           onclick="return confirm('Are you sure you want to delete {{ worker.user.name }}?');">
+                                        <a href="{% url 'edit_employee' worker.id %}" class="btn btn-sm btn-warning">Edit</a>
+                                        <a href="{% url 'delete_employee' worker.id %}" class="btn btn-sm btn-danger"
+                                           onclick="return confirm('Are you sure you want to delete {{ worker.name }}?');">
                                            Delete
                                         </a>
                                     </td>

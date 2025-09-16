@@ -12,20 +12,22 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import IntegrityError, transaction
 from rest_framework import status
-from core.serializer import LoginSerializer, PaymentSerializer, ProofOfWorkSerializer, RegisterSerializer, TaskSerializer, UserProfileSerializer, WorkLogSerializer
+from core.serializer import LoginSerializer, PaymentSerializer,  RegisterSerializer, TaskSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
-from .models import Worker,  Task, Payment
+
+from payments.models import Payment
+from .models import Employer, Task
 from django.contrib.auth.hashers import check_password
-from .models import Worker, Payment, ProofOfWork, User, WorkLog
+from .models import  User
 from rest_framework import serializers, viewsets, permissions, status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render
 from django.db.models import Sum
-from django.contrib.auth import authenticate, login, logout
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+
 
 
 
@@ -173,14 +175,7 @@ def apiforgot_password(request):
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        
     
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def apicreate_user_profile(request):
-    serializer = UserProfileSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+
 
 
 
@@ -207,80 +202,14 @@ def get_task(request, pk):
 
 
 
-@api_view(['GET', 'POST'])
-def apiworklog_list(request):
-    if request.method == 'GET':
-        worklogs = WorkLog.objects.all()
-        serializer = WorkLogSerializer(worklogs, many=True)
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
-        serializer = WorkLogSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def apiworklog_detail(request):
-    try:
-        worklog = WorkLog.objects.get()
-    except WorkLog.DoesNotExist:
-        return Response({"error": "WorkLog not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    if request.method == 'GET':
-        serializer = WorkLogSerializer(worklog)
-        return Response(serializer.data)
 
-    elif request.method == 'PUT':
-        serializer = WorkLogSerializer(worklog, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
-        worklog.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
     
     
-    
-def apiproofwork(request):
-    if request.method == 'GET':
-        proofs = ProofOfWork.objects.all()
-        serializer = ProofOfWorkSerializer(proofs, many=True)
-        return Response(serializer.data)
 
-    elif request.method == 'POST':
-        serializer = ProofOfWorkSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['GET', 'PUT', 'DELETE'])
-def apiproof_detail(request):
-    try:
-        proof = ProofOfWork.objects.get()
-    except ProofOfWork.DoesNotExist:
-        return Response({"error": "ProofOfWork not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    if request.method == 'GET':
-        serializer = ProofOfWorkSerializer(proof)
-        return Response(serializer.data)
-
-    elif request.method == 'PUT':
-        serializer = ProofOfWorkSerializer(proof, data=request.data, partial=True)  
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == 'DELETE':
-        proof.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)    
 
 
 @api_view(['GET'])
@@ -327,10 +256,10 @@ def update_payment(request):
 @permission_classes([IsAuthenticated])
 def apipayment_summary(request):
     try:
-        #  Query all payments for logged-in user
+       
         payments = Payment.objects.filter(user=request.user)
 
-        # Total hours & rates (assuming stored in Payment model or user profile)
+       
         total_hours = sum(p.hours for p in payments) if payments.exists() else 0
         hourly_rate = request.user.profile.hourly_rate if hasattr(request.user, "profile") else 0
         total_payment = sum(p.amount for p in payments)
@@ -342,11 +271,11 @@ def apipayment_summary(request):
             "total": total_payment
         }
 
-        # Last 3 recent payments
+        
         recent_payments = payments.order_by("-date")[:3]
         recent_serializer = PaymentSerializer(recent_payments, many=True)
 
-        #  Response payload
+        
         data = {
             "total_hours": total_hours,
             "hourly_rate": hourly_rate,
@@ -383,11 +312,10 @@ def withdraw_mpesa(request, pk):
         "payment": PaymentSerializer(payment).data
     }, status=status.HTTP_200_OK)
  
- 
 
 @login_required
 def employer_dashboard(request):
-    total_employees = Worker.objects.count()
+    total_employees = User.objects.count()
     active_projects = Task.objects.filter(is_approved=True).count()  
     pending_payments = Payment.objects.filter(status="Pending").aggregate(total=Sum("amount"))["total"] or 0
 
@@ -401,116 +329,121 @@ def employer_dashboard(request):
         "active_tasks": active_tasks,
         "completed_tasks": completed_tasks,
     }
-    return render(request, "core/dashboard.html", context)
-
+    return render(request, "dashboard.html", context)
 
 def login_view(request):
-    if request.employer.is_authenticated:
-        return redirect("core:employer_dashboard")  
+    if request.session.get("employer_id"):  
+        return redirect("employer_dashboard")
 
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-        employer = authenticate(request, username=username, password=password)
-
-        if employer is not None:
-            login(request, employer)
+        try:
+            employer = Employer.objects.get(username=username, password=password)
+           
+            request.session["employer_id"] = employer.id
             messages.success(request, f"Welcome back, {username}!")
-            return redirect("core:employer_dashboard")  
-        else:
-            messages.error(request, "Invalid username or password. Please try again.")
-            return render(request, "core/login.html", {"username": username})
+            return redirect("employer_dashboard")
+        except Employer.DoesNotExist:
+            messages.error(request, "Invalid username or password.")
+            return render(request, "login.html", {"username": username})
 
-    return render(request, "core/login.html")
+    return render(request, "login.html")
 
-@login_required
+
 def logout_view(request):
-    """
-    Handle user logout
-    """
-    logout(request)
-    messages.success(request, 'You have been successfully logged out.')
-    return redirect('login')
+    request.session.flush()
+    messages.success(request, "You have been successfully logged out.")
+    return redirect("login")
+
 
 @login_required
 def task_list(request):
     tasks = Task.objects.all().select_related("employer", "user")
-    return render(request, "task.html", {"tasks": tasks})    
+    return render(request, "task.html", {"tasks": tasks})
+
+
 @login_required
 def create_task(request):
     if request.method == "POST":
         title = request.POST.get("title")
         description = request.POST.get("description")
-        user_id = request.POST.get("user")  
+        user_id = request.POST.get("user")
         is_approved = True if request.POST.get("is_approved") else False
 
-        worker = None
+        user = None
         if user_id:
-            try:
-                worker = Worker.objects.get(user_id=user_id)
-            except Worker.DoesNotExist:
-                worker = None
+            user = User.objects.filter(user_id=user_id).first()
+
+        employer = Employer.objects.get(pk=request.session["employer_id"])
 
         Task.objects.create(
             title=title,
             description=description,
-            employer=User.objects.get(pk=request.user.pk),  
-            user=worker.user if worker else None,          
+            employer=employer,
+            user=User.user if user else None,
             is_approved=is_approved,
         )
         return redirect("task_list")
 
-    return render(request, "create_task.html")
+    user = User.objects.select_related("user").all()
+    return render(request, "create_task.html", {"users": user})
 
 
-
+@login_required
 def worker_list(request):
-    workers = Worker.objects.select_related("user").all()
-    return render(request, "worker.html", {"workers": workers})
-def edit_worker(request, employee_id):
-    worker = get_object_or_404(Worker, id=worker_list)
+    workers = User.objects.select_related("user").all()
+    return render(request, "worker.html", {"users": User})
+
+
+@login_required
+def edit_worker(request, worker_id):
+    worker = get_object_or_404(User, id=worker_id)
 
     if request.method == "POST":
-        position = request.POST.get("position")
-        Worker.position = position
-        Worker.save()
+        name = request.POST.get("name")
+        phoneNo = request.POST.get("phoneNo")
+
+        worker.user.name = name
+        worker.user.phoneNo = phoneNo
+        worker.user.save()
+
+        messages.success(request, "Worker updated successfully.")
         return redirect("worker_list")
 
-    return render(request, "edit_worker.html", {"worker": Worker})
+    return render(request, "edit_worker.html", {"worker": worker})
 
-def delete_worker(request):
-    worker = get_object_or_404()
+
+@login_required
+def delete_worker(request, worker_id):
+    worker = get_object_or_404(User, id=worker_id)
     worker.delete()
+    messages.success(request, "Worker deleted successfully.")
     return redirect("worker_list")
 
+@login_required
 def create_worker(request):
     if request.method == "POST":
         name = request.POST.get("name")
         email = request.POST.get("email")
         phoneNo = request.POST.get("phoneNo")
         password = request.POST.get("password")
-        
-        try:
-            
-            with transaction.atomic():
-                
-                user = User.objects.create(
-                    email=email,
-                    password=password,
-                    name=name,
-                    phoneNo=phoneNo
-                )
-                
-                
-                Worker.objects.create(user=user)
 
-                messages.success(request, f"Worker {name} created successfully!")
+        try:
+            with transaction.atomic():
+                user = User.objects.create(
+                    name=name,
+                    email=email,
+                    phoneNo=phoneNo,
+                )
+                user.set_password(password)  # ✅ use Django's password hashing
+                user.save()
+
+                messages.success(request, f"User {name} created successfully!")
                 return redirect("worker_list")
 
         except IntegrityError:
-            
             messages.error(request, "A user with this email or phone number already exists.")
-            return render(request, "create_worker.html")
 
     return render(request, "create_worker.html")
