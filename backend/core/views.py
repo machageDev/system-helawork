@@ -204,14 +204,6 @@ def get_task(request, pk):
 
 
 
-
-
-
-    
-    
-
-
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_payments(request):
@@ -393,8 +385,9 @@ def create_task(request):
 
 @login_required
 def worker_list(request):
-    workers = User.objects.select_related("user").all()
-    return render(request, "worker.html", {"users": User})
+    
+    users = User.objects.all()
+    return render(request, "worker.html", {"users": users})
 
 
 @login_required
