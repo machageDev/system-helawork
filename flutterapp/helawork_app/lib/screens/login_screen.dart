@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:helawork_app/home/dashboard_page.dart';
+import 'package:helawork_app/screens/register_screen.dart';
+import 'package:helawork_app/screens/forgot_password_screen.dart';
 import '../Api/api_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,27 +20,42 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     setState(() => _isLoading = true);
 
-    final response = await _apiService.login(
-      _nameController.text.trim(),
-      _passwordController.text.trim(),
-    );
-
-    setState(() => _isLoading = false);
-
-    if (response["success"]) {
-      print("User data: ${response["data"]}");
-
-      // ✅ Directly navigate after login (no SharedPreferences auto-login)
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const DashboardPage()),
+    try {
+      final response = await _apiService.login(
+        _nameController.text.trim(),
+        _passwordController.text.trim(),
       );
-    } else {
-      print("Error: ${response["message"]}");
+
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      if (response["success"] == true) {
+        // Navigate to dashboard (no 7-day auto-login stored)
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardPage()),
+        );
+      } else {
+        final message = response["message"] ?? "Login failed";
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response["message"])),
+        const SnackBar(content: Text("An error occurred. Please try again.")),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -120,9 +137,44 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                       : const Text("Login", style: TextStyle(fontSize: 16)),
                 ),
+              ),
+              const SizedBox(height: 15),
+
+              // Forgot password
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                  );
+                },
+                child: const Text(
+                  "Forgot Password?",
+                  style: TextStyle(color: Colors.orange),
+                ),
+              ),
+
+              // Register text
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Don't have an account?", style: TextStyle(color: Colors.grey)),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                      );
+                    },
+                    child: const Text(
+                      "Register",
+                      style: TextStyle(color: Colors.orange),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
