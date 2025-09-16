@@ -22,9 +22,10 @@ Future<Map<String, dynamic>> register(String name, String email, String password
       body: jsonEncode({
         "name": name,
         "email": email,
+        "phone_number": phoneNO,
         "password": password,
         "confirmPassword": confirmPassword,
-        "phone_number": phoneNO,
+        
       }),
     );
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:helawork_app/Api/api_service.dart';
 import 'package:helawork_app/home/payment_summary_page.dart';
 import 'package:helawork_app/home/user_profile_screen.dart';
+import 'package:helawork_app/home/task_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -15,11 +16,10 @@ class _DashboardPageState extends State<DashboardPage> {
   int inProgress = 0;
   int completed = 0;
   double totalPayments = 0.0;
-  List<dynamic> activeTasks = [];
-  List<dynamic> recentPayments = [];
+  List<Map<String, dynamic>> activeTasks = [];
+  List<Map<String, dynamic>> recentPayments = [];
 
   int _selectedIndex = 0;
-
 
   final Color bgColor = Colors.black87;
   final Color cardColor = Colors.grey.shade900;
@@ -36,8 +36,11 @@ class _DashboardPageState extends State<DashboardPage> {
       final apiService = ApiService();
 
       final profile = await apiService.getUserProfile();
-      final tasks = await ApiService.getTasks();
-      final payments = await ApiService.getPaymentSummary();
+      final tasksRaw = await ApiService.getTasks();
+      final paymentsRaw = await ApiService.getPaymentSummary();
+
+      final tasks = List<Map<String, dynamic>>.from(tasksRaw);
+      final payments = Map<String, dynamic>.from(paymentsRaw);
 
       setState(() {
         userName = profile["name"] ?? "User";
@@ -47,26 +50,35 @@ class _DashboardPageState extends State<DashboardPage> {
         totalPayments = payments["total_earnings"]?.toDouble() ?? 0.0;
 
         activeTasks = tasks.take(3).toList();
-        recentPayments = payments["recent"] ?? [];
+        recentPayments = List<Map<String, dynamic>>.from(payments["recent"] ?? []);
       });
     } catch (e) {
-      debugPrint(" Error loading data: $e");
+      debugPrint("Error loading data: $e");
     }
   }
 
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
 
-    if (index == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const PaymentSummaryPage()),
-      );
-    } else if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const UserProfileScreen()),
-      );
+    switch (index) {
+      case 1:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const TaskPage()),
+        );
+        break;
+      case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PaymentSummaryPage()),
+        );
+        break;
+      case 3:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const UserProfileScreen()),
+        );
+        break;
     }
   }
 
@@ -78,15 +90,13 @@ class _DashboardPageState extends State<DashboardPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          "Hi, $userName ",
+          "Hi, $userName 👋",
           style: const TextStyle(color: Colors.white, fontSize: 20),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications, color: Colors.white),
-            onPressed: () {
-              // TODO: Notifications screen
-            },
+            onPressed: () {},
           ),
           IconButton(
             icon: const CircleAvatar(
@@ -110,7 +120,7 @@ class _DashboardPageState extends State<DashboardPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              //  Quick Summary
+              // Quick Stats
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -121,10 +131,24 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               const SizedBox(height: 20),
 
-              //  Active Tasks
-              const Text(
-                "Active Tasks",
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              // Active Tasks Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Active Tasks",
+                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const TaskPage()),
+                      );
+                    },
+                    child: const Text("View All", style: TextStyle(color: Colors.green)),
+                  )
+                ],
               ),
               const SizedBox(height: 10),
               if (activeTasks.isEmpty)
@@ -137,10 +161,24 @@ class _DashboardPageState extends State<DashboardPage> {
                     )),
               const SizedBox(height: 20),
 
-              // Recent Payments
-              const Text(
-                "Recent Payments",
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              // Recent Payments Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Recent Payments",
+                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PaymentSummaryPage()),
+                      );
+                    },
+                    child: const Text("View All", style: TextStyle(color: Colors.green)),
+                  )
+                ],
               ),
               const SizedBox(height: 10),
               if (recentPayments.isEmpty)
@@ -152,21 +190,10 @@ class _DashboardPageState extends State<DashboardPage> {
                       p["date"] ?? "N/A",
                       p["status"] ?? "Pending",
                     )),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const PaymentSummaryPage()),
-                  );
-                },
-                child: const Text("View All Payments", style: TextStyle(color: Colors.green)),
-              ),
             ],
           ),
         ),
       ),
-
-      //  Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -175,14 +202,13 @@ class _DashboardPageState extends State<DashboardPage> {
         unselectedItemColor: subTextColor,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.task), label: "Tasks"),
           BottomNavigationBarItem(icon: Icon(Icons.money), label: "Payments"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
         ],
       ),
     );
   }
-
- 
 
   Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Container(
