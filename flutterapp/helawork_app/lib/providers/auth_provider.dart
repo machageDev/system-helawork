@@ -33,6 +33,33 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<Map<String, dynamic>> register(
+    String name,
+    String email,
+    String phone,
+    String password,
+    String confirmPassword,
+  ) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.register(
+        name,
+        email,
+        phone,
+        password,
+        confirmPassword,
+      );
+      return response;
+    } catch (e) {
+      return {"success": false, "message": "Something went wrong"};
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   void logout() {
     _isLoggedIn = false;
     notifyListeners();
