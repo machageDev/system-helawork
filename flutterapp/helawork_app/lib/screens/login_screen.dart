@@ -1,65 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:helawork_app/home/dashboard_page.dart';
-import 'package:helawork_app/screens/register_screen.dart';
-import 'package:helawork_app/screens/forgot_password_screen.dart';
-import '../Api/api_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../home/dashboard_page.dart';
+import 'register_screen.dart';
+import 'forgot_password_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
+  Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
 
-class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false;
-  final ApiService _apiService = ApiService();
-
-  Future<void> _login() async {
-    setState(() => _isLoading = true);
-
-    try {
-      final response = await _apiService.login(
-        _nameController.text.trim(),
-        _passwordController.text.trim(),
+    Future<void> handleLogin() async {
+      final response = await authProvider.login(
+        nameController.text.trim(),
+        passwordController.text.trim(),
       );
 
-      if (!mounted) return;
-
-      setState(() => _isLoading = false);
-
-      if (response["success"] == true) {
-        // Navigate to dashboard (no 7-day auto-login stored)
+      if (response["success"] == true && context.mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const DashboardPage()),
         );
       } else {
-        final message = response["message"] ?? "Login failed";
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
+          SnackBar(content: Text(response["message"] ?? "Login failed")),
         );
       }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("An error occurred. Please try again.")),
-      );
     }
-  }
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
       body: Center(
@@ -68,58 +40,27 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                "HelaWork",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Divider(color: Colors.blue, thickness: 2, indent: 140, endIndent: 140),
-              const SizedBox(height: 20),
-              const Text(
-                "Welcome Back",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              const Text("HelaWork",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  )),
               const SizedBox(height: 30),
 
               // Name field
               TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  hintText: "Enter your name",
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  filled: true,
-                  fillColor: const Color(0xFF1E1E2C),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
+                controller: nameController,
+                decoration: _inputDecoration("Enter your name"),
                 style: const TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 20),
 
               // Password field
               TextField(
-                controller: _passwordController,
+                controller: passwordController,
                 obscureText: true,
-                decoration: InputDecoration(
-                  hintText: "Enter your password",
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  filled: true,
-                  fillColor: const Color(0xFF1E1E2C),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
+                decoration: _inputDecoration("Enter your password"),
                 style: const TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 20),
@@ -128,16 +69,10 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1A73E8),
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  onPressed: authProvider.isLoading ? null : handleLogin,
+                  child: authProvider.isLoading
+                      ? const CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2)
                       : const Text("Login", style: TextStyle(fontSize: 16)),
                 ),
               ),
@@ -148,37 +83,49 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => const ForgotPasswordScreen()),
                   );
                 },
-                child: const Text(
-                  "Forgot Password?",
-                  style: TextStyle(color: Colors.orange),
-                ),
+                child: const Text("Forgot Password?",
+                    style: TextStyle(color: Colors.orange)),
               ),
 
-              // Register text
+              // Register
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Don't have an account?", style: TextStyle(color: Colors.grey)),
+                  const Text("Don't have an account?",
+                      style: TextStyle(color: Colors.grey)),
                   TextButton(
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => const RegisterScreen()),
                       );
                     },
-                    child: const Text(
-                      "Register",
-                      style: TextStyle(color: Colors.orange),
-                    ),
+                    child: const Text("Register",
+                        style: TextStyle(color: Colors.orange)),
                   ),
                 ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Colors.grey),
+      filled: true,
+      fillColor: const Color(0xFF1E1E2C),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide.none,
       ),
     );
   }

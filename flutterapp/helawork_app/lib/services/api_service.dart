@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService{
-  static const String baseUrl = 'http://192.168.100.188:8000';
+  static const String baseUrl = 'http://172.16.206.198:8000';
   static const String registerUrl = '$baseUrl/apiregister';
   static const String  loginUrl ='$baseUrl/apilogin';
   static const String paymentsummaryUrl='$baseUrl/apipaymentsummary';
@@ -58,12 +58,12 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     print("HTTP status: ${response.statusCode}");
     print("Raw response body: ${response.body}");
 
-    // Try to decode JSON safely
+    
     Map<String, dynamic> responseData;
     try {
       responseData = jsonDecode(response.body);
     } catch (_) {
-      // Response is not JSON (likely HTML from CORS error)
+      
       return {
         "success": false,
         "message": "Invalid response from server",
@@ -101,9 +101,6 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     return json.decode(response.body);
   }
 
-
-
-  
   static Future<List<dynamic>> getTasks() async {
     final response = await http.get(Uri.parse("recentUrl"));
     if (response.statusCode == 200) {
