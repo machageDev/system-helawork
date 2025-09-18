@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from payments.models import Payment
-from .models import User
+from .models import User, UserProfile
 from .models import Employer
 from .models import Task
 from .models import Rating
@@ -62,11 +62,17 @@ class LoginSerializer(serializers.ModelSerializer):
 
 
 
-
-
 class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = '__all__'
         read_only_fields = ('rater',)
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = '__all__'
+        read_only_fields = ("user",)
+
+    def get_average_rating(self, obj):
+        return obj.average_rating()

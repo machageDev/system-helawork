@@ -75,7 +75,7 @@ class Rating(models.Model):
     class Meta:
         unique_together = ('task', 'rater', 'rated_user')  
         
-class WorkerProfile(models.Model):
+class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="worker_profile")
     bio = models.TextField(blank=True, null=True)
     skills = models.CharField(max_length=255, help_text="Comma-separated list of skills")
