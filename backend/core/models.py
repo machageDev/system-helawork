@@ -89,3 +89,5 @@ class UserProfile(models.Model):
         if ratings.exists():
             return sum(r.score for r in ratings) / ratings.count()
         return 0        
+    
+    

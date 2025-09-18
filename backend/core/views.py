@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import IntegrityError, transaction
 from rest_framework import status
-from core.serializer import LoginSerializer, PaymentSerializer,  RegisterSerializer, TaskSerializer, UserProfileSerializer
+from core.serializer import LoginSerializer, PaymentSerializer, RatingSerializer,  RegisterSerializer, TaskSerializer, UserProfileSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
 
@@ -138,6 +138,28 @@ def apiregister(request):
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def apirating(request):
+    serializer = RatingSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        task = serializer.validated_data["task"]
+        rated_user = serializer.validated_data["rated_user"]
+        
+        if rated_user == request.user:
+            return Response({"error": "You cannot rate yourself."}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+        if not task.completed:
+            return Response({"error": "Task must be completed before rating."}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+        serializer.save(rater=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
        
 @api_view(['POST'])
 @permission_classes([AllowAny])        
