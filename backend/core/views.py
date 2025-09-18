@@ -1,3 +1,4 @@
+from datetime import date
 import random
 
 from django.shortcuts import get_object_or_404, redirect, render
@@ -12,12 +13,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import IntegrityError, transaction
 from rest_framework import status
-from core.serializer import LoginSerializer, PaymentSerializer,  RegisterSerializer, TaskSerializer
+from core.serializer import LoginSerializer, PaymentSerializer,  RegisterSerializer, TaskSerializer, UserProfileSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
 
 from payments.models import Payment
-from .models import Employer, Task
+from .models import Employer, Task, UserProfile
 from django.contrib.auth.hashers import check_password
 from .models import  User
 from rest_framework import serializers, viewsets, permissions, status
@@ -73,8 +74,31 @@ def otp(request):
             messages.error(request, 'Invalid OTP. Please try again.')
 
     return render(request, 'otp.html')
+@api_view(['POST'])
+@permission_classes([AllowAny])
 
-
+def apiuserprofile(request):
+    serializer = UserProfileSerializer(data=request.data)
+    if serializer.is_valid():
+        bio = serializer.validated_data['bio'].strip() if serializer.validated_data.get('bio') else ""
+        skills = serializer.validated_data.get('skills', "")
+        experience = serializer.validated_data.get('experience', "")
+        portfolio_link = serializer.validated_data.get('portfolio_link', "").strip()
+        hourly_rate = serializer.validated_data.get('hourly_rate')
+        profile_picture = serializer.validated_data.get('profile_picture')      
+    
+        
+    profile = UserProfile.objects.create(
+        user = request.user,
+        bio = bio,
+        skills = skills,
+        experience = experience,
+        portfolio_link = portfolio_link,
+        hourly_rate = hourly_rate,
+        profile_picture = profile_picture,       
+        
+    )
+    return Response(UserProfileSerializer(profile).data, status=status.HTTP_201_CREATED)
 
 
 @api_view(['POST'])
@@ -175,10 +199,6 @@ def apiforgot_password(request):
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        
     
-
-
-
-
 
 
 @api_view(['GET'])
@@ -445,3 +465,5 @@ def create_worker(request):
             messages.error(request, "A user with this email or phone number already exists.")
 
     return render(request, "create_worker.html")
+
+
