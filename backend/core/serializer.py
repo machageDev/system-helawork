@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers ,viewsets, permissions
 
 from payments.models import Payment
 from .models import User, UserProfile
@@ -76,3 +76,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     def get_average_rating(self, obj):
         return obj.average_rating()
+    
+class RatingViewSet(viewsets.ModelViewSet):
+    queryset = Rating.objects.all()
+    serializer_class = RatingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(rater=self.request.user)
