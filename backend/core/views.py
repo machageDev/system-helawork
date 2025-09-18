@@ -39,11 +39,11 @@ def send_otp(request):
         user = User.objects.filter(email=email).first()
 
         if user:
-            otp = random.randint(100000, 999999)  # Generate 6-digit OTP
-            request.session['otp'] = otp  # Store OTP in session
-            request.session['email'] = email  # Store email in session
+            otp = random.randint(100000, 999999)  
+            request.session['otp'] = otp  
+            request.session['email'] = email  
 
-            # Send OTP via email
+            
             send_mail(
                 'Password Reset OTP',
                 f'Your OTP is {otp}. Use it to reset your password.',
