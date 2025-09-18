@@ -4,7 +4,7 @@ from payments.models import Payment
 from .models import User
 from .models import Employer
 from .models import Task
-
+from .models import Rating
 
 class UserSerializer(serializers.ModelField):
     class meta:
@@ -42,7 +42,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['name', 'email', 'password', 'phone_number']  
+        fields = ['name', 'email', 'phone_number','password', ]  
         extra_kwargs = {
             "password": {"write_only": True},  
         }
@@ -59,4 +59,14 @@ class LoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['name','password']  
+
+
+
+
+
+class RatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rating
+        fields = '__all__'
+        read_only_fields = ('rater',)
 

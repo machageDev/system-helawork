@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password, check_password
 
+from helawork import settings
+
 class User(models.Model):
     user_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, default="Anonymous")
@@ -60,4 +62,30 @@ class PayrollReport(models.Model):
 
     def __str__(self):
         return f"Payroll Report {self.month} by {self.employer.username}"
-  
+
+
+class Rating(models.Model):
+    task = models.ForeignKey(Task, related_name="ratings", on_delete=models.CASCADE)
+    rater = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="given_ratings", on_delete=models.CASCADE)
+    rated_user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="received_ratings", on_delete=models.CASCADE)
+    score = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
+    review = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('task', 'rater', 'rated_user')  
+        
+class WorkerProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="worker_profile")
+    bio = models.TextField(blank=True, null=True)
+    skills = models.CharField(max_length=255, help_text="Comma-separated list of skills")
+    experience = models.TextField(blank=True, null=True)
+    portfolio_link = models.URLField(blank=True, null=True)
+    hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    profile_picture = models.ImageField(upload_to="profile_pics/", null=True, blank=True)
+
+    def average_rating(self):
+        ratings = self.user.received_ratings.all()
+        if ratings.exists():
+            return sum(r.score for r in ratings) / ratings.count()
+        return 0        
