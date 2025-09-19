@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:helawork_app/providers/forgot_password_provider.dart';
+import 'package:helawork_app/providers/user_profile_provider.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
@@ -10,6 +12,10 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ForgotPasswordProvider()),
+        ChangeNotifierProvider(create: (_) => UserProfileProvider()),       
+
+      
       ],
       child: const MyApp(),
     ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:helawork_app/services/api_service.dart';
+import 'package:helawork_app/providers/user_profile_provider.dart';
+import 'package:provider/provider.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -9,51 +10,17 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  final ApiService _apiService = ApiService();
-  Map<String, dynamic>? _userProfile; 
-  bool _isLoading = true;
-  String _errorMessage = '';
-
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();
-  }
-
-  Future<void> _loadUserProfile() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = '';
-    });
-
-    final response = await _apiService.getUserProfile();
-
-    setState(() {
-      _isLoading = false;
-      if (response["success"]) {
-        _userProfile = response["data"];
-      } else {
-        _errorMessage = response["message"];
-      }
-    });
-  }
-
-  Future<void> _updateProfile() async {
-    if (_userProfile == null) return;
-
-    setState(() => _isLoading = true);
-
-    final response = await _apiService.updateUserProfile(_userProfile!);
-
-    setState(() => _isLoading = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(response["message"])),
-    );
+    Future.microtask(() =>
+        Provider.of<UserProfileProvider>(context, listen: false).loadUserProfile());
   }
 
   @override
   Widget build(BuildContext context) {
+    final profileProvider = Provider.of<UserProfileProvider>(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
       appBar: AppBar(
@@ -71,12 +38,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: _isLoading
+      body: profileProvider.isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.orange))
-          : _errorMessage.isNotEmpty
+          : profileProvider.errorMessage.isNotEmpty
               ? Center(
                   child: Text(
-                    _errorMessage,
+                    profileProvider.errorMessage,
                     style: const TextStyle(color: Colors.red, fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
@@ -89,32 +56,34 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       CircleAvatar(
                         radius: 50,
                         backgroundColor: const Color(0xFF1E1E2C),
-                        backgroundImage: _userProfile?['profilePicture'] != null
-                            ? NetworkImage(_userProfile!['profilePicture'])
+                        backgroundImage: profileProvider.userProfile?['profilePicture'] != null
+                            ? NetworkImage(profileProvider.userProfile!['profilePicture'])
                             : null,
-                        child: _userProfile?['profilePicture'] == null
-                            ? const Icon(
-                                Icons.person,
-                                size: 50,
-                                color: Colors.grey,
-                              )
+                        child: profileProvider.userProfile?['profilePicture'] == null
+                            ? const Icon(Icons.person, size: 50, color: Colors.grey)
                             : null,
                       ),
                       const SizedBox(height: 20),
 
                       // User ID
-                      _buildProfileItem("User ID", _userProfile?['user_id']?.toString() ?? "N/A"),
+                      _buildProfileItem(
+                        "User ID",
+                        profileProvider.userProfile?['user_id']?.toString() ?? "N/A",
+                      ),
                       const SizedBox(height: 15),
 
                       // Bio
-                      _buildProfileItem("Bio", _userProfile?['bio'] ?? "No bio yet"),
+                      _buildProfileItem(
+                        "Bio",
+                        profileProvider.userProfile?['bio'] ?? "No bio yet",
+                      ),
                       const SizedBox(height: 25),
 
                       // Update Button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _updateProfile,
+                          onPressed: () => profileProvider.updateProfile(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF1A73E8),
                             padding: const EdgeInsets.symmetric(vertical: 15),
@@ -128,14 +97,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 15),
 
                       // Refresh Button
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton(
-                          onPressed: _loadUserProfile,
+                          onPressed: profileProvider.loadUserProfile,
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.orange,
                             side: const BorderSide(color: Colors.orange),
@@ -164,13 +132,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 14,
-            ),
-          ),
+          Text(title, style: const TextStyle(color: Colors.grey, fontSize: 14)),
           const SizedBox(height: 5),
           Text(
             value,

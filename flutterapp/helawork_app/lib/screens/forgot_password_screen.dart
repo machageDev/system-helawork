@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:helawork_app/screens/login_screen.dart';
+import 'package:helawork_app/providers/forgot_password_provider.dart';
+import 'package:provider/provider.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -10,28 +12,11 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
-  bool _isLoading = false;
-
-  Future<void> _resetPassword() async {
-    setState(() => _isLoading = true);
-
-    // TODO: Connect to API for reset
-    await Future.delayed(const Duration(seconds: 2));
-
-    setState(() => _isLoading = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Password reset link sent to your email")),
-    );
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
+    final forgotProvider = Provider.of<ForgotPasswordProvider>(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
       body: Center(
@@ -79,7 +64,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _resetPassword,
+                  onPressed: forgotProvider.isLoading
+                      ? null
+                      : () async {
+                          await forgotProvider.resetPassword(
+                            _emailController.text.trim(),
+                            context,
+                          );
+
+                          if (!forgotProvider.isLoading && mounted) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (_) => const LoginScreen()),
+                            );
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1A73E8),
                     padding: const EdgeInsets.symmetric(vertical: 15),
@@ -87,7 +86,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: _isLoading
+                  child: forgotProvider.isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text("Send Reset Link", style: TextStyle(fontSize: 16)),
                 ),
@@ -99,7 +98,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
                   );
                 },
                 child: const Text(
