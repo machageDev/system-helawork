@@ -13,15 +13,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import IntegrityError, transaction
 from rest_framework import status
-from core.serializer import LoginSerializer, PaymentSerializer, RatingSerializer,  RegisterSerializer, TaskSerializer, UserProfileSerializer
+from core.serializer import LoginSerializer, PaymentSerializer,  RegisterSerializer, TaskSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
 
 from payments.models import Payment
-from .models import Employer, Task, UserProfile
+from .models import Employer, Task
 from django.contrib.auth.hashers import check_password
 from .models import  User
-from rest_framework import serializers, viewsets, permissions, status
+
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render
 from django.db.models import Sum
@@ -74,7 +74,7 @@ def otp(request):
             messages.error(request, 'Invalid OTP. Please try again.')
 
     return render(request, 'otp.html')
-@api_view(['POST'])
+"""@api_view(['POST'])
 @permission_classes([AllowAny])
 
 def apiuserprofile(request):
@@ -98,7 +98,7 @@ def apiuserprofile(request):
         profile_picture = profile_picture,       
         
     )
-    return Response(UserProfileSerializer(profile).data, status=status.HTTP_201_CREATED)
+    return Response(UserProfileSerializer(profile).data, status=status.HTTP_201_CREATED)"""
 
 
 @api_view(['POST'])
@@ -139,7 +139,7 @@ def apiregister(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["POST"])
+"""@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def apirating(request):
     serializer = RatingSerializer(data=request.data)
@@ -159,7 +159,7 @@ def apirating(request):
         serializer.save(rater=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)"""
        
 @api_view(['POST'])
 @permission_classes([AllowAny])        
@@ -241,9 +241,6 @@ def get_task(request, pk):
 
     serializer = TaskSerializer(task)
     return Response(serializer.data)
-
-
-
 
 
 @api_view(['GET'])
@@ -477,7 +474,7 @@ def create_worker(request):
                     email=email,
                     phoneNo=phoneNo,
                 )
-                user.set_password(password)  # ✅ use Django's password hashing
+                user.set_password(password)  
                 user.save()
 
                 messages.success(request, f"User {name} created successfully!")

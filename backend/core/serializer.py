@@ -1,8 +1,8 @@
-from rest_framework import serializers ,viewsets, permissions
+from rest_framework import serializers 
 
 from payments.models import Payment
 from .models import User, UserProfile
-from .models import Employer
+from .models import Employer, User
 from .models import Task
 from .models import Rating
 
@@ -62,7 +62,7 @@ class LoginSerializer(serializers.ModelSerializer):
 
 
 
-class RatingSerializer(serializers.ModelSerializer):
+"""class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = '__all__'
@@ -83,4 +83,4 @@ class RatingViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(rater=self.request.user)
+        serializer.save(rater=self.request.user)"""
