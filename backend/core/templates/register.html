@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>HelaWork - Employer Register</title>
+
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 1000px;
+            overflow: hidden;
+            display: flex;
+        }
+        
+        .login-image {
+            flex: 1;
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: white;
+            display: none; /* Hidden on mobile */
+        }
+        
+        .login-image-content {
+            text-align: center;
+            max-width: 300px;
+        }
+        
+        .login-image-content h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .login-image-content p {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .login-form-container {
+            flex: 1;
+            padding: 40px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            color: #4e73df;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .welcome-message {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .welcome-message h2 {
+            color: #333;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-message p {
+            color: #666;
+            font-size: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #444;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #4e73df;
+            box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.15);
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background-color: #4e73df;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-login:hover {
+            background-color: #3a5ecc;
+        }
+        
+        .login-options {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (min-width: 992px) {
+            .login-image { display: flex; }
+        }
+
+        @media (max-width: 768px) {
+            .login-container { flex-direction: column; }
+            .login-form-container { padding: 30px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-image">
+            <div class="login-image-content">
+                <h2>Join HelaWork</h2>
+                <p>Create an account and start posting jobs today.</p>
+            </div>
+        </div>
+
+        <div class="login-form-container">
+            <div class="logo">
+                <h1>HelaWork</h1>
+            </div>
+
+            <div class="welcome-message">
+                <h2>Create Employer Account</h2>
+                <p>Fill in your details below to register</p>
+            </div>
+
+            <!-- Employer Register Form -->
+            <form method="post" action="{% url 'employer_register' %}">
+                {% csrf_token %}
+    
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input id="username" type="text" name="username" class="form-control" placeholder="Enter your username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" name="contact_email" class="form-control" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="company_name">Company Name</label>
+                    <input id="company_name" type="text" name="company_name" class="form-control" placeholder="Enter your company name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone_number">Phone Number</label>
+                    <input id="phone_number" type="text" name="phone_number" class="form-control" placeholder="Enter your phone number">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    Register
+                </button>
+            </form>
+
+            <div class="login-options">
+                <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

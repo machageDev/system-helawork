@@ -28,6 +28,7 @@ class Employer(models.Model):
     username = models.CharField(max_length=255)
     password = models.CharField(max_length=128, null=True, blank=True)
     contact_email = models.EmailField(unique=True)
+    phoneNo = models.CharField(max_length=13, unique=True)
     company_name = models.CharField(max_length=255, blank=True, null=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
 
@@ -139,3 +140,33 @@ class Contract(models.Model):
 
     def __str__(self):
         return f"Contract for {self.task.title}"
+
+
+
+
+class Payment(models.Model):
+    payment_id = models.AutoField(primary_key=True)
+    contract = models.ForeignKey("Contract", on_delete=models.CASCADE, related_name="payments")
+
+    employer = models.ForeignKey("Employer", on_delete=models.CASCADE)
+    freelancer = models.ForeignKey("User", on_delete=models.CASCADE)
+
+    
+    gross_amount = models.DecimalField(max_digits=10, decimal_places=2)  
+    platform_fee = models.DecimalField(max_digits=10, decimal_places=2)   
+    net_amount = models.DecimalField(max_digits=10, decimal_places=2)     
+
+    status = models.CharField(
+        max_length=20,
+        choices=[("pending", "Pending"), ("completed", "Completed"), ("failed", "Failed")],
+        default="pending"
+    )
+
+    transaction_date = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):        
+        if self.gross_amount and self.platform_fee is not None:
+            self.net_amount = self.gross_amount - self.platform_fee
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return f"Payment {self.payment_id} - {self.freelancer.name} - {self.status}"
