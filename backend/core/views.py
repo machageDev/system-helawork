@@ -1,6 +1,5 @@
 from datetime import date
 import random
-
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from rest_framework.decorators import api_view, permission_classes
@@ -13,23 +12,20 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import IntegrityError, transaction
 from rest_framework import status
-from core.serializer import LoginSerializer, PaymentSerializer,   RegisterSerializer, TaskSerializer, UserProfileSerializer
+from core.serializer import FreelancerRatingSerializer, LoginSerializer, PaymentSerializer,   RegisterSerializer, TaskSerializer, UserProfileSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
-
 from payments.models import Payment
-from .models import Employer, Task, UserProfile
+from .models import Employer, FreelancerRating, Task, UserProfile
 from django.contrib.auth.hashers import check_password
 from .models import  User
-
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render
 from django.db.models import Sum
-
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
-
-
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 
 
 
@@ -139,27 +135,38 @@ def apiregister(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["POST"])
+@api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
-def apirating(request):
-    serializer = RatingSerializer(data=request.data)
-    
-    if serializer.is_valid():
-        task = serializer.validated_data["task"]
-        rated_user = serializer.validated_data["rated_user"]
-        
-        if rated_user == request.user:
-            return Response({"error": "You cannot rate yourself."}, status=status.HTTP_400_BAD_REQUEST)
+def freelancer_rating_list_create(request):
+    if request.method == "GET":
+        """List all freelancer ratings"""
+        ratings = FreelancerRating.objects.all()
+        serializer = FreelancerRatingSerializer(ratings, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-        
-        if not task.completed:
-            return Response({"error": "Task must be completed before rating."}, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == "POST":
+        """Create a new freelancer rating"""
+        serializer = FreelancerRatingSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        
-        serializer.save(rater=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@api_view(["GET", "DELETE"])
+@permission_classes([IsAuthenticated])
+def freelancer_rating_detail(request, pk):
+    rating = get_object_or_404(FreelancerRating, pk=pk)
+
+    if request.method == "GET":
+        """Retrieve a specific freelancer rating"""
+        serializer = FreelancerRatingSerializer(rating)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    elif request.method == "DELETE":
+        """Delete a freelancer rating"""
+        rating.delete()
+        return Response({"message": "Rating deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
        
 @api_view(['POST'])
 @permission_classes([AllowAny])        
@@ -514,3 +521,53 @@ def create_worker(request):
 
 def home(request):
     return render(request,'home.html')
+
+def forgot_password(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+        user = User.objects.filter(email=email).first()
+
+        if user:
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            reset_link = request.build_absolute_uri(f"/reset_password/{uid}/{token}/")
+
+            
+            send_mail(
+                "HelaWork - Password Reset",
+                f"Hi {user.username},\n\nClick the link below to reset your password:\n{reset_link}\n\nIf you didn’t request this, ignore this email.",
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+            messages.success(request, "A password reset link has been sent to your email.")
+            return redirect("login")
+        else:
+            messages.error(request, "No account found with that email.")
+    return render(request, "forgotpassword.html")
+
+
+
+def reset_password(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == "POST":
+            password = request.POST.get("password")
+            confirm_password = request.POST.get("confirm_password")
+
+            if password == confirm_password:
+                user.set_password(password)
+                user.save()
+                messages.success(request, "Password reset successful! You can now log in.")
+                return redirect("login")
+            else:
+                messages.error(request, "Passwords do not match.")
+        return render(request, "resetpassword.html", {"uidb64": uidb64, "token": token})
+    else:
+        messages.error(request, "Invalid or expired password reset link.")
+        return redirect("forgot_password")
