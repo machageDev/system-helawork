@@ -29,7 +29,7 @@ urlpatterns = [
     path("delete_employees", views.delete_worker, name="delete_employee"),
     path('create_worker',views.create_worker,name="create_worker"),
     path("forgot_password", views.forgot_password, name="forgot_password"),
-    path("reset_password/<uidb64>/<token>/", views.reset_password, name="reset_password"),
+    path("reset_password/<uidb64>/<token>", views.reset_password, name="reset_password"),
 
 
     

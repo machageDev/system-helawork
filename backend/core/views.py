@@ -16,7 +16,7 @@ from core.serializer import FreelancerRatingSerializer, LoginSerializer, Payment
 from django.core.mail import send_mail
 from django.contrib import messages
 from payments.models import Payment
-from .models import Employer, FreelancerRating, Task, UserProfile
+from .models import Employer, EmployerRating, FreelancerRating, Task, UserProfile
 from django.contrib.auth.hashers import check_password
 from .models import  User
 from rest_framework.permissions import IsAuthenticated
@@ -544,7 +544,7 @@ def forgot_password(request):
             return redirect("login")
         else:
             messages.error(request, "No account found with that email.")
-    return render(request, "forgotpassword.html")
+    return render(request, "forgot_password.html")
 
 
 
@@ -571,3 +571,36 @@ def reset_password(request, uidb64, token):
     else:
         messages.error(request, "Invalid or expired password reset link.")
         return redirect("forgot_password")
+    
+
+
+def employer_rating_list(request):
+    ratings = EmployerRating.objects.all()
+    return render(request, "ratings/employer_rating_list.html", {"ratings": ratings})
+
+
+def employer_rating_create(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    freelancer = request.user  
+    employer = task.employer
+
+    if request.method == "POST":
+        score = request.POST.get("score")
+        review = request.POST.get("review", "")
+        if score:
+            EmployerRating.objects.create(
+                task=task,
+                freelancer=freelancer,
+                employer=employer,
+                score=int(score),
+                review=review
+            )
+            return redirect("employer_rating_list")
+
+    return render(request, "ratings/employer_rating_form.html", {"task": task})
+
+
+
+def employer_rating_detail(request, rating_id):
+    rating = get_object_or_404(EmployerRating, id=rating_id)
+    return render(request, "ratings/employer_rating_detail.html", {"rating": rating})
