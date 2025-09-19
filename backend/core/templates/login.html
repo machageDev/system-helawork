@@ -144,19 +144,18 @@
             background-color: #3a5ecc;
         }
         
-        /* Additional options
-        /* Additional options */
+        /* Login options */
         .login-options {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-top: 20px;
             font-size: 14px;
+            text-align: center;
         }
 
         .remember-me {
             display: flex;
             align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
         }
 
         .remember-me input {
@@ -184,6 +183,7 @@
 
 <body>
     <div class="login-container">
+        <!-- Left section -->
         <div class="login-image">
             <div class="login-image-content">
                 <h2>Welcome to HelaWork</h2>
@@ -191,6 +191,7 @@
             </div>
         </div>
 
+        <!-- Right section -->
         <div class="login-form-container">
             <div class="logo">
                 <h1>HelaWork</h1>
@@ -224,7 +225,12 @@
                     <input type="checkbox" id="remember" name="remember">
                     <label for="remember">Remember me</label>
                 </div>
-                
+
+                <div>
+                    <a href="{% url 'forgot_password' %}" class="text-danger">Forgot Password?</a>
+                </div>
+
+                <p>Don't have an account? <a href="{% url 'register' %}">Register</a></p>
             </div>
         </div>
     </div>

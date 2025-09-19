@@ -18,6 +18,7 @@ urlpatterns = [
     #employer urls
 
     path('',views.home,name='home'),
+    path('register',views.register,name='register'),
     path('dashboard',views.employer_dashboard,name='employer_dashboard'),
     path('login',views.login_view,name='login'),
     path('logout', views.logout_view, name='logout'),
