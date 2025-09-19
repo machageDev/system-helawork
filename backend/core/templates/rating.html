@@ -1,0 +1,16 @@
+<h2>Rate Employer for Task: {{ task.title }}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <label>Score (1-5):</label>
+    <select name="score" required>
+        {% for i in 1|to:5 %}
+            <option value="{{ i }}">{{ i }}</option>
+        {% endfor %}
+    </select>
+
+    <label>Review:</label>
+    <textarea name="review" rows="4"></textarea>
+
+    <button type="submit">Submit Rating</button>
+</form>
