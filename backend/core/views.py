@@ -13,12 +13,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import IntegrityError, transaction
 from rest_framework import status
-from core.serializer import LoginSerializer, PaymentSerializer,  RegisterSerializer, TaskSerializer
+from core.serializer import LoginSerializer, PaymentSerializer, RatingSerializer,  RegisterSerializer, TaskSerializer, UserProfileSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
 
 from payments.models import Payment
-from .models import Employer, Task
+from .models import Employer, Task, UserProfile
 from django.contrib.auth.hashers import check_password
 from .models import  User
 
@@ -27,7 +27,7 @@ from django.shortcuts import render
 from django.db.models import Sum
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import make_password
 
 
 
@@ -74,7 +74,7 @@ def otp(request):
             messages.error(request, 'Invalid OTP. Please try again.')
 
     return render(request, 'otp.html')
-"""@api_view(['POST'])
+@api_view(['POST'])
 @permission_classes([AllowAny])
 
 def apiuserprofile(request):
@@ -98,7 +98,7 @@ def apiuserprofile(request):
         profile_picture = profile_picture,       
         
     )
-    return Response(UserProfileSerializer(profile).data, status=status.HTTP_201_CREATED)"""
+    return Response(UserProfileSerializer(profile).data, status=status.HTTP_201_CREATED)
 
 
 @api_view(['POST'])
@@ -139,7 +139,7 @@ def apiregister(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-"""@api_view(["POST"])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def apirating(request):
     serializer = RatingSerializer(data=request.data)
@@ -159,7 +159,7 @@ def apirating(request):
         serializer.save(rater=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)"""
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
        
 @api_view(['POST'])
 @permission_classes([AllowAny])        
@@ -344,6 +344,8 @@ def withdraw_mpesa(request, pk):
     }, status=status.HTTP_200_OK)
 
 
+
+
 def employer_dashboard(request):
     #  Check if employer is logged in
     if not request.session.get('employer_id'):
@@ -362,10 +364,35 @@ def employer_dashboard(request):
         "pending_payments": pending_payments,
         "active_tasks": active_tasks,
         "completed_tasks": completed_tasks,
-        "employer_name": request.session.get("employer_name")  # ✅ Show who is logged in
+        "employer_name": request.session.get("employer_name")  
     }
 
     return render(request, "dashboard.html", context)
+
+
+def register(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        company_name = request.POST.get("company_name")
+        phone_number = request.POST.get("phone_number")
+        password = request.POST.get("password")
+        
+        if Employer.objects.filter(email=email).exists():
+                                    
+           messages.error(request,"Email already Exist!")
+           return redirect("register")        
+        employer = Employer(
+            username=username,
+            email=email,
+            company_name=company_name,
+            phone_number=phone_number,
+            password=make_password(password)          
+        )
+        employer.save()
+        messages.success(request, "Registration successful. Please login.")
+        return redirect("login")
+    return render(request,'login.html')
 
 def login_view(request):
     if request.session.get('employer_id'):

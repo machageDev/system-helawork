@@ -62,7 +62,7 @@ class LoginSerializer(serializers.ModelSerializer):
 
 
 
-"""class RatingSerializer(serializers.ModelSerializer):
+class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = '__all__'
@@ -77,10 +77,3 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def get_average_rating(self, obj):
         return obj.average_rating()
     
-class RatingViewSet(viewsets.ModelViewSet):
-    queryset = Rating.objects.all()
-    serializer_class = RatingSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(rater=self.request.user)"""
