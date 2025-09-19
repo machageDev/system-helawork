@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import IntegrityError, transaction
 from rest_framework import status
-from core.serializer import LoginSerializer, PaymentSerializer, RatingSerializer,  RegisterSerializer, TaskSerializer, UserProfileSerializer
+from core.serializer import LoginSerializer, PaymentSerializer,   RegisterSerializer, TaskSerializer, UserProfileSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
 
@@ -512,4 +512,5 @@ def create_worker(request):
 
     return render(request, "create_worker.html")
 
-
+def home(request):
+    return render(request,'home.html')

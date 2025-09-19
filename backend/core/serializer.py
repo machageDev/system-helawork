@@ -4,7 +4,7 @@ from payments.models import Payment
 from .models import User, UserProfile
 from .models import Employer, User
 from .models import Task
-from .models import Rating
+from .models import EmployerRating, FreelancerRating
 
 class UserSerializer(serializers.ModelField):
     class meta:
@@ -62,11 +62,16 @@ class LoginSerializer(serializers.ModelSerializer):
 
 
 
-class RatingSerializer(serializers.ModelSerializer):
+class EmployerRatingSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Rating
-        fields = '__all__'
-        read_only_fields = ('rater',)
+        model = EmployerRating
+        fields = ['id', 'task', 'freelancer', 'employer', 'score', 'review', 'created_at']
+
+
+class FreelancerRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FreelancerRating
+        fields = ['id', 'task', 'freelancer', 'employer', 'score', 'review', 'created_at']
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
