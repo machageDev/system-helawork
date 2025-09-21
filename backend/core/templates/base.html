@@ -1,144 +1,171 @@
+{% extends "base_employer.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>{% block title %}HelaWork - Employer Dashboard{% endblock %}</title>
+{% block title %}Employer Dashboard{% endblock %}
+{% block page_title %}Employer Dashboard{% endblock %}
 
-    <!-- Custom HelaWork CSS -->
-    <link href="{% static 'css/helawork-dashboard.css' %}" rel="stylesheet">
+{% block content %}
+<div class="container-fluid">
 
-    <!-- FontAwesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-
-    <style>
-        /* Sidebar collapsed */
-        .sidebar.collapsed {
-            width: 70px;
-            overflow: hidden;
-        }
-
-        .sidebar.collapsed li a span {
-            display: none;
-        }
-
-        .sidebar.collapsed .sidebar-brand span {
-            display: none;
-        }
-
-        .sidebar {
-            transition: width 0.3s ease;
-            width: 220px;
-        }
-
-        .content-expanded {
-            margin-left: 70px; /* when sidebar collapsed */
-            transition: margin-left 0.3s ease;
-        }
-
-        .content-normal {
-            margin-left: 220px; /* when sidebar expanded */
-            transition: margin-left 0.3s ease;
-        }
-    </style>
-
-    {% block extra_head %}{% endblock %}
-</head>
-
-<body id="page-top" class="light-mode transition">
-
-    <!-- Page Wrapper -->
-    <div id="wrapper" class="d-flex">
-
-        <!-- Sidebar -->
-        <ul id="sidebar" class="sidebar light-mode">
-            <!-- Brand -->
-            <a class="sidebar-brand" href="{% url 'employer_dashboard' %}">
-                <i class="fas fa-briefcase"></i>
-                <span>HelaWork</span>
-            </a>
-            
-            <li><a href="{% url 'employer_dashboard' %}"><i class="fas fa-home"></i> <span>Dashboard</span></a></li>
-            <li><a href="{% url 'worker_list' %}"><i class="fas fa-users"></i> <span>Workers</span></a></li>
-            <li><a href="{% url 'task_list' %}"><i class="fas fa-tasks"></i> <span>Tasks</span></a></li>
-            <li><a href="{% url 'payments:pay_worker' %}"><i class="fas fa-money-bill"></i> <span>Payments</span></a></li>            
-            <li><a href="#"><i class="fas fa-chart-bar"></i> <span>Reports</span></a></li>
-            <li><a href="settings"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
-        </ul>
-        <!-- End Sidebar -->
-
-        <!-- Content Wrapper -->
-        <div id="content-wrapper" class="flex-grow-1 content-normal">
-
-            <!-- Main Content -->
-            <div id="content">
-
-                <!-- Topbar -->
-                <nav class="navbar d-flex justify-content-between align-items-center px-3">
-                    <!-- Sidebar Toggle -->
-                    <button id="sidebarToggle" class="btn btn-outline-primary">
-                        <i class="fas fa-bars"></i>
-                    </button>
-
-                    <h4 class="m-0 font-weight-bold">{% block page_title %}{% endblock %}</h4>
-
-                    <ul class="navbar-nav d-flex align-items-center">
-                        <!-- Alerts -->
-                        <li class="nav-item me-3">
-                            <a href="#"><i class="fas fa-bell"></i></a>
-                        </li>
-
-                        <!-- User Info -->
-                        <li class="nav-item">
-                            <a href="#">
-                                <span>{{ request.user.username }}</span>
-                                <img class="img-profile"
-                                     src="{% static 'img/default-avatar.png' %}">
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-                <!-- End Topbar -->
-
-                <!-- Begin Page Content -->
-                <div class="main">
-                    {% block content %}{% endblock %}
-                </div>
-                <!-- End Page Content -->
-
+    <!-- Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white p-3 rounded">
+                <h5>Active Jobs</h5>
+                <h3>{{ active_jobs }}</h3>
             </div>
-            <!-- End Main Content -->
-
-            <!-- Footer -->
-            <footer class="footer">
-                <span>© HelaWork {{ now.year }}</span>
-            </footer>
-            <!-- End Footer -->
-
         </div>
-        <!-- End Content Wrapper -->
-
+        <div class="col-md-3">
+            <div class="card bg-success text-white p-3 rounded">
+                <h5>Proposals Pending</h5>
+                <h3>{{ pending_proposals }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark p-3 rounded">
+                <h5>Ongoing Tasks</h5>
+                <h3>{{ ongoing_tasks }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white p-3 rounded">
+                <h5>Total Spent</h5>
+                <h3>Ksh {{ total_spent }}</h3>
+            </div>
+        </div>
     </div>
-    <!-- End Page Wrapper -->
 
-    <!-- Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Jobs Posted -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between">
+            <h5>My Jobs</h5>
+            <a href="{% url 'task_create' %}" class="btn btn-sm btn-primary">Post New Job</a>
+        </div>
+        <div class="card-body">
+            {% if jobs %}
+                <table class="table table-dark table-striped">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Deadline</th>
+                            <th>Status</th>
+                            <th>Proposals</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in jobs %}
+                        <tr>
+                            <td>{{ job.title }}</td>
+                            <td>{{ job.deadline|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge bg-{% if job.status == 'Completed' %}success{% elif job.status == 'In Progress' %}warning{% else %}secondary{% endif %}">
+                                    {{ job.status }}
+                                </span>
+                            </td>
+                            <td>{{ job.proposals.count }}</td>
+                            <td>
+                                <a href="{% url 'job_detail' job.id %}" class="btn btn-sm btn-outline-light">View</a>
+                                <a href="{% url 'proposal_list' job.id %}" class="btn btn-sm btn-outline-info">Proposals</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No jobs posted yet.</p>
+            {% endif %}
+        </div>
+    </div>
 
-    <!-- Sidebar Toggle Script -->
-    <script>
-        const sidebar = document.getElementById("sidebar");
-        const contentWrapper = document.getElementById("content-wrapper");
-        const toggleBtn = document.getElementById("sidebarToggle");
+    <!-- Recent Proposals -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Recent Proposals</h5>
+        </div>
+        <div class="card-body">
+            {% if proposals %}
+                <ul class="list-group">
+                    {% for p in proposals %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>
+                            <strong>{{ p.freelancer.name }}</strong> applied for 
+                            <em>{{ p.task.title }}</em>
+                        </span>
+                        <a href="{% url 'proposal_detail' p.id %}" class="btn btn-sm btn-outline-primary">Review</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No new proposals.</p>
+            {% endif %}
+        </div>
+    </div>
 
-        toggleBtn.addEventListener("click", () => {
-            sidebar.classList.toggle("collapsed");
-            contentWrapper.classList.toggle("content-expanded");
-            contentWrapper.classList.toggle("content-normal");
-        });
-    </script>
+    <!-- Payments -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Recent Payments</h5>
+        </div>
+        <div class="card-body">
+            {% if payments %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>Freelancer</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pay in payments %}
+                        <tr>
+                            <td>{{ pay.task.title }}</td>
+                            <td>{{ pay.worker.name }}</td>
+                            <td>Ksh {{ pay.amount }}</td>
+                            <td>{{ pay.date|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge bg-{% if pay.status == 'Paid' %}success{% else %}warning{% endif %}">
+                                    {{ pay.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No payments made yet.</p>
+            {% endif %}
+        </div>
+    </div>
 
-    {% block extra_js %}{% endblock %}
-</body>
-</html>
+    <!-- Ratings -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Recent Ratings</h5>
+        </div>
+        <div class="card-body">
+            {% if ratings %}
+                <ul class="list-group">
+                    {% for r in ratings %}
+                    <li class="list-group-item">
+                        <strong>{{ r.task.title }}</strong> - Rated 
+                        <span class="text-warning">
+                            {% for i in "12345"|slice:":r.score" %}
+                                <i class="fas fa-star"></i>
+                            {% endfor %}
+                        </span>
+                        by {{ r.rater.username }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No ratings yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
