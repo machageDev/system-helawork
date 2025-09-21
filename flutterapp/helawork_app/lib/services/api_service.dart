@@ -187,6 +187,83 @@ Future<Map<String, dynamic>> login(String name, String password) async {
       throw Exception("Failed to initiate withdrawal");
     }
   }
+
+   static Future<List<dynamic>> getData(String endpoint) async {
+    final url = Uri.parse('$baseUrl/$endpoint/');
+
+    try {
+      final response = await http.get(url, headers: {
+        'Content-Type': 'application/json',
+      });
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception("Failed to load data: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error fetching data: $e");
+    }
+  }
+
   
+  static Future<Map<String, dynamic>> postData(
+      String endpoint, Map<String, dynamic> body) async {
+    final url = Uri.parse('$baseUrl/$endpoint/');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception(
+            "Failed to post data: ${response.statusCode} - ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error posting data: $e");
+    }
+  }
+
+  
+  static Future<Map<String, dynamic>> submitProposal({
+    required int jobId,
+    required int freelancerId,
+    required String coverLetter,
+    required double bidAmount,
+  }) async {
+    final body = {
+      "task_id": jobId,
+      "worker_id": freelancerId,
+      "cover_letter": coverLetter,
+      "bid_amount": bidAmount,
+    };
+
+    return await postData("proposals", body);
+  }
+
+    static Future<Map<String, dynamic>> submitRating({
+    required int taskId,
+    required int raterId,
+    required int ratedUserId,
+    required int score,
+    String? comment,
+  }) async {
+    final body = {
+      "task": taskId,
+      "rater": raterId,
+      "rated_user": ratedUserId,
+      "score": score,
+      "comment": comment ?? "",
+    };
+
+    return await postData("ratings/", body);
+  }
 
 }
