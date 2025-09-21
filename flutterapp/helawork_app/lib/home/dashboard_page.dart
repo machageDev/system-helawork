@@ -6,6 +6,7 @@ import '../providers/rating_provider.dart';
 import 'payment_summary_page.dart';
 import 'task_page.dart';
 import 'user_profile_screen.dart';
+import 'proposal_screen.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -17,9 +18,22 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   int _selectedIndex = 0;
 
+  late final List<Widget> _pages;
+
   @override
   void initState() {
     super.initState();
+
+    // Initialize pages list once
+    _pages = [
+      _buildHomePage(),
+      const TaskPage(),
+      const PaymentSummaryPage(),
+      const ProposalsScreen(),
+      const UserProfileScreen(),
+    ];
+
+    // Load data from providers
     Future.microtask(() {
       Provider.of<DashboardProvider>(context, listen: false).loadData();
       Provider.of<ProposalProvider>(context, listen: false).fetchProposals();
@@ -27,249 +41,233 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
-  void _onItemTapped(BuildContext context, int index) {
-    setState(() => _selectedIndex = index);
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
-    switch (index) {
-      case 1:
-        Navigator.push(
-            context, MaterialPageRoute(builder: (_) => const TaskPage()));
-        break;
-      case 2:
-        Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const PaymentSummaryPage()));
-        break;
-      case 3:
-        Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const UserProfileScreen()));
-        break;
-    }
+  // ================= MAIN DASHBOARD BODY (Home Tab) =================
+  Widget _buildHomePage() {
+    return Consumer<DashboardProvider>(
+      builder: (context, dashboard, _) {
+        if (dashboard.isLoading) {
+          return const Center(
+              child: CircularProgressIndicator(color: Colors.green));
+        }
+
+        if (dashboard.error != null) {
+          return Center(
+              child: Text(dashboard.error!,
+                  style: const TextStyle(color: Colors.red)));
+        }
+
+        return RefreshIndicator(
+          onRefresh: dashboard.loadData,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ================= STATS =================
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildStatCard("In Progress", "${dashboard.inProgress}",
+                        Icons.work, Colors.orange),
+                    _buildStatCard("Completed", "${dashboard.completed}",
+                        Icons.check_circle, Colors.green),
+                    _buildStatCard("Payments", "Ksh ${dashboard.totalPayments}",
+                        Icons.payment, Colors.blue),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // ================= ACTIVE TASKS =================
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text("Active Tasks",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold)),
+                    TextButton(
+                      onPressed: () => _onItemTapped(1), // Jump to Tasks tab
+                      child: const Text("View All",
+                          style: TextStyle(color: Colors.green)),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 10),
+                if (dashboard.activeTasks.isEmpty)
+                  const Text("No active tasks",
+                      style: TextStyle(color: Colors.grey))
+                else
+                  ...dashboard.activeTasks.map((task) => _buildTaskCard(
+                        task["title"] ?? "Untitled Task",
+                        "Due: ${task["deadline"] ?? 'N/A'}",
+                        task["status"] ?? "Unknown",
+                      )),
+                const SizedBox(height: 20),
+
+                // ================= RECENT PAYMENTS =================
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text("Recent Payments",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold)),
+                    TextButton(
+                      onPressed: () => _onItemTapped(2), // Jump to Payments tab
+                      child: const Text("View All",
+                          style: TextStyle(color: Colors.green)),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 10),
+                if (dashboard.recentPayments.isEmpty)
+                  const Text("No recent payments",
+                      style: TextStyle(color: Colors.grey))
+                else
+                  ...dashboard.recentPayments.map((p) => _buildPaymentRow(
+                        p["task"] ?? "Unknown Task",
+                        "Ksh ${p["amount"] ?? 0}",
+                        p["date"] ?? "N/A",
+                        p["status"] ?? "Pending",
+                      )),
+
+                // ================= PROPOSALS =================
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text("Proposals",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold)),
+                    TextButton(
+                      onPressed: () => _onItemTapped(3), // Jump to Proposals tab
+                      child: const Text("View All",
+                          style: TextStyle(color: Colors.green)),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Consumer<ProposalProvider>(
+                  builder: (context, proposals, _) {
+                    if (proposals.isLoading) {
+                      return const Center(
+                        child:
+                            CircularProgressIndicator(color: Colors.green),
+                      );
+                    }
+                    if (proposals.proposals.isEmpty) {
+                      return const Text("No proposals yet",
+                          style: TextStyle(color: Colors.grey));
+                    }
+                    return Column(
+                      children: proposals.proposals
+                          .map((proposal) => _buildProposalCard(
+                                proposal["jobTitle"] ?? "Untitled Job",
+                                proposal["status"] ?? "Pending",
+                                proposal["date"] ?? "N/A",
+                              ))
+                          .toList(),
+                    );
+                  },
+                ),
+
+                // ================= RATINGS =================
+                const SizedBox(height: 20),
+                const Text("Employer Ratings",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                Consumer<RatingProvider>(
+                  builder: (context, ratings, _) {
+                    if (ratings.isLoading) {
+                      return const Center(
+                        child:
+                            CircularProgressIndicator(color: Colors.green),
+                      );
+                    }
+                    if (ratings.ratings.isEmpty) {
+                      return const Text("No ratings yet",
+                          style: TextStyle(color: Colors.grey));
+                    }
+                    return Column(
+                      children: ratings.ratings
+                          .map((r) => _buildRatingCard(
+                                r["employer"] ?? "Unknown Employer",
+                                r["score"] ?? 0,
+                                r["review"] ?? "No review",
+                                r["date"] ?? "N/A",
+                              ))
+                          .toList(),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<DashboardProvider>(
-      builder: (context, dashboard, _) {
-        return Scaffold(
-          backgroundColor: Colors.black87,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            title: Text(
-              "Hi, ${dashboard.userName} 👋",
-              style: const TextStyle(color: Colors.white, fontSize: 20),
+    return Scaffold(
+      backgroundColor: Colors.black87,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Consumer<DashboardProvider>(
+          builder: (context, dashboard, _) => Text(
+            "Hi, ${dashboard.userName} 👋",
+            style: const TextStyle(color: Colors.white, fontSize: 20),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications, color: Colors.white),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const CircleAvatar(
+              backgroundColor: Colors.green,
+              child: Icon(Icons.person, color: Colors.white),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.notifications, color: Colors.white),
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: const CircleAvatar(
-                  backgroundColor: Colors.green,
-                  child: Icon(Icons.person, color: Colors.white),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const UserProfileScreen()));
-                },
-              ),
-            ],
+            onPressed: () => _onItemTapped(4), // Jump to Profile tab
           ),
-          body: dashboard.isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: Colors.green))
-              : dashboard.error != null
-                  ? Center(
-                      child: Text(dashboard.error!,
-                          style: const TextStyle(color: Colors.red)))
-                  : RefreshIndicator(
-                      onRefresh: dashboard.loadData,
-                      child: SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // ================= STATS =================
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildStatCard("In Progress",
-                                    "${dashboard.inProgress}", Icons.work, Colors.orange),
-                                _buildStatCard("Completed",
-                                    "${dashboard.completed}", Icons.check_circle, Colors.green),
-                                _buildStatCard(
-                                    "Payments",
-                                    "Ksh ${dashboard.totalPayments}",
-                                    Icons.payment,
-                                    Colors.blue),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-
-                            // ================= ACTIVE TASKS =================
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text("Active Tasks",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold)),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) => const TaskPage()));
-                                  },
-                                  child: const Text("View All",
-                                      style: TextStyle(color: Colors.green)),
-                                )
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            if (dashboard.activeTasks.isEmpty)
-                              const Text("No active tasks",
-                                  style: TextStyle(color: Colors.grey))
-                            else
-                              ...dashboard.activeTasks.map((task) => _buildTaskCard(
-                                    task["title"] ?? "Untitled Task",
-                                    "Due: ${task["deadline"] ?? 'N/A'}",
-                                    task["status"] ?? "Unknown",
-                                  )),
-                            const SizedBox(height: 20),
-
-                            // ================= RECENT PAYMENTS =================
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text("Recent Payments",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold)),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const PaymentSummaryPage()));
-                                  },
-                                  child: const Text("View All",
-                                      style: TextStyle(color: Colors.green)),
-                                )
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            if (dashboard.recentPayments.isEmpty)
-                              const Text("No recent payments",
-                                  style: TextStyle(color: Colors.grey))
-                            else
-                              ...dashboard.recentPayments.map((p) => _buildPaymentRow(
-                                    p["task"] ?? "Unknown Task",
-                                    "Ksh ${p["amount"] ?? 0}",
-                                    p["date"] ?? "N/A",
-                                    p["status"] ?? "Pending",
-                                  )),
-
-                            // ================= PROPOSALS =================
-                            const SizedBox(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text("Proposals",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold)),
-                                TextButton(
-                                  onPressed: () {
-                                    // TODO: Navigate to ProposalsPage
-                                  },
-                                  child: const Text("View All",
-                                      style: TextStyle(color: Colors.green)),
-                                )
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Consumer<ProposalProvider>(
-                              builder: (context, proposals, _) {
-                                if (proposals.isLoading) {
-                                  return const Center(
-                                    child: CircularProgressIndicator(
-                                        color: Colors.green),
-                                  );
-                                }
-                                if (proposals.proposals.isEmpty) {
-                                  return const Text("No proposals yet",
-                                      style: TextStyle(color: Colors.grey));
-                                }
-                                return Column(
-                                  children: proposals.proposals.map((proposal) =>
-                                      _buildProposalCard(
-                                        proposal["jobTitle"] ?? "Untitled Job",
-                                        proposal["status"] ?? "Pending",
-                                        proposal["date"] ?? "N/A",
-                                      )).toList(),
-                                );
-                              },
-                            ),
-
-                            // ================= RATINGS =================
-                            const SizedBox(height: 20),
-                            const Text("Employer Ratings",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 10),
-                            Consumer<RatingProvider>(
-                              builder: (context, ratings, _) {
-                                if (ratings.isLoading) {
-                                  return const Center(
-                                    child: CircularProgressIndicator(
-                                        color: Colors.green),
-                                  );
-                                }
-                                if (ratings.ratings.isEmpty) {
-                                  return const Text("No ratings yet",
-                                      style: TextStyle(color: Colors.grey));
-                                }
-                                return Column(
-                                  children: ratings.ratings.map((r) =>
-                                      _buildRatingCard(
-                                        r["employer"] ?? "Unknown Employer",
-                                        r["score"] ?? 0,
-                                        r["review"] ?? "No review",
-                                        r["date"] ?? "N/A",
-                                      )).toList(),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _selectedIndex,
-            onTap: (index) => _onItemTapped(context, index),
-            backgroundColor: Colors.black87,
-            selectedItemColor: Colors.green,
-            unselectedItemColor: Colors.grey,
-            items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-              BottomNavigationBarItem(icon: Icon(Icons.task), label: "Tasks"),
-              BottomNavigationBarItem(icon: Icon(Icons.money), label: "Payments"),
-              BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
-            ],
-          ),
-        );
-      },
+        ],
+      ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        backgroundColor: Colors.black87,
+        selectedItemColor: Colors.green,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.task), label: "Tasks"),
+          BottomNavigationBarItem(icon: Icon(Icons.money), label: "Payments"),
+          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: "Proposals"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
+        ],
+      ),
     );
   }
 
