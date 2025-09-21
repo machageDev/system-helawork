@@ -12,7 +12,8 @@ urlpatterns = [
     path('apilistpayments',views.list_payments,name='list_payments'),
     path('apiupdatepayments',views.update_payment,name='update_payments'),
     path('apipaymentsummary',views.apipayment_summary,name='apipayment_summary'),
-    
+    path('tasks', views.apitask_list, name='task-list'),
+    path('tasks/',views.apitask_detail, name='task-detail'),
     
     
     #employer urls
