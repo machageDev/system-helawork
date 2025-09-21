@@ -12,7 +12,7 @@ class ProposalProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final data = await ApiService.getData('/proposals/');
+      final data = await ApiService.getData('proposals');
       _proposals = data;
     } catch (e) {
       print("Error fetching proposals: $e");

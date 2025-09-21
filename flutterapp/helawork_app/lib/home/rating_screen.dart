@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:helawork_app/providers/rating_provider.dart';
 import 'package:provider/provider.dart';
-import '../providers/rating_provider.dart';
 import '../widgets/rating_card.dart';
 
 class RatingsScreen extends StatelessWidget {

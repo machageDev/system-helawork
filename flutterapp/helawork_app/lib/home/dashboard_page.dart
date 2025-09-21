@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/dashboard_provider.dart';
+import '../providers/proposal_provider.dart';
+import '../providers/rating_provider.dart';
 import 'payment_summary_page.dart';
 import 'task_page.dart';
 import 'user_profile_screen.dart';
@@ -18,8 +20,11 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() =>
-        Provider.of<DashboardProvider>(context, listen: false).loadData());
+    Future.microtask(() {
+      Provider.of<DashboardProvider>(context, listen: false).loadData();
+      Provider.of<ProposalProvider>(context, listen: false).fetchProposals();
+      Provider.of<RatingProvider>(context, listen: false).fetchRatings();
+    });
   }
 
   void _onItemTapped(BuildContext context, int index) {
@@ -44,14 +49,14 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<DashboardProvider>(
-      builder: (context, provider, _) {
+      builder: (context, dashboard, _) {
         return Scaffold(
           backgroundColor: Colors.black87,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
             title: Text(
-              "Hi, ${provider.userName} 👋",
+              "Hi, ${dashboard.userName} 👋",
               style: const TextStyle(color: Colors.white, fontSize: 20),
             ),
             actions: [
@@ -73,15 +78,15 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ],
           ),
-          body: provider.isLoading
+          body: dashboard.isLoading
               ? const Center(
                   child: CircularProgressIndicator(color: Colors.green))
-              : provider.error != null
+              : dashboard.error != null
                   ? Center(
-                      child: Text(provider.error!,
+                      child: Text(dashboard.error!,
                           style: const TextStyle(color: Colors.red)))
                   : RefreshIndicator(
-                      onRefresh: provider.loadData,
+                      onRefresh: dashboard.loadData,
                       child: SingleChildScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(16),
@@ -93,12 +98,12 @@ class _DashboardPageState extends State<DashboardPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 _buildStatCard("In Progress",
-                                    "${provider.inProgress}", Icons.work, Colors.orange),
+                                    "${dashboard.inProgress}", Icons.work, Colors.orange),
                                 _buildStatCard("Completed",
-                                    "${provider.completed}", Icons.check_circle, Colors.green),
+                                    "${dashboard.completed}", Icons.check_circle, Colors.green),
                                 _buildStatCard(
                                     "Payments",
-                                    "Ksh ${provider.totalPayments}",
+                                    "Ksh ${dashboard.totalPayments}",
                                     Icons.payment,
                                     Colors.blue),
                               ],
@@ -127,11 +132,11 @@ class _DashboardPageState extends State<DashboardPage> {
                               ],
                             ),
                             const SizedBox(height: 10),
-                            if (provider.activeTasks.isEmpty)
+                            if (dashboard.activeTasks.isEmpty)
                               const Text("No active tasks",
                                   style: TextStyle(color: Colors.grey))
                             else
-                              ...provider.activeTasks.map((task) => _buildTaskCard(
+                              ...dashboard.activeTasks.map((task) => _buildTaskCard(
                                     task["title"] ?? "Untitled Task",
                                     "Due: ${task["deadline"] ?? 'N/A'}",
                                     task["status"] ?? "Unknown",
@@ -161,11 +166,11 @@ class _DashboardPageState extends State<DashboardPage> {
                               ],
                             ),
                             const SizedBox(height: 10),
-                            if (provider.recentPayments.isEmpty)
+                            if (dashboard.recentPayments.isEmpty)
                               const Text("No recent payments",
                                   style: TextStyle(color: Colors.grey))
                             else
-                              ...provider.recentPayments.map((p) => _buildPaymentRow(
+                              ...dashboard.recentPayments.map((p) => _buildPaymentRow(
                                     p["task"] ?? "Unknown Task",
                                     "Ksh ${p["amount"] ?? 0}",
                                     p["date"] ?? "N/A",
@@ -192,16 +197,28 @@ class _DashboardPageState extends State<DashboardPage> {
                               ],
                             ),
                             const SizedBox(height: 10),
-                            if (provider.proposals.isEmpty)
-                              const Text("No proposals yet",
-                                  style: TextStyle(color: Colors.grey))
-                            else
-                              ...provider.proposals.map((proposal) =>
-                                  _buildProposalCard(
-                                    proposal["jobTitle"] ?? "Untitled Job",
-                                    proposal["status"] ?? "Pending",
-                                    proposal["date"] ?? "N/A",
-                                  )),
+                            Consumer<ProposalProvider>(
+                              builder: (context, proposals, _) {
+                                if (proposals.isLoading) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(
+                                        color: Colors.green),
+                                  );
+                                }
+                                if (proposals.proposals.isEmpty) {
+                                  return const Text("No proposals yet",
+                                      style: TextStyle(color: Colors.grey));
+                                }
+                                return Column(
+                                  children: proposals.proposals.map((proposal) =>
+                                      _buildProposalCard(
+                                        proposal["jobTitle"] ?? "Untitled Job",
+                                        proposal["status"] ?? "Pending",
+                                        proposal["date"] ?? "N/A",
+                                      )).toList(),
+                                );
+                              },
+                            ),
 
                             // ================= RATINGS =================
                             const SizedBox(height: 20),
@@ -211,16 +228,29 @@ class _DashboardPageState extends State<DashboardPage> {
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold)),
                             const SizedBox(height: 10),
-                            if (provider.ratings.isEmpty)
-                              const Text("No ratings yet",
-                                  style: TextStyle(color: Colors.grey))
-                            else
-                              ...provider.ratings.map((r) => _buildRatingCard(
-                                    r["employer"] ?? "Unknown Employer",
-                                    r["score"] ?? 0,
-                                    r["review"] ?? "No review",
-                                    r["date"] ?? "N/A",
-                                  )),
+                            Consumer<RatingProvider>(
+                              builder: (context, ratings, _) {
+                                if (ratings.isLoading) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(
+                                        color: Colors.green),
+                                  );
+                                }
+                                if (ratings.ratings.isEmpty) {
+                                  return const Text("No ratings yet",
+                                      style: TextStyle(color: Colors.grey));
+                                }
+                                return Column(
+                                  children: ratings.ratings.map((r) =>
+                                      _buildRatingCard(
+                                        r["employer"] ?? "Unknown Employer",
+                                        r["score"] ?? 0,
+                                        r["review"] ?? "No review",
+                                        r["date"] ?? "N/A",
+                                      )).toList(),
+                                );
+                              },
+                            ),
                           ],
                         ),
                       ),
