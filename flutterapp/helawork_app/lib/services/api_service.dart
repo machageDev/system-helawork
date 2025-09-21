@@ -12,6 +12,8 @@ class ApiService{
   static const String recentUrl = '$baseUrl/apirecent';
   static const String active_sessionUrl = '$baseUrl/apiactivesession';
   static const String earningUrl = '$baseUrl/apiearing';
+  static const String TaskUrl = '$baseUrl/task/';
+  static const String taskUrl = '$baseUrl/task';
 
 Future<Map<String, dynamic>> register(String name, String email,String phoneNO, String password,  String confirmPassword) async {
   final url = Uri.parse(registerUrl);
@@ -112,7 +114,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
 
   /// Fetch a single task by ID
   static Future<Map<String, dynamic>> fetchTask() async {
-    final response = await http.get(Uri.parse("tasks/"));
+    final response = await http.get(Uri.parse(taskUrl));
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
@@ -123,7 +125,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
  
   static Future<Map<String, dynamic>> updateTask(int id, Map<String, dynamic> taskData) async {
     final response = await http.put(
-      Uri.parse("tasks"),
+      Uri.parse(TaskUrl),
       headers: {"Content-Type": "application/json"},
       body: json.encode(taskData),
     );
