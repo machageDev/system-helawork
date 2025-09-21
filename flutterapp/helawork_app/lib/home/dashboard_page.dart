@@ -151,7 +151,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             fontSize: 18,
                             fontWeight: FontWeight.bold)),
                     TextButton(
-                      onPressed: () => _onItemTapped(3), // Jump to Proposals tab
+                      onPressed: () => _onItemTapped(3), 
                       child: const Text("View All",
                           style: TextStyle(color: Colors.green)),
                     )

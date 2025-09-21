@@ -101,15 +101,38 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     return json.decode(response.body);
   }
 
-  static Future<List<dynamic>> getTasks() async {
-    final response = await http.get(Uri.parse("recentUrl"));
+ static Future<List<dynamic>> fetchTasks() async {
+    final response = await http.get(Uri.parse("$baseUrl/tasks/"));
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      return json.decode(response.body);
     } else {
       throw Exception("Failed to load tasks");
     }
   }
 
+  /// Fetch a single task by ID
+  static Future<Map<String, dynamic>> fetchTask() async {
+    final response = await http.get(Uri.parse("tasks/"));
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception("Failed to load task with id ");
+    }
+  }
+
+ 
+  static Future<Map<String, dynamic>> updateTask(int id, Map<String, dynamic> taskData) async {
+    final response = await http.put(
+      Uri.parse("tasks"),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode(taskData),
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception("Failed to update task: ${response.body}");
+    }
+  }
   Future<Map<String, dynamic>> getUserProfile() async {
     try {
       final response = await http.get(

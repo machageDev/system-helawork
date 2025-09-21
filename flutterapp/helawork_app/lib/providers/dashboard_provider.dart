@@ -20,10 +20,10 @@ class DashboardProvider with ChangeNotifier {
       final apiService = ApiService();
 
       final profile = await apiService.getUserProfile();
-      final tasksRaw = await ApiService.getTasks();
+      final tasksRaw = await ApiService.fetchTask();
       final paymentsRaw = await ApiService.getPaymentSummary();
 
-      final tasks = List<Map<String, dynamic>>.from(tasksRaw);
+      final tasks = List<Map<String, dynamic>>.from(tasksRaw as Iterable);
       final payments = Map<String, dynamic>.from(paymentsRaw);
 
       userName = profile["name"] ?? "User";

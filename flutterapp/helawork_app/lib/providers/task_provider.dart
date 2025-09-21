@@ -11,22 +11,53 @@ class TaskProvider with ChangeNotifier {
   String _errorMessage = '';
   String get errorMessage => _errorMessage;
 
+  // --- Fetch all tasks ---
   Future<void> fetchTasks(BuildContext context) async {
-    _isLoading = true;
+    _setLoading(true);
     _errorMessage = '';
-    notifyListeners();
-
     try {
-      final tasks = await ApiService.getTasks();
-      _tasks = List<Map<String, dynamic>>.from(tasks);
+      final data = await ApiService.getData('tasks/');
+      _tasks = List<Map<String, dynamic>>.from(data);
     } catch (e) {
-      _errorMessage = "Failed to load tasks";
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to load tasks")),
-      );
+      _showError(context, 'Failed to load tasks');
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
     }
+  }
+
+  // --- Fetch single task by id ---
+  Future<Map<String, dynamic>?> fetchTaskById(
+      BuildContext context, int id) async {
+    _setLoading(true);
+    try {
+      final data = await ApiService.getData('tasks/');
+      final task = Map<String, dynamic>.from(data as Map);
+
+      final index = _tasks.indexWhere((t) => t['task_id'] == id);
+      if (index != -1) {
+        _tasks[index] = task;
+      }
+      return task;
+    } catch (e) {
+      _showError(context, 'Failed to load task details');
+      return null;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // --- Helpers ---
+  void _setLoading(bool v) {
+    _isLoading = v;
+    notifyListeners();
+  }
+
+  void _showError(BuildContext context, String message) {
+    _errorMessage = message;
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
+    notifyListeners();
   }
 }
