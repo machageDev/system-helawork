@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService{
-  static const String baseUrl = 'http://172.16.206.198:8000';
+  static const String baseUrl = 'http://192.168.100.188:8000';
   static const String registerUrl = '$baseUrl/apiregister';
   static const String  loginUrl ='$baseUrl/apilogin';
   static const String paymentsummaryUrl='$baseUrl/apipaymentsummary';

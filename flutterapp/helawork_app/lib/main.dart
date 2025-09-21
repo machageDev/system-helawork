@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:helawork_app/providers/dashboard_provider.dart';
 import 'package:helawork_app/providers/forgot_password_provider.dart';
+import 'package:helawork_app/providers/payment_provider.dart';
+import 'package:helawork_app/providers/task_provider.dart';
 import 'package:helawork_app/providers/user_profile_provider.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
@@ -13,7 +16,10 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ForgotPasswordProvider()),
-        ChangeNotifierProvider(create: (_) => UserProfileProvider()),       
+        ChangeNotifierProvider(create: (_) => UserProfileProvider()),  
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => TaskProvider()) , 
+        ChangeNotifierProvider(create: (_) => PaymentProvider()),   
 
       
       ],
