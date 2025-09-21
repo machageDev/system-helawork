@@ -3,7 +3,7 @@ from . import views
 
 
 urlpatterns = [
-    
+    #worker/ mobile app
     path('apilogin',views.apilogin, name = 'apilogin'),
     path('apiregister',views.apiregister,name='apiregister'),
     path('apiforgot_password',views.apiforgot_password, name = 'apiforgotpassword'),
@@ -14,9 +14,10 @@ urlpatterns = [
     path('apipaymentsummary',views.apipayment_summary,name='apipayment_summary'),
     path('tasks', views.apitask_list, name='task-list'),
     path('tasks/',views.apitask_detail, name='task-detail'),
+    path('proposals/submit', views.apisubmit_proposal, name='submit-proposal'),
     
     
-    #employer urls
+    #employer urls/ web site
 
     path('',views.home,name='home'),
     path('register',views.register,name='register'),

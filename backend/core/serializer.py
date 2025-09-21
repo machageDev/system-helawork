@@ -1,7 +1,7 @@
 from rest_framework import serializers 
 
 from payments.models import Payment
-from .models import User, UserProfile
+from .models import Proposal, User, UserProfile
 from .models import Employer, User
 from .models import Task
 from .models import EmployerRating, FreelancerRating
@@ -82,3 +82,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def get_average_rating(self, obj):
         return obj.average_rating()
     
+class ProposalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Proposal
+        fields = ['proposal_id', 'task', 'freelancer', 'cover_letter', 'bid_amount', 'submitted_at']
+        read_only_fields = ['proposal_id', 'submitted_at']

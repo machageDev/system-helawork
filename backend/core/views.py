@@ -12,11 +12,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import IntegrityError, transaction
 from rest_framework import status
-from core.serializer import FreelancerRatingSerializer, LoginSerializer, PaymentSerializer,   RegisterSerializer, TaskSerializer, UserProfileSerializer
+from core.serializer import FreelancerRatingSerializer, LoginSerializer, PaymentSerializer, ProposalSerializer,   RegisterSerializer, TaskSerializer, UserProfileSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
 from payments.models import Payment
-from .models import Employer, EmployerRating, FreelancerRating, Task, UserProfile
+from .models import Employer, EmployerRating, FreelancerRating, Proposal, Task, UserProfile
 from django.contrib.auth.hashers import check_password
 from .models import  User
 from rest_framework.permissions import IsAuthenticated
@@ -229,6 +229,29 @@ def apiforgot_password(request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        
     
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def apisubmit_proposal(request):
+    task_id = request.data.get("task")
+    cover_letter = request.data.get("cover_letter")
+    bid_amount = request.data.get("bid_amount")
+
+    # check if task exists
+    try:
+        task = Task.objects.get(pk=task_id)
+    except Task.DoesNotExist:
+        return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # prevent duplicate proposal
+    if Proposal.objects.filter(task=task, freelancer=request.user).exists():
+        return Response({"error": "You have already submitted a proposal for this task"},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = ProposalSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(freelancer=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'POST'])
 def apitask_list(request):
