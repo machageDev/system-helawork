@@ -14,6 +14,7 @@ class ApiService{
   static const String earningUrl = '$baseUrl/apiearing';
   static const String TaskUrl = '$baseUrl/task/';
   static const String taskUrl = '$baseUrl/task';
+  static const String  withdraw_mpesaUrl = '$baseUrl/mpesa';
 
 Future<Map<String, dynamic>> register(String name, String email,String phoneNO, String password,  String confirmPassword) async {
   final url = Uri.parse(registerUrl);
@@ -104,7 +105,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
   }
 
  static Future<List<dynamic>> fetchTasks() async {
-    final response = await http.get(Uri.parse("$baseUrl/tasks/"));
+    final response = await http.get(Uri.parse(TaskUrl));
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
@@ -122,23 +123,11 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     }
   }
 
- 
-  static Future<Map<String, dynamic>> updateTask(int id, Map<String, dynamic> taskData) async {
-    final response = await http.put(
-      Uri.parse(TaskUrl),
-      headers: {"Content-Type": "application/json"},
-      body: json.encode(taskData),
-    );
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception("Failed to update task: ${response.body}");
-    }
-  }
+
   Future<Map<String, dynamic>> getUserProfile() async {
     try {
       final response = await http.get(
-        Uri.parse('userprofileUrl'),
+        Uri.parse(userprofileUrl),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -167,7 +156,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
   Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) async {
     try {
       final response = await http.put(
-        Uri.parse('userprofileUrl'),
+        Uri.parse(userprofileUrl),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -205,7 +194,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
 
   // Withdraw payment via M-PESA
   static Future<Map<String, dynamic>> withdrawMpesa() async {
-    final response = await http.get(Uri.parse("withdraw_mpesaUrl"));
+    final response = await http.get(Uri.parse(withdraw_mpesaUrl));
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
