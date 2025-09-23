@@ -31,8 +31,8 @@
                     <td>{{ task.description|truncatewords:15 }}</td>
                     <td>{{ task.employer.name }}</td>
                     <td>
-                        {% if task.user %}
-                            {{ task.user.username }}
+                        {% if task.assigned_user %}
+                            {{ task.assigned_user.username }}
                         {% else %}
                             <span class="text-muted">Unassigned</span>
                         {% endif %}

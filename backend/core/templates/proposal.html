@@ -1,3 +1,10 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Proposals{% endblock %}
+{% block page_title %}Proposals List{% endblock %}
+
+{% block content %}
 <div class="proposals-list">
     {% if proposals %}
         {% for proposal in proposals %}
@@ -12,7 +19,6 @@
                 
                 <div class="proposal-content">
                     <div class="freelancer-info">
-                        <img src="{% static 'img/default-avatar.png' %}" alt="{{ proposal.freelancer.name }}" class="freelancer-avatar">
                         <div>
                             <h6 class="mb-1">{{ proposal.freelancer.name }}</h6>
                             <span class="text-muted">⭐ (reviews TBD)</span>
@@ -51,3 +57,4 @@
         </div>
     {% endif %}
 </div>
+{% endblock %}

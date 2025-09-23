@@ -472,7 +472,7 @@ def logout_view(request):
 
 
 def task_list(request):
-    tasks = Task.objects.all().select_related("employer", "user")
+    tasks = Task.objects.select_related("employer", "assigned_user").all()
     return render(request, "task.html", {"tasks": tasks})
 
 def create_task(request):
