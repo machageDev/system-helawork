@@ -613,33 +613,37 @@ def reset_password(request, uidb64, token):
     
 
 
-def employer_rating_list(request):
-    ratings = EmployerRating.objects.all()
-    return render(request, "ratings/employer_rating_list.html", {"ratings": ratings})
-
-
-def employer_rating_create(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
-    freelancer = request.user  
-    employer = task.employer
+def create_employer_rating(request):
+    task = get_object_or_404(Task)
 
     if request.method == "POST":
         score = request.POST.get("score")
         review = request.POST.get("review", "")
-        if score:
-            EmployerRating.objects.create(
-                task=task,
-                freelancer=freelancer,
-                employer=employer,
-                score=int(score),
-                review=review
-            )
-            return redirect("employer_rating_list")
 
-    return render(request, "ratings/employer_rating_form.html", {"task": task})
+        if not score:
+            messages.error(request, "Please select a rating score.")
+            return render(request, "ratings/rating.html", {"task": task})
+
+        EmployerRating.objects.create(
+            task=task,
+            freelancer=request.user,
+            employer=task.employer,  
+            score=int(score),
+            review=review
+        )
+        messages.success(request, "Your rating has been submitted successfully!")
+        return redirect("rating_list")
+
+    return render(request, "ratings/rating.html", {"task": task})
 
 
 
-def employer_rating_detail(request, rating_id):
-    rating = get_object_or_404(EmployerRating, id=rating_id)
-    return render(request, "ratings/employer_rating_detail.html", {"rating": rating})
+def employer_rating_list(request):
+    ratings = EmployerRating.objects.all().order_by("-created_at")
+    return render(request, "ratings/rating_list.html", {"ratings": ratings})
+
+
+def employer_ratings_detail(request, employer_id):
+    employer = get_object_or_404(Employer, id=employer_id)
+    ratings = EmployerRating.objects.filter(employer=employer).order_by("-created_at")
+    return render(request, "ratings/employer_ratings_detail.html", {"employer": employer, "ratings": ratings})

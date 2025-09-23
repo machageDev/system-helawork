@@ -9,7 +9,7 @@ class User(models.Model):
     user_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, default="Anonymous")
     email = models.EmailField(unique=True)
-    phoneNo = models.CharField(max_length=13, unique=True)
+    phoneNo = models.CharField(max_length=13, null=True, blank=True)
     password = models.CharField(max_length=128, null=True, blank=True)
 
     def set_password(self, raw_password):
