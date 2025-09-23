@@ -236,13 +236,13 @@ def apisubmit_proposal(request):
     cover_letter = request.data.get("cover_letter")
     bid_amount = request.data.get("bid_amount")
 
-    # check if task exists
+
     try:
         task = Task.objects.get(pk=task_id)
     except Task.DoesNotExist:
         return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    # prevent duplicate proposal
+    
     if Proposal.objects.filter(task=task, freelancer=request.user).exists():
         return Response({"error": "You have already submitted a proposal for this task"},
                         status=status.HTTP_400_BAD_REQUEST)
