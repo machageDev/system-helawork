@@ -1,16 +1,254 @@
-<h2>Rate Employer for Task: {{ task.title }}</h2>
+{% extends 'base.html' %}
+{% load static %}
 
-<form method="post">
-    {% csrf_token %}
-    <label>Score (1-5):</label>
-    <select name="score" required>
-        {% for i in 1|to:5 %}
-            <option value="{{ i }}">{{ i }}</option>
-        {% endfor %}
-    </select>
+{% block title %}HelaWork - Rate Employer: {{ task.title }}{% endblock %}
 
-    <label>Review:</label>
-    <textarea name="review" rows="4"></textarea>
+{% block page_title %}Rate Employer{% endblock %}
 
-    <button type="submit">Submit Rating</button>
-</form>
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="card-title mb-0 text-center">
+                        <i class="fas fa-star me-2"></i>Rate Employer for: {{ task.title }}
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Task Info -->
+                    <div class="task-info mb-4 p-3 bg-light rounded">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-tasks text-primary me-2"></i>
+                            <strong>Task:</strong>
+                            <span class="ms-2">{{ task.title }}</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-user-tie text-primary me-2"></i>
+                            <strong>Employer:</strong>
+                            <span class="ms-2">{{ task.employer.username }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Rating Form -->
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Rating Score -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Overall Rating</label>
+                            <div class="rating-stars mb-3 text-center">
+                                {% for i in "12345" %}
+                                    <input type="radio" id="star{{ i }}" name="score" value="{{ i }}" 
+                                           class="d-none" {% if forloop.counter == 3 %}checked{% endif %}>
+                                    <label for="star{{ i }}" class="star-label me-1">
+                                        <i class="far fa-star fa-2x"></i>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            <div class="text-center text-muted">
+                                <small>Select a rating from 1 (Poor) to 5 (Excellent)</small>
+                            </div>
+                        </div>
+
+                        <!-- Review Text -->
+                        <div class="mb-4">
+                            <label for="review" class="form-label fw-bold">Your Review</label>
+                            <textarea name="review" id="review" rows="5" 
+                                      class="form-control" placeholder="Share your experience working with this employer. What went well? Any suggestions for improvement?"
+                                      required></textarea>
+                            <div class="form-text">
+                                Your review helps other freelancers make informed decisions.
+                            </div>
+                        </div>
+
+                        <!-- Rating Criteria (Optional) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Additional Feedback (Optional)</label>
+                            
+                            <div class="criteria-item mb-3">
+                                <label class="form-label">Communication</label>
+                                <div class="d-flex align-items-center">
+                                    {% for i in "12345" %}
+                                        <input type="radio" id="comm{{ i }}" name="communication" value="{{ i }}" 
+                                               class="me-1">
+                                        <label for="comm{{ i }}" class="me-3">
+                                            <i class="far fa-star"></i> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="criteria-item mb-3">
+                                <label class="form-label">Payment Promptness</label>
+                                <div class="d-flex align-items-center">
+                                    {% for i in "12345" %}
+                                        <input type="radio" id="pay{{ i }}" name="payment" value="{{ i }}" 
+                                               class="me-1">
+                                        <label for="pay{{ i }}" class="me-3">
+                                            <i class="far fa-star"></i> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="criteria-item">
+                                <label class="form-label">Clarity of Requirements</label>
+                                <div class="d-flex align-items-center">
+                                    {% for i in "12345" %}
+                                        <input type="radio" id="clarity{{ i }}" name="clarity" value="{{ i }}" 
+                                               class="me-1">
+                                        <label for="clarity{{ i }}" class="me-3">
+                                            <i class="far fa-star"></i> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between align-items-center pt-3">
+                            <a href="{% url 'task_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Tasks
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Rating
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Rating Guidelines -->
+            <div class="card mt-4 border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-info-circle text-primary me-2"></i>Rating Guidelines
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                        <li><small>⭐ 1 - Poor: Significant issues affecting the work</small></li>
+                        <li><small>⭐ 2 - Fair: Some problems that needed addressing</small></li>
+                        <li><small>⭐ 3 - Good: Met basic expectations</small></li>
+                        <li><small>⭐ 4 - Very Good: Exceeded expectations in some areas</small></li>
+                        <li><small>⭐ 5 - Excellent: Outstanding experience in all aspects</small></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .rating-stars {
+        cursor: pointer;
+    }
+    
+    .star-label {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .star-label:hover i {
+        color: #ffc107 !important;
+        transform: scale(1.1);
+    }
+    
+    input[type="radio"]:checked + .star-label i {
+        color: #ffc107 !important;
+    }
+    
+    .star-label i {
+        color: #dee2e6;
+        transition: all 0.2s ease;
+    }
+    
+    .card {
+        border-radius: 10px;
+    }
+    
+    .criteria-item {
+        padding: 10px;
+        border-radius: 5px;
+        background: #f8f9fa;
+    }
+    
+    .criteria-item label {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+    
+    .task-info {
+        border-left: 4px solid #104EC0;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Star rating interaction
+        const starLabels = document.querySelectorAll('.star-label');
+        
+        starLabels.forEach(label => {
+            label.addEventListener('click', function() {
+                const radio = document.getElementById(this.htmlFor);
+                if (radio) {
+                    radio.checked = true;
+                    
+                    // Update all stars up to the selected one
+                    const stars = document.querySelectorAll('.star-label i');
+                    const selectedIndex = parseInt(radio.value);
+                    
+                    stars.forEach((star, index) => {
+                        if (index < selectedIndex) {
+                            star.className = 'fas fa-star fa-2x';
+                            star.style.color = '#ffc107';
+                        } else {
+                            star.className = 'far fa-star fa-2x';
+                            star.style.color = '#dee2e6';
+                        }
+                    });
+                }
+            });
+        });
+
+        // Initialize with default selected star
+        const defaultStar = document.querySelector('input[name="score"]:checked');
+        if (defaultStar) {
+            document.getElementById('star' + defaultStar.value).dispatchEvent(new Event('change'));
+        }
+
+        // Form validation
+        const form = document.querySelector('.needs-validation');
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+
+        // Character counter for review
+        const reviewTextarea = document.getElementById('review');
+        if (reviewTextarea) {
+            const counter = document.createElement('div');
+            counter.className = 'form-text text-end';
+            counter.innerHTML = '<span id="charCount">0</span>/500 characters';
+            reviewTextarea.parentNode.appendChild(counter);
+
+            reviewTextarea.addEventListener('input', function() {
+                const charCount = this.value.length;
+                document.getElementById('charCount').textContent = charCount;
+                
+                if (charCount > 500) {
+                    counter.style.color = '#dc3545';
+                } else {
+                    counter.style.color = '#6c757d';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
