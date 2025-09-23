@@ -1,409 +1,53 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}HelaWork - Task Proposals{% endblock %}
-
-{% block page_title %}Task Proposals{% endblock %}
-
-{% block extra_head %}
-<style>
-    .proposal-container {
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-        overflow: hidden;
-    }
-
-    .proposal-header {
-        background: #f8f9fa;
-        padding: 20px;
-        border-bottom: 1px solid #e9ecef;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .proposal-content {
-        padding: 20px;
-    }
-
-    .proposal-actions {
-        padding: 15px 20px;
-        background: #f8f9fa;
-        border-top: 1px solid #e9ecef;
-        display: flex;
-        gap: 10px;
-    }
-
-    .freelancer-info {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-bottom: 15px;
-    }
-
-    .freelancer-avatar {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    .proposal-meta {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-        margin-bottom: 15px;
-    }
-
-    .meta-item {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .meta-label {
-        font-size: 0.9rem;
-        color: #6c757d;
-        margin-bottom: 5px;
-    }
-
-    .meta-value {
-        font-weight: 600;
-        color: #333;
-    }
-
-    .status-badge {
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-
-    .status-pending {
-        background: #fff3cd;
-        color: #856404;
-    }
-
-    .status-accepted {
-        background: #d1edff;
-        color: #004085;
-    }
-
-    .status-rejected {
-        background: #f8d7da;
-        color: #721c24;
-    }
-
-    .btn-action {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-accept {
-        background: #28a745;
-        color: white;
-    }
-
-    .btn-accept:hover {
-        background: #218838;
-    }
-
-    .btn-reject {
-        background: #dc3545;
-        color: white;
-    }
-
-    .btn-reject:hover {
-        background: #c82333;
-    }
-
-    .btn-message {
-        background: #17a2b8;
-        color: white;
-    }
-
-    .btn-message:hover {
-        background: #138496;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: #6c757d;
-    }
-
-    .empty-state i {
-        font-size: 4rem;
-        margin-bottom: 20px;
-        color: #dee2e6;
-    }
-
-    .filter-bar {
-        background: #fff;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-        display: flex;
-        gap: 15px;
-        align-items: center;
-    }
-
-    .filter-select {
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        background: white;
-    }
-
-    .search-box {
-        flex: 1;
-        max-width: 300px;
-    }
-
-    .task-title {
-        color: #104EC0;
-        font-weight: 600;
-        margin-bottom: 5px;
-    }
-
-    .proposal-count {
-        background: #104EC0;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        margin-left: 10px;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="container-fluid">
-
-    <!-- Filter Bar -->
-    <div class="filter-bar">
-        <div class="search-box">
-            <input type="text" class="form-control" placeholder="Search proposals...">
-        </div>
-        <select class="filter-select">
-            <option value="">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="accepted">Accepted</option>
-            <option value="rejected">Rejected</option>
-        </select>
-        <select class="filter-select">
-            <option value="">All Tasks</option>
-            <option value="web-dev">Web Development</option>
-            <option value="design">Graphic Design</option>
-            <option value="writing">Content Writing</option>
-        </select>
-    </div>
-
-    <!-- Proposals List -->
-    <div class="proposals-list">
-        <!-- Sample Proposal 1 -->
-        <div class="proposal-container">
-            <div class="proposal-header">
-                <div>
-                    <h5 class="task-title">Website Redesign for E-commerce Store</h5>
-                    <span class="text-muted">Posted 3 days ago</span>
-                </div>
-                <span class="status-badge status-pending">Pending Review</span>
-            </div>
-            
-            <div class="proposal-content">
-                <div class="freelancer-info">
-                    <img src="{% static 'img/freelancer1.jpg' %}" alt="John Doe" class="freelancer-avatar">
+<div class="proposals-list">
+    {% if proposals %}
+        {% for proposal in proposals %}
+            <div class="proposal-container">
+                <div class="proposal-header">
                     <div>
-                        <h6 class="mb-1">John Doe</h6>
-                        <span class="text-muted">⭐ 4.8 (24 reviews)</span>
+                        <h5 class="task-title">{{ proposal.task.title }}</h5>
+                        <span class="text-muted">Submitted {{ proposal.submitted_at|timesince }} ago</span>
+                    </div>
+                    <span class="status-badge status-pending">Pending Review</span>
+                </div>
+                
+                <div class="proposal-content">
+                    <div class="freelancer-info">
+                        <img src="{% static 'img/default-avatar.png' %}" alt="{{ proposal.freelancer.name }}" class="freelancer-avatar">
+                        <div>
+                            <h6 class="mb-1">{{ proposal.freelancer.name }}</h6>
+                            <span class="text-muted">⭐ (reviews TBD)</span>
+                        </div>
+                    </div>
+
+                    <div class="proposal-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Proposed Amount</span>
+                            <span class="meta-value">Ksh {{ proposal.bid_amount }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Submitted</span>
+                            <span class="meta-value">{{ proposal.submitted_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="proposal-text">
+                        <p class="mb-2"><strong>Cover Letter:</strong></p>
+                        <p>{{ proposal.cover_letter }}</p>
                     </div>
                 </div>
 
-                <div class="proposal-meta">
-                    <div class="meta-item">
-                        <span class="meta-label">Proposed Amount</span>
-                        <span class="meta-value">Ksh 25,000</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="meta-label">Delivery Time</span>
-                        <span class="meta-value">14 days</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="meta-label">Submitted</span>
-                        <span class="meta-value">2 days ago</span>
-                    </div>
-                </div>
-
-                <div class="proposal-text">
-                    <p class="mb-2"><strong>Cover Letter:</strong></p>
-                    <p>I have extensive experience in e-commerce website redesign with over 5 years in the field. I'll implement a modern, responsive design that improves user experience and increases conversion rates. My approach includes SEO optimization and mobile-first design principles.</p>
-                </div>
-            </div>
-
-            <div class="proposal-actions">
-                <button class="btn-action btn-accept">Accept Proposal</button>
-                <button class="btn-action btn-reject">Reject</button>
-                <button class="btn-action btn-message">Message</button>
-            </div>
-        </div>
-
-        <!-- Sample Proposal 2 -->
-        <div class="proposal-container">
-            <div class="proposal-header">
-                <div>
-                    <h5 class="task-title">Mobile App UI/UX Design</h5>
-                    <span class="text-muted">Posted 1 week ago</span>
-                </div>
-                <span class="status-badge status-accepted">Accepted</span>
-            </div>
-            
-            <div class="proposal-content">
-                <div class="freelancer-info">
-                    <img src="{% static 'img/freelancer2.jpg' %}" alt="Sarah Smith" class="freelancer-avatar">
-                    <div>
-                        <h6 class="mb-1">Sarah Smith</h6>
-                        <span class="text-muted">⭐ 4.9 (42 reviews)</span>
-                    </div>
-                </div>
-
-                <div class="proposal-meta">
-                    <div class="meta-item">
-                        <span class="meta-label">Proposed Amount</span>
-                        <span class="meta-value">Ksh 45,000</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="meta-label">Delivery Time</span>
-                        <span class="meta-value">21 days</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="meta-label">Submitted</span>
-                        <span class="meta-value">5 days ago</span>
-                    </div>
-                </div>
-
-                <div class="proposal-text">
-                    <p class="mb-2"><strong>Cover Letter:</strong></p>
-                    <p>As a senior UI/UX designer with 8 years of experience, I specialize in creating intuitive mobile app interfaces. I'll deliver wireframes, prototypes, and final designs with a focus on user-centered design principles. Let's create an app that users will love!</p>
+                <div class="proposal-actions">
+                    <button class="btn-action btn-accept">Accept Proposal</button>
+                    <button class="btn-action btn-reject">Reject</button>
+                    <button class="btn-action btn-message">Message</button>
                 </div>
             </div>
-
-            <div class="proposal-actions">
-                <button class="btn-action btn-message">Message</button>
-                <button class="btn-action" style="background: #6c757d; color: white;">View Contract</button>
-            </div>
-        </div>
-
-        <!-- Empty State (commented out for demo) -->
-        <!--
+        {% endfor %}
+    {% else %}
         <div class="empty-state">
             <i class="fas fa-inbox"></i>
             <h4>No Proposals Yet</h4>
-            <p>You haven't received any proposals for your tasks. Try promoting your tasks to get more visibility.</p>
+            <p>You haven’t received any proposals for this task.</p>
         </div>
-        -->
-    </div>
+    {% endif %}
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    // Proposal management functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        // Accept proposal
-        document.querySelectorAll('.btn-accept').forEach(button => {
-            button.addEventListener('click', function() {
-                const proposal = this.closest('.proposal-container');
-                const statusBadge = proposal.querySelector('.status-badge');
-                
-                if (confirm('Are you sure you want to accept this proposal?')) {
-                    statusBadge.textContent = 'Accepted';
-                    statusBadge.className = 'status-badge status-accepted';
-                    this.textContent = 'Accepted';
-                    this.style.background = '#6c757d';
-                    this.disabled = true;
-                    
-                    // Disable reject button
-                    const rejectBtn = proposal.querySelector('.btn-reject');
-                    rejectBtn.style.background = '#6c757d';
-                    rejectBtn.disabled = true;
-                    
-                    showNotification('Proposal accepted successfully!', 'success');
-                }
-            });
-        });
-
-        // Reject proposal
-        document.querySelectorAll('.btn-reject').forEach(button => {
-            button.addEventListener('click', function() {
-                const proposal = this.closest('.proposal-container');
-                
-                if (confirm('Are you sure you want to reject this proposal?')) {
-                    const statusBadge = proposal.querySelector('.status-badge');
-                    statusBadge.textContent = 'Rejected';
-                    statusBadge.className = 'status-badge status-rejected';
-                    this.textContent = 'Rejected';
-                    this.style.background = '#6c757d';
-                    this.disabled = true;
-                    
-                    // Disable accept button
-                    const acceptBtn = proposal.querySelector('.btn-accept');
-                    acceptBtn.style.background = '#6c757d';
-                    acceptBtn.disabled = true;
-                    
-                    showNotification('Proposal rejected.', 'info');
-                }
-            });
-        });
-
-        // Filter functionality
-        const statusFilter = document.querySelector('.filter-select');
-        statusFilter.addEventListener('change', function() {
-            filterProposals();
-        });
-
-        function filterProposals() {
-            const status = statusFilter.value;
-            const proposals = document.querySelectorAll('.proposal-container');
-            
-            proposals.forEach(proposal => {
-                const proposalStatus = proposal.querySelector('.status-badge').textContent.toLowerCase();
-                
-                if (!status || proposalStatus.includes(status)) {
-                    proposal.style.display = 'block';
-                } else {
-                    proposal.style.display = 'none';
-                }
-            });
-        }
-
-        function showNotification(message, type) {
-            // Simple notification implementation
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 20px;
-                background: ${type === 'success' ? '#28a745' : '#17a2b8'};
-                color: white;
-                border-radius: 5px;
-                z-index: 10000;
-                animation: slideIn 0.3s ease;
-            `;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
-    });
-</script>
-{% endblock %}

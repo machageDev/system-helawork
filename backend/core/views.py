@@ -647,3 +647,16 @@ def employer_ratings_detail(request, employer_id):
     employer = get_object_or_404(Employer, id=employer_id)
     ratings = EmployerRating.objects.filter(employer=employer).order_by("-created_at")
     return render(request, "employer_ratings_detail.html", {"employer": employer, "ratings": ratings})
+
+
+def proposal(request):    
+    
+    task = get_object_or_404(Task)
+    
+    proposals = Proposal.objects.filter(task=task).select_related("freelancer").order_by("-submitted_at")
+
+    context = {
+        "task": task,
+        "proposals": proposals,
+    }
+    return render(request, "proposal.html", context)
