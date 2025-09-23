@@ -622,7 +622,7 @@ def create_employer_rating(request):
 
         if not score:
             messages.error(request, "Please select a rating score.")
-            return render(request, "ratings/rating.html", {"task": task})
+            return render(request, "rating.html", {"task": task})
 
         EmployerRating.objects.create(
             task=task,
@@ -634,16 +634,16 @@ def create_employer_rating(request):
         messages.success(request, "Your rating has been submitted successfully!")
         return redirect("rating_list")
 
-    return render(request, "ratings/rating.html", {"task": task})
+    return render(request, "rating.html", {"task": task})
 
 
 
 def employer_rating_list(request):
     ratings = EmployerRating.objects.all().order_by("-created_at")
-    return render(request, "ratings/rating_list.html", {"ratings": ratings})
+    return render(request, "rating_list.html", {"ratings": ratings})
 
 
 def employer_ratings_detail(request, employer_id):
     employer = get_object_or_404(Employer, id=employer_id)
     ratings = EmployerRating.objects.filter(employer=employer).order_by("-created_at")
-    return render(request, "ratings/employer_ratings_detail.html", {"employer": employer, "ratings": ratings})
+    return render(request, "employer_ratings_detail.html", {"employer": employer, "ratings": ratings})

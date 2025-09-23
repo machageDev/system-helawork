@@ -28,7 +28,7 @@ class Employer(models.Model):
     username = models.CharField(max_length=255)
     password = models.CharField(max_length=128, null=True, blank=True)
     contact_email = models.EmailField(unique=True)
-    phoneNo = models.CharField(max_length=13, unique=True)
+    phoneNo = models.CharField(max_length=13, null=True,blank=True)
     company_name = models.CharField(max_length=255, blank=True, null=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
 
@@ -55,7 +55,7 @@ class Task(models.Model):
 class TaskCompletion(models.Model):
     completion_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     completed_at = models.DateTimeField(auto_now_add=True)
     paid = models.BooleanField(default=False)
