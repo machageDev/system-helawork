@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}HelaWork - Rate Employer: {{ task.title }}{% endblock %}
-{% block page_title %}Rate Employer{% endblock %}
+{% block title %}HelaWork - Rate Freelancer: {{ task.title }}{% endblock %}
+{% block page_title %}Rate Freelancer{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -11,7 +11,7 @@
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-primary text-white py-3">
                     <h5 class="card-title mb-0 text-center">
-                        <i class="fas fa-star me-2"></i>Rate Employer for: {{ task.title }}
+                        <i class="fas fa-star me-2"></i>Rate Freelancer for: {{ task.title }}
                     </h5>
                 </div>
                 <div class="card-body p-4">
@@ -23,9 +23,9 @@
                             <span class="ms-2">{{ task.title }}</span>
                         </div>
                         <div class="d-flex align-items-center">
-                            <i class="fas fa-user-tie text-primary me-2"></i>
-                            <strong>Employer:</strong>
-                            <span class="ms-2">{{ task.employer.username }}</span>
+                            <i class="fas fa-user text-primary me-2"></i>
+                            <strong>Freelancer:</strong>
+                            <span class="ms-2">{{ task.assigned_user.username }}</span>
                         </div>
                     </div>
 
@@ -54,10 +54,10 @@
                         <div class="mb-4">
                             <label for="review" class="form-label fw-bold">Your Review</label>
                             <textarea name="review" id="review" rows="5" 
-                                      class="form-control" placeholder="Share your experience working with this employer. What went well? Any suggestions for improvement?"
+                                      class="form-control" placeholder="Share your experience working with this freelancer. Did they deliver on time? How was the quality of their work?"
                                       required></textarea>
                             <div class="form-text">
-                                Your review helps other freelancers make informed decisions.
+                                Your review helps other employers make informed decisions.
                             </div>
                         </div>
 
@@ -81,11 +81,11 @@
                         <i class="fas fa-info-circle text-primary me-2"></i>Rating Guidelines
                     </h6>
                     <ul class="list-unstyled mb-0">
-                        <li><small>⭐ 1 - Poor: Significant issues affecting the work</small></li>
-                        <li><small>⭐ 2 - Fair: Some problems that needed addressing</small></li>
-                        <li><small>⭐ 3 - Good: Met basic expectations</small></li>
-                        <li><small>⭐ 4 - Very Good: Exceeded expectations in some areas</small></li>
-                        <li><small>⭐ 5 - Excellent: Outstanding experience in all aspects</small></li>
+                        <li><small>⭐ 1 - Poor: Did not meet expectations, serious issues</small></li>
+                        <li><small>⭐ 2 - Fair: Some problems, needs improvement</small></li>
+                        <li><small>⭐ 3 - Good: Work delivered, met expectations</small></li>
+                        <li><small>⭐ 4 - Very Good: High-quality work, minor issues only</small></li>
+                        <li><small>⭐ 5 - Excellent: Outstanding work, highly recommended</small></li>
                     </ul>
                 </div>
             </div>
@@ -109,7 +109,6 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Star rating interaction
         const starLabels = document.querySelectorAll('.star-label');
         starLabels.forEach(label => {
             label.addEventListener('click', function() {
@@ -131,13 +130,11 @@
             });
         });
 
-        // Initialize with default selected star
         const defaultStar = document.querySelector('input[name="score"]:checked');
         if (defaultStar) {
             document.getElementById('star' + defaultStar.value).dispatchEvent(new Event('change'));
         }
 
-        // Form validation
         const form = document.querySelector('.needs-validation');
         form.addEventListener('submit', function(event) {
             if (!form.checkValidity()) {
@@ -147,7 +144,6 @@
             form.classList.add('was-validated');
         });
 
-        // Character counter for review
         const reviewTextarea = document.getElementById('review');
         if (reviewTextarea) {
             const counter = document.createElement('div');
