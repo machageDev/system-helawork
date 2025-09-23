@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to the HelaWork System</title>
     {% load static %}
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
     <style>
         /* Global Reset */
         *, *::before, *::after {
@@ -15,87 +22,276 @@
 
         /* Body Styling */
         body {
-            font-family: Arial, sans-serif;
-           
-            height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f8f9fc 0%, #e9ecef 100%);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            text-align: center;
-            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: #104EC0;
+            font-size: 1.8rem;
+        }
+
+        .navbar-brand i {
+            margin-right: 10px;
         }
 
         /* Hero Section */
         .hero {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 50px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, #104EC0 0%, #1E1BD7 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,128C960,128,1056,192,1152,197.3C1248,203,1344,149,1392,122.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+            background-size: cover;
+            background-position: center bottom;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
         }
 
         .hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .cta-button {
             display: inline-block;
-            padding: 12px 30px;
-            font-size: 1rem;
-            background-color: #104EC0FF;
-            color: white;
+            padding: 14px 35px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background-color: #fff;
+            color: #104EC0;
             text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         .cta-button:hover {
-            background-color: #1E1BD7FF;
+            background-color: #f8f9fa;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            color: #104EC0;
         }
 
-        /* Content Section */
-        .content {
-            max-width: 600px;
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-            padding: 30px;
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+            background-color: #fff;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+            color: #104EC0;
+            font-weight: 700;
+        }
+
+        .feature-card {
+            background: #fff;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+            height: 100%;
+            border: 1px solid #e9ecef;
         }
 
-        .content h2 {
-            font-size: 2rem;
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            color: #104EC0;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-weight: 600;
             margin-bottom: 15px;
+            color: #333;
         }
 
-        .content p {
-            font-size: 1rem;
-            line-height: 1.6;
+        /* About Section */
+        .about {
+            padding: 80px 0;
+            background-color: #f8f9fc;
+        }
+
+        .about-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .about h2 {
+            color: #104EC0;
+            font-weight: 700;
+            margin-bottom: 30px;
+        }
+
+        .about p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #fff;
+            padding: 30px 0;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+            margin-top: auto;
+        }
+
+        .footer p {
+            margin: 0;
+            color: #6c757d;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .cta-button {
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="hero">
-        <h1>Welcome to the Helawork System</h1>
-        <p>Your secure and efficient platform for online working.</p>
-        <a href="{% url 'login' %}" class="cta-button">Log In</a>
-    </div>
-   <div class="content">
-    <h2>About HelaWork</h2>
-    <p>
-        HelaWork is a modern job marketplace that connects employers with talented freelancers. 
-        Our platform makes it easy for clients to post jobs, review proposals, and manage projects, 
-        while freelancers can showcase their skills, apply for opportunities, and get paid securely. 
-        With transparent workflows, fair ratings, and secure payments, HelaWork builds trust 
-        between clients and freelancers, helping both sides succeed.
-    </p>
-</div>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-briefcase"></i>HelaWork
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'login' %}">Log In</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Welcome to the HelaWork System</h1>
+                <p>Your secure and efficient platform for connecting employers with talented freelancers.</p>
+                <a href="{% url 'login' %}" class="cta-button">Get Started Now</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Why Choose HelaWork?</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>Find Talent</h3>
+                        <p>Connect with skilled freelancers from various fields and find the perfect match for your projects.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <h3>Manage Projects</h3>
+                        <p>Easily post jobs, review proposals, and manage projects all in one place.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Secure Payments</h3>
+                        <p>Our secure payment system ensures that freelancers get paid on time for their work.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about">
+        <div class="container">
+            <div class="about-content">
+                <h2>About HelaWork</h2>
+                <p>
+                    HelaWork is a modern job marketplace that connects employers with talented freelancers. 
+                    Our platform makes it easy for clients to post jobs, review proposals, and manage projects, 
+                    while freelancers can showcase their skills, apply for opportunities, and get paid securely. 
+                </p>
+                <p>
+                    With transparent workflows, fair ratings, and secure payments, HelaWork builds trust 
+                    between clients and freelancers, helping both sides succeed in today's competitive market.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 HelaWork. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
