@@ -14,12 +14,14 @@ class ProposalsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text("My Proposals")),
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: provider.proposals.length,
-              itemBuilder: (context, index) {
-                return ProposalCard(proposal: provider.proposals[index]);
-              },
-            ),
+          : provider.proposals.isEmpty
+              ? const Center(child: Text("No proposals yet"))
+              : ListView.builder(
+                  itemCount: provider.proposals.length,
+                  itemBuilder: (context, index) {
+                    return ProposalCard(proposal: provider.proposals[index]);
+                  },
+                ),
     );
   }
 }

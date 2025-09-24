@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import '../models/proposal.dart';
 
 class ProposalProvider with ChangeNotifier {
-  List<dynamic> _proposals = [];
+  List<Proposal> _proposals = [];
   bool _isLoading = false;
 
-  List<dynamic> get proposals => _proposals;
+  var error;
+
+  List<Proposal> get proposals => _proposals;
   bool get isLoading => _isLoading;
 
-  Future<void> fetchProposals() async {
+  Future<void> addProposal(Proposal proposal) async {
     _isLoading = true;
     notifyListeners();
-    try {
-      final data = await ApiService.getData('proposals');
-      _proposals = data;
-    } catch (e) {
-      print("Error fetching proposals: $e");
-    }
+
+    await Future.delayed(const Duration(seconds: 1)); // simulate API
+
+    _proposals.insert(0, proposal);
     _isLoading = false;
     notifyListeners();
   }

@@ -7,6 +7,7 @@ import 'payment_summary_page.dart';
 import 'task_page.dart';
 import 'user_profile_screen.dart';
 import 'proposal_screen.dart';
+import '../models/proposal.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -36,7 +37,7 @@ class _DashboardPageState extends State<DashboardPage> {
     // Load data from providers
     Future.microtask(() {
       Provider.of<DashboardProvider>(context, listen: false).loadData();
-      Provider.of<ProposalProvider>(context, listen: false).fetchProposals();
+      Provider.of<ProposalProvider>(context, listen: false).addProposal();
       Provider.of<RatingProvider>(context, listen: false).fetchRatings();
     });
   }
@@ -59,7 +60,7 @@ class _DashboardPageState extends State<DashboardPage> {
         if (dashboard.error != null) {
           return Center(
               child: Text(dashboard.error!,
-                  style: const TextStyle(color: Colors.red)));
+                  style: TextStyle(color: Colors.red.shade400)));
         }
 
         return RefreshIndicator(
@@ -151,7 +152,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             fontSize: 18,
                             fontWeight: FontWeight.bold)),
                     TextButton(
-                      onPressed: () => _onItemTapped(3), 
+                      onPressed: () => _onItemTapped(3),
                       child: const Text("View All",
                           style: TextStyle(color: Colors.green)),
                     )
@@ -162,22 +163,44 @@ class _DashboardPageState extends State<DashboardPage> {
                   builder: (context, proposals, _) {
                     if (proposals.isLoading) {
                       return const Center(
-                        child:
-                            CircularProgressIndicator(color: Colors.green),
-                      );
+                          child:
+                              CircularProgressIndicator(color: Colors.green));
+                    }
+                    if (proposals.error != null) {
+                      return Text(proposals.error!,
+                          style: TextStyle(color: Colors.red.shade400));
                     }
                     if (proposals.proposals.isEmpty) {
                       return const Text("No proposals yet",
                           style: TextStyle(color: Colors.grey));
                     }
                     return Column(
-                      children: proposals.proposals
-                          .map((proposal) => _buildProposalCard(
-                                proposal["jobTitle"] ?? "Untitled Job",
-                                proposal["status"] ?? "Pending",
-                                proposal["date"] ?? "N/A",
-                              ))
-                          .toList(),
+                      children: proposals.proposals.map((Proposal p) {
+                        return ListTile(
+                          tileColor: Colors.grey.shade900,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          title: Text(p.title,
+                              style: const TextStyle(color: Colors.white)),
+                          subtitle: Text(p.coverLetter,
+                              style: const TextStyle(color: Colors.grey)),
+                          trailing: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text("Ksh ${p.bidAmount.toStringAsFixed(2)}",
+                                  style: const TextStyle(
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.bold)),
+                              Text(p.status,
+                                  style: TextStyle(
+                                      color: p.status == "Accepted"
+                                          ? Colors.green
+                                          : Colors.orange,
+                                      fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                     );
                   },
                 ),
@@ -264,7 +287,8 @@ class _DashboardPageState extends State<DashboardPage> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.task), label: "Tasks"),
           BottomNavigationBarItem(icon: Icon(Icons.money), label: "Payments"),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: "Proposals"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.assignment), label: "Proposals"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
         ],
       ),
@@ -354,43 +378,6 @@ class _DashboardPageState extends State<DashboardPage> {
           Text(status,
               style:
                   TextStyle(color: statusColor, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProposalCard(String jobTitle, String status, String date) {
-    Color statusColor = status == "Accepted"
-        ? Colors.green
-        : status == "Rejected"
-            ? Colors.red
-            : Colors.orange;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade900,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(jobTitle,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold)),
-            Text("Applied on: $date",
-                style: const TextStyle(color: Colors.grey, fontSize: 14)),
-          ]),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-                color: statusColor, borderRadius: BorderRadius.circular(8)),
-            child: Text(status,
-                style: const TextStyle(color: Colors.white, fontSize: 12)),
-          )
         ],
       ),
     );
