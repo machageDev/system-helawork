@@ -37,7 +37,7 @@ class _DashboardPageState extends State<DashboardPage> {
     // Load data from providers
     Future.microtask(() {
       Provider.of<DashboardProvider>(context, listen: false).loadData();
-      Provider.of<ProposalProvider>(context, listen: false).addProposal();
+      Provider.of<ProposalProvider>(context, listen: false).fetchProposals();      
       Provider.of<RatingProvider>(context, listen: false).fetchRatings();
     });
   }
