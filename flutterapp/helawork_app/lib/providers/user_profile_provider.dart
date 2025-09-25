@@ -4,8 +4,8 @@ import 'package:helawork_app/services/api_service.dart';
 class UserProfileProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
 
-  Map<String, dynamic>? _userProfile;
-  Map<String, dynamic>? get userProfile => _userProfile;
+  Map<String, dynamic> _userProfile = {};
+  Map<String, dynamic> get userProfile => _userProfile;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -13,42 +13,31 @@ class UserProfileProvider with ChangeNotifier {
   String _errorMessage = '';
   String get errorMessage => _errorMessage;
 
-  Future<void> loadUserProfile() async {
+  /// Set a field locally
+  void setProfileField(String key, dynamic value) {
+    _userProfile[key] = value;
+    notifyListeners();
+  }
+
+  /// Create or update profile on server
+  Future<void> saveProfile(BuildContext context) async {
     _isLoading = true;
     _errorMessage = '';
     notifyListeners();
 
-    final response = await _apiService.getUserProfile();
-
-    _isLoading = false;
-    if (response["success"]) {
-      _userProfile = response["data"];
-    } else {
-      _errorMessage = response["message"];
+    try {
+      final response = await _apiService.updateUserProfile(_userProfile);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response["message"] ?? 'Profile saved successfully')),
+      );
+    } catch (e) {
+      _errorMessage = 'Failed to save profile';
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to save profile')),
+      );
     }
-    notifyListeners();
-  }
-
-  Future<void> updateProfile(BuildContext context) async {
-    if (_userProfile == null) return;
-
-    _isLoading = true;
-    notifyListeners();
-
-    final response = await _apiService.updateUserProfile(_userProfile!);
 
     _isLoading = false;
-    notifyListeners();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(response["message"])),
-    );
-  }
-
-  /// Update local profile field before sending update
-  void setProfileField(String key, dynamic value) {
-    if (_userProfile == null) return;
-    _userProfile![key] = value;
     notifyListeners();
   }
 }

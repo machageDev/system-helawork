@@ -15,6 +15,7 @@ class ApiService{
   static const String TaskUrl = '$baseUrl/task/';
   static const String taskUrl = '$baseUrl/task';
   static const String  withdraw_mpesaUrl = '$baseUrl/mpesa';
+  
 
 Future<Map<String, dynamic>> register(String name, String email,String phoneNO, String password,  String confirmPassword) async {
   final url = Uri.parse(registerUrl);
@@ -104,55 +105,19 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     return json.decode(response.body);
   }
 
- static Future<List<dynamic>> fetchTasks() async {
-    final response = await http.get(Uri.parse(TaskUrl));
+ 
+   static Future<List<Map<String, dynamic>>> fetchTasks() async {
+    final response = await http.get(Uri.parse("taskUrl"));
+
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      final List<dynamic> data = jsonDecode(response.body);
+      return List<Map<String, dynamic>>.from(data);
     } else {
       throw Exception("Failed to load tasks");
     }
   }
 
-  /// Fetch a single task by ID
-  static Future<Map<String, dynamic>> fetchTask() async {
-    final response = await http.get(Uri.parse(taskUrl));
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception("Failed to load task with id ");
-    }
-  }
-
-
-  Future<Map<String, dynamic>> getUserProfile() async {
-    try {
-      final response = await http.get(
-        Uri.parse(userprofileUrl),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return {
-          "success": true,
-          "data": data, 
-        };
-      } else {
-        return {
-          "success": false,
-          "message": "Failed to load profile: ${response.statusCode}",
-        };
-      }
-    } catch (e) {
-      return {
-        "success": false,
-        "message": "Network error: $e",
-      };
-    }
-  }
-
+ 
   Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) async {
     try {
       final response = await http.put(
@@ -182,6 +147,14 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     }
   }
 
+static Future<Map<String,dynamic>> getUserProfile() async {
+  final response = await http.get(Uri.parse("getUserProfileUrl"));
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  }else {
+    throw Exception("Failed to load userprofile");
+  }
+}
    
   static Future<Map<String, dynamic>> getPaymentSummary() async {
     final response = await http.get(Uri.parse(paymentsummaryUrl));

@@ -14,11 +14,10 @@ class DashboardProvider with ChangeNotifier {
   notifyListeners();
 
   try {
-    final apiService = ApiService();
 
     // Fetch user profile and tasks
-    final profileResponse = await apiService.getUserProfile();
-    final tasksRaw = await ApiService.fetchTasks(); // ✅ use fetchTasks not fetchTask
+    final profileResponse = await ApiService.getUserProfile();
+    final tasksRaw = await ApiService.fetchTasks(); 
 
     // Profile (check if success)
     if (profileResponse["success"] == true) {

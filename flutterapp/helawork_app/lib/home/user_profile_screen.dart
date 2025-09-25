@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:helawork_app/providers/user_profile_provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -10,12 +12,9 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() =>
-        Provider.of<UserProfileProvider>(context, listen: false).loadUserProfile());
-  }
+  final _formKey = GlobalKey<FormState>();
+  final ImagePicker _picker = ImagePicker();
+  File? _pickedImage;
 
   @override
   Widget build(BuildContext context) {
@@ -26,124 +25,130 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E2C),
         title: const Text(
-          "User Profile",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          "Create Profile",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
       body: profileProvider.isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.orange))
-          : profileProvider.errorMessage.isNotEmpty
-              ? Center(
-                  child: Text(
-                    profileProvider.errorMessage,
-                    style: const TextStyle(color: Colors.red, fontSize: 16),
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      // Profile Picture
-                      CircleAvatar(
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    // Profile Picture
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: CircleAvatar(
                         radius: 50,
                         backgroundColor: const Color(0xFF1E1E2C),
-                        backgroundImage: profileProvider.userProfile?['profilePicture'] != null
-                            ? NetworkImage(profileProvider.userProfile!['profilePicture'])
-                            : null,
-                        child: profileProvider.userProfile?['profilePicture'] == null
+                        backgroundImage:
+                            _pickedImage != null ? FileImage(_pickedImage!) : null,
+                        child: _pickedImage == null
                             ? const Icon(Icons.person, size: 50, color: Colors.grey)
                             : null,
                       ),
-                      const SizedBox(height: 20),
+                    ),
+                    const SizedBox(height: 20),
 
-                      // User ID
-                      _buildProfileItem(
-                        "User ID",
-                        profileProvider.userProfile?['user_id']?.toString() ?? "N/A",
-                      ),
-                      const SizedBox(height: 15),
+                    _buildTextField(
+                      context,
+                      label: "Bio",
+                      onChanged: (val) => profileProvider.setProfileField('bio', val),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 15),
 
-                      // Bio
-                      _buildProfileItem(
-                        "Bio",
-                        profileProvider.userProfile?['bio'] ?? "No bio yet",
-                      ),
-                      const SizedBox(height: 25),
+                    _buildTextField(
+                      context,
+                      label: "Skills (comma-separated)",
+                      onChanged: (val) => profileProvider.setProfileField('skills', val),
+                    ),
+                    const SizedBox(height: 15),
 
-                      // Update Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () => profileProvider.updateProfile(context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF1A73E8),
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            "Update Profile",
-                            style: TextStyle(fontSize: 16, color: Colors.white),
+                    _buildTextField(
+                      context,
+                      label: "Experience",
+                      onChanged: (val) => profileProvider.setProfileField('experience', val),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 15),
+
+                    _buildTextField(
+                      context,
+                      label: "Portfolio Link",
+                      onChanged: (val) => profileProvider.setProfileField('portfolio_link', val),
+                    ),
+                    const SizedBox(height: 15),
+
+                    _buildTextField(
+                      context,
+                      label: "Hourly Rate",
+                      keyboardType: TextInputType.number,
+                      onChanged: (val) => profileProvider.setProfileField('hourly_rate', val),
+                    ),
+                    const SizedBox(height: 25),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            profileProvider.saveProfile(context);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1A73E8),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 15),
-
-                      // Refresh Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: profileProvider.loadUserProfile,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.orange,
-                            side: const BorderSide(color: Colors.orange),
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text("Refresh Profile"),
+                        child: const Text(
+                          "Save Profile",
+                          style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+              ),
+            ),
     );
   }
 
-  Widget _buildProfileItem(String title, String value) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E2C),
-        borderRadius: BorderRadius.circular(8),
+  Widget _buildTextField(
+    BuildContext context, {
+    required String label,
+    required Function(String) onChanged,
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextFormField(
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.grey),
+        filled: true,
+        fillColor: const Color(0xFF1E1E2C),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-          const SizedBox(height: 5),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
+      onChanged: onChanged,
+      validator: (val) => val == null || val.isEmpty ? 'This field cannot be empty' : null,
     );
+  }
+
+  Future<void> _pickImage() async {
+    final picked = await _picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _pickedImage = File(picked.path);
+      });
+      Provider.of<UserProfileProvider>(context, listen: false)
+          .setProfileField('profile_picture', _pickedImage);
+    }
   }
 }
