@@ -2,10 +2,10 @@ class Proposal {
   final int? id;
   final int taskId;
   final int freelancerId;
-  final String? title;       // optional, used in your UI
+  final String? title;       
   final String coverLetter;
   final double bidAmount;
-  String status;             // <-- added with default
+  String status;             
 
   Proposal({
     this.id,
