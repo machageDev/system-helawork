@@ -1,6 +1,7 @@
 
 
 import 'dart:convert';
+import 'package:helawork_app/models/proposal.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService{
@@ -219,21 +220,7 @@ static Future<Map<String,dynamic>> getUserProfile() async {
   }
 
   
-  static Future<Map<String, dynamic>> submitProposal({
-    required int jobId,
-    required int freelancerId,
-    required String coverLetter,
-    required double bidAmount,
-  }) async {
-    final body = {
-      "task_id": jobId,
-      "worker_id": freelancerId,
-      "cover_letter": coverLetter,
-      "bid_amount": bidAmount,
-    };
 
-    return await postData("proposals", body);
-  }
 
     static Future<Map<String, dynamic>> submitRating({
     required int taskId,
@@ -253,4 +240,24 @@ static Future<Map<String,dynamic>> getUserProfile() async {
     return await postData("ratings/", body);
   }
 
+
+  /// Submit a new proposal
+  static Future<Proposal> submitProposal(Proposal proposal) async {
+    final url = Uri.parse("$baseUrl/proposals/");
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode(proposal.toJson()),
+      );
+
+      if (response.statusCode == 201) {
+        return Proposal.fromJson(json.decode(response.body));
+      } else {
+        throw Exception("Failed to submit proposal: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error submitting proposal: $e");
+    }
+  }
 }

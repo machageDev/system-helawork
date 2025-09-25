@@ -11,11 +11,19 @@ class ProposalsScreen extends StatefulWidget {
 }
 
 class _ProposalsScreenState extends State<ProposalsScreen> {
-  bool showCreateForm = false; 
+  bool showCreateForm = false;
   final _formKey = GlobalKey<FormState>();
-  String title = '';
   String coverLetter = '';
   String bidAmount = '';
+  int? selectedTaskId;
+
+  // TODO: Replace with dynamic task fetch from API
+  final List<Map<String, dynamic>> tasks = [
+    {"id": 1, "title": "Website Development"},
+    {"id": 2, "title": "Mobile App UI"},
+    {"id": 3, "title": "Logo Design"},
+    {"id": 4, "title": "Backend API Integration"},
+  ];
 
   @override
   void initState() {
@@ -53,6 +61,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
     if (provider.proposals.isEmpty) {
       return const Center(child: Text("No proposals yet"));
     }
+
     return ListView.builder(
       itemCount: provider.proposals.length,
       itemBuilder: (context, index) {
@@ -65,13 +74,15 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  proposal.title,
-                  style: const TextStyle(
+                if (proposal.title != null)
+                  Text(
+                    proposal.title!,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white),
-                ),
+                      color: Colors.white,
+                    ),
+                  ),
                 const SizedBox(height: 8),
                 Text(
                   proposal.coverLetter,
@@ -86,11 +97,12 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
                 Text(
                   "Status: ${proposal.status}",
                   style: TextStyle(
-                      color: proposal.status == "Accepted"
-                          ? Colors.green
-                          : proposal.status == "Rejected"
-                              ? Colors.red
-                              : Colors.yellow),
+                    color: proposal.status == "Accepted"
+                        ? Colors.green
+                        : proposal.status == "Rejected"
+                            ? Colors.red
+                            : Colors.yellow,
+                  ),
                 ),
               ],
             ),
@@ -101,27 +113,40 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
   }
 
   Widget _buildCreateForm(ProposalProvider provider) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Form(
         key: _formKey,
         child: Column(
           children: [
-            TextFormField(
-              decoration: const InputDecoration(labelText: "Task Title"),
-              validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter a title' : null,
-              onChanged: (val) => title = val,
+            // Task Dropdown
+            DropdownButtonFormField<int>(
+              decoration: const InputDecoration(labelText: "Select Task"),
+              value: selectedTaskId,
+              items: tasks
+                  .map((task) => DropdownMenuItem<int>(
+                        value: task['id'],
+                        child: Text(task['title']),
+                      ))
+                  .toList(),
+              validator: (val) => val == null ? 'Select a task' : null,
+              onChanged: (val) => setState(() {
+                selectedTaskId = val;
+              }),
             ),
             const SizedBox(height: 10),
+
+            // Cover Letter
             TextFormField(
-              decoration: const InputDecoration(labelText: "Cover Letter"),
+              decoration: const InputDecoration(labelText: "Proposal / Cover Letter"),
               maxLines: 4,
               validator: (val) =>
                   val == null || val.isEmpty ? 'Enter cover letter' : null,
               onChanged: (val) => coverLetter = val,
             ),
             const SizedBox(height: 10),
+
+            // Bid Amount
             TextFormField(
               decoration: const InputDecoration(labelText: "Bid Amount"),
               keyboardType: TextInputType.number,
@@ -130,26 +155,43 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
               onChanged: (val) => bidAmount = val,
             ),
             const SizedBox(height: 20),
+
+            // Submit Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: provider.isLoading
                     ? null
-                    : () {
-                        if (_formKey.currentState!.validate()) {
-                          final proposal = Proposal(
-                            title: title,
-                            coverLetter: coverLetter,
-                            bidAmount: double.parse(bidAmount),
-                          );
-                          provider.addProposal(proposal);
-                          setState(() {
-                            showCreateForm = false; // Back to list
-                          });
+                    : () async {
+                        if (_formKey.currentState!.validate() &&
+                            selectedTaskId != null) {
+                          try {
+                            final proposal = Proposal(
+                              taskId: selectedTaskId!,
+                              freelancerId: 1, // replace with current user ID
+                              coverLetter: coverLetter,
+                              bidAmount: double.parse(bidAmount),
+                            );
+
+                            await provider.addProposal(proposal);
+
+                            setState(() {
+                              showCreateForm = false;
+                              selectedTaskId = null;
+                              coverLetter = '';
+                              bidAmount = '';
+                            });
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Error: $e")),
+                            );
+                          }
                         }
                       },
                 child: provider.isLoading
-                    ? const CircularProgressIndicator()
+                    ? const CircularProgressIndicator(
+                        color: Colors.white,
+                      )
                     : const Text("Submit Proposal"),
               ),
             )

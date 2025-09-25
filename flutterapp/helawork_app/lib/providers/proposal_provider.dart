@@ -9,26 +9,16 @@ class ProposalProvider with ChangeNotifier {
   List<Proposal> get proposals => _proposals;
   bool get isLoading => _isLoading;
 
-  
+  /// Fetch proposals dynamically (e.g., from API)
   Future<void> fetchProposals() async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(seconds: 1));
+      // Replace this with your API call or database fetch
+      // Example: _proposals = await ApiService.getProposals();
 
-      _proposals = [
-        Proposal(
-            title: "Website Development",
-            coverLetter: "I can build your website in Flutter + Django.",
-            bidAmount: 15000),
-        Proposal(
-            title: "Mobile App UI",
-            coverLetter: "I will design a sleek UI for your mobile app.",
-            bidAmount: 8000,
-            status: "Accepted"),
-      ];
-
+      _proposals = []; // placeholder
       error = null;
     } catch (e) {
       error = "Failed to load proposals: $e";
@@ -44,7 +34,13 @@ class ProposalProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(seconds: 1));
+      // Example API call: await ApiService.submitProposal(proposal);
+
+      // Ensure proposal has a status
+      if (proposal.status.isEmpty) {
+        proposal.status = "Pending";
+      }
+
       _proposals.insert(0, proposal);
       error = null;
     } catch (e) {
