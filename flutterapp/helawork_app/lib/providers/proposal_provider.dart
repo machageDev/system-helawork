@@ -9,28 +9,24 @@ class ProposalProvider with ChangeNotifier {
   List<Proposal> get proposals => _proposals;
   bool get isLoading => _isLoading;
 
-  /// ✅ Load proposals (simulate API call)
+  
   Future<void> fetchProposals() async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(seconds: 1)); // simulate API call
+      await Future.delayed(const Duration(seconds: 1));
 
-      // Example mock data (replace with API response later)
       _proposals = [
         Proposal(
-          title: "Website Development",
-          coverLetter: "I can build your website in Flutter + Django.",
-          bidAmount: 15000,
-          status: "Pending",
-        ),
+            title: "Website Development",
+            coverLetter: "I can build your website in Flutter + Django.",
+            bidAmount: 15000),
         Proposal(
-          title: "Mobile App UI",
-          coverLetter: "I will design a sleek UI for your mobile app.",
-          bidAmount: 8000,
-          status: "Accepted",
-        ),
+            title: "Mobile App UI",
+            coverLetter: "I will design a sleek UI for your mobile app.",
+            bidAmount: 8000,
+            status: "Accepted"),
       ];
 
       error = null;
@@ -42,15 +38,14 @@ class ProposalProvider with ChangeNotifier {
     }
   }
 
-  /// ✅ Add a new proposal (e.g., from form submission)
+  /// Add new proposal
   Future<void> addProposal(Proposal proposal) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(seconds: 1)); // simulate API call
-
-      _proposals.insert(0, proposal); // add at top of list
+      await Future.delayed(const Duration(seconds: 1));
+      _proposals.insert(0, proposal);
       error = null;
     } catch (e) {
       error = "Failed to add proposal: $e";
