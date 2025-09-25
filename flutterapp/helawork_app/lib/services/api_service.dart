@@ -12,8 +12,7 @@ class ApiService{
   static const String userprofileUrl = '$baseUrl/apicreate_profile';
   static const String recentUrl = '$baseUrl/apirecent';
   static const String active_sessionUrl = '$baseUrl/apiactivesession';
-  static const String earningUrl = '$baseUrl/apiearing';
-  static const String TaskUrl = '$baseUrl/task/';
+  static const String earningUrl = '$baseUrl/apiearing';  
   static const String taskUrl = '$baseUrl/task';
   static const String  withdraw_mpesaUrl = '$baseUrl/mpesa';
   
@@ -107,16 +106,25 @@ Future<Map<String, dynamic>> login(String name, String password) async {
   }
 
  
-   static Future<List<Map<String, dynamic>>> fetchTasks() async {
-    final response = await http.get(Uri.parse("taskUrl"));
+static Future<List<Map<String, dynamic>>> fetchTasks() async {
+  final response = await http.get(Uri.parse("taskUrl"));
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return List<Map<String, dynamic>>.from(data);
-    } else {
-      throw Exception("Failed to load tasks");
+  if (response.statusCode == 200) {
+    final List<dynamic> data = jsonDecode(response.body);
+
+    
+    if (data.isEmpty) {
+      return [
+        {"id": 0, "title": "No tasks available"}
+      ];
     }
+
+    return data.map((task) => Map<String, dynamic>.from(task)).toList();
+  } else {
+    throw Exception("Failed to load tasks: ${response.statusCode}");
   }
+}
+
 
  
   Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) async {
@@ -243,7 +251,7 @@ static Future<Map<String,dynamic>> getUserProfile() async {
 
   /// Submit a new proposal
   static Future<Proposal> submitProposal(Proposal proposal) async {
-    final url = Uri.parse("$baseUrl/proposals/");
+    final url = Uri.parse("proposalUrl");
     try {
       final response = await http.post(
         url,
