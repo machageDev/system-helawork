@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:helawork_app/home/rating_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/dashboard_provider.dart';
 import 'task_page.dart';
 import 'payment_summary_page.dart';
 import 'proposal_screen.dart';
 import 'user_profile_screen.dart';
+
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -85,6 +87,35 @@ class _DashboardPageState extends State<DashboardPage> {
                         "Due: ${task["deadline"] ?? 'N/A'}",
                         task["status"] ?? "Unknown",
                       )),
+
+                const SizedBox(height: 20),
+
+                // ================= RATINGS BUTTON =================
+                const Text("My Ratings",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 20),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const RatingsScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.star, color: Colors.white),
+                  label: const Text("View My Ratings",
+                      style: TextStyle(color: Colors.white, fontSize: 16)),
+                ),
               ],
             ),
           ),
