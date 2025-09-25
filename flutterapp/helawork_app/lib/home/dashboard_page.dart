@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/dashboard_provider.dart';
-import '../providers/proposal_provider.dart';
-import '../providers/rating_provider.dart';
-import 'payment_summary_page.dart';
 import 'task_page.dart';
-import 'user_profile_screen.dart';
+import 'payment_summary_page.dart';
 import 'proposal_screen.dart';
-import '../models/proposal.dart';
+import 'user_profile_screen.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -19,27 +16,18 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   int _selectedIndex = 0;
 
-  late final List<Widget> _pages;
+  final List<Widget> _pages = [
+    const SizedBox(), // Home will be built dynamically
+    const TaskPage(),
+    const PaymentSummaryPage(),
+    const ProposalsScreen(),
+    const UserProfileScreen(),
+  ];
 
   @override
   void initState() {
     super.initState();
-
-    // Initialize pages list once
-    _pages = [
-      _buildHomePage(),
-      const TaskPage(),
-      const PaymentSummaryPage(),
-      const ProposalsScreen(),
-      const UserProfileScreen(),
-    ];
-
-    // Load data from providers
-    Future.microtask(() {
-      Provider.of<DashboardProvider>(context, listen: false).loadData();
-      Provider.of<ProposalProvider>(context, listen: false).fetchProposals();      
-      Provider.of<RatingProvider>(context, listen: false).fetchRatings();
-    });
+    Provider.of<DashboardProvider>(context, listen: false).loadData();
   }
 
   void _onItemTapped(int index) {
@@ -71,21 +59,7 @@ class _DashboardPageState extends State<DashboardPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ================= STATS =================
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildStatCard("In Progress", "${dashboard.inProgress}",
-                        Icons.work, Colors.orange),
-                    _buildStatCard("Completed", "${dashboard.completed}",
-                        Icons.check_circle, Colors.green),
-                    _buildStatCard("Payments", "Ksh ${dashboard.totalPayments}",
-                        Icons.payment, Colors.blue),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // ================= ACTIVE TASKS =================
+                // ================= ACTIVE TASKS ONLY =================
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -111,132 +85,6 @@ class _DashboardPageState extends State<DashboardPage> {
                         "Due: ${task["deadline"] ?? 'N/A'}",
                         task["status"] ?? "Unknown",
                       )),
-                const SizedBox(height: 20),
-
-                // ================= RECENT PAYMENTS =================
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text("Recent Payments",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold)),
-                    TextButton(
-                      onPressed: () => _onItemTapped(2), // Jump to Payments tab
-                      child: const Text("View All",
-                          style: TextStyle(color: Colors.green)),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 10),
-                if (dashboard.recentPayments.isEmpty)
-                  const Text("No recent payments",
-                      style: TextStyle(color: Colors.grey))
-                else
-                  ...dashboard.recentPayments.map((p) => _buildPaymentRow(
-                        p["task"] ?? "Unknown Task",
-                        "Ksh ${p["amount"] ?? 0}",
-                        p["date"] ?? "N/A",
-                        p["status"] ?? "Pending",
-                      )),
-
-                // ================= PROPOSALS =================
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text("Proposals",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold)),
-                    TextButton(
-                      onPressed: () => _onItemTapped(3),
-                      child: const Text("View All",
-                          style: TextStyle(color: Colors.green)),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Consumer<ProposalProvider>(
-                  builder: (context, proposals, _) {
-                    if (proposals.isLoading) {
-                      return const Center(
-                          child:
-                              CircularProgressIndicator(color: Colors.green));
-                    }
-                    if (proposals.error != null) {
-                      return Text(proposals.error!,
-                          style: TextStyle(color: Colors.red.shade400));
-                    }
-                    if (proposals.proposals.isEmpty) {
-                      return const Text("No proposals yet",
-                          style: TextStyle(color: Colors.grey));
-                    }
-                    return Column(
-                      children: proposals.proposals.map((Proposal p) {
-                        return ListTile(
-                          tileColor: Colors.grey.shade900,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          title: Text(p.title,
-                              style: const TextStyle(color: Colors.white)),
-                          subtitle: Text(p.coverLetter,
-                              style: const TextStyle(color: Colors.grey)),
-                          trailing: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text("Ksh ${p.bidAmount.toStringAsFixed(2)}",
-                                  style: const TextStyle(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.bold)),
-                              Text(p.status,
-                                  style: TextStyle(
-                                      color: p.status == "Accepted"
-                                          ? Colors.green
-                                          : Colors.orange,
-                                      fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    );
-                  },
-                ),
-
-                // ================= RATINGS =================
-                const SizedBox(height: 20),
-                const Text("Employer Ratings",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 10),
-                Consumer<RatingProvider>(
-                  builder: (context, ratings, _) {
-                    if (ratings.isLoading) {
-                      return const Center(
-                        child:
-                            CircularProgressIndicator(color: Colors.green),
-                      );
-                    }
-                    if (ratings.ratings.isEmpty) {
-                      return const Text("No ratings yet",
-                          style: TextStyle(color: Colors.grey));
-                    }
-                    return Column(
-                      children: ratings.ratings
-                          .map((r) => _buildRatingCard(
-                                r["employer"] ?? "Unknown Employer",
-                                r["score"] ?? 0,
-                                r["review"] ?? "No review",
-                                r["date"] ?? "N/A",
-                              ))
-                          .toList(),
-                    );
-                  },
-                ),
               ],
             ),
           ),
@@ -245,180 +93,66 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  // ================= CARD WIDGETS =================
+  Widget _buildTaskCard(String title, String subtitle, String status) {
+    Color statusColor =
+        status == "Completed" ? Colors.green : Colors.orangeAccent;
+
+    return Card(
+      color: Colors.grey[900],
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        title: Text(title,
+            style: const TextStyle(color: Colors.white, fontSize: 16)),
+        subtitle: Text(subtitle,
+            style: const TextStyle(color: Colors.grey, fontSize: 14)),
+        trailing: Text(status,
+            style: TextStyle(color: statusColor, fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black87,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Consumer<DashboardProvider>(
-          builder: (context, dashboard, _) => Text(
-            "Hi, ${dashboard.userName} 👋",
-            style: const TextStyle(color: Colors.white, fontSize: 20),
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications, color: Colors.white),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const CircleAvatar(
-              backgroundColor: Colors.green,
-              child: Icon(Icons.person, color: Colors.white),
-            ),
-            onPressed: () => _onItemTapped(4), // Jump to Profile tab
-          ),
-        ],
-      ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        backgroundColor: Colors.black87,
-        selectedItemColor: Colors.green,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.task), label: "Tasks"),
-          BottomNavigationBarItem(icon: Icon(Icons.money), label: "Payments"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.assignment), label: "Proposals"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
-        ],
-      ),
-    );
-  }
-
-  // ================= HELPER WIDGETS =================
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      width: 110,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade900,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 8),
-          Text(value,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold)),
-          Text(title, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTaskCard(String title, String deadline, String status) {
-    Color statusColor;
-    switch (status) {
-      case "In Progress":
-        statusColor = Colors.orange;
-        break;
-      case "Completed":
-        statusColor = Colors.green;
-        break;
-      default:
-        statusColor = Colors.grey;
-    }
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade900,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold)),
-            Text(deadline,
-                style: const TextStyle(color: Colors.grey, fontSize: 14)),
-          ]),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-                color: statusColor, borderRadius: BorderRadius.circular(8)),
-            child: Text(status, style: const TextStyle(color: Colors.white)),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentRow(
-      String task, String amount, String date, String status) {
-    Color statusColor = status == "Paid" ? Colors.green : Colors.orange;
-    return ListTile(
-      tileColor: Colors.grey.shade900,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      title: Text(task, style: const TextStyle(color: Colors.white)),
-      subtitle: Text(date, style: const TextStyle(color: Colors.grey)),
-      trailing: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(amount,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold)),
-          Text(status,
-              style:
-                  TextStyle(color: statusColor, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRatingCard(
-      String employer, int score, String review, String date) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade900,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(employer,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold)),
-              Row(
-                children: List.generate(
-                    5,
-                    (i) => Icon(Icons.star,
-                        color: i < score ? Colors.green : Colors.grey,
-                        size: 18)),
+    return Consumer<DashboardProvider>(
+      builder: (context, dashboard, _) {
+        return Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.grey[900],
+            elevation: 0,
+            title: Text("Welcome, ${dashboard.userName}",
+                style: const TextStyle(color: Colors.white)),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                onPressed: dashboard.loadData,
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(review,
-              style: const TextStyle(color: Colors.white70, fontSize: 14)),
-          Text(date,
-              style: const TextStyle(color: Colors.grey, fontSize: 12)),
-        ],
-      ),
+          body: _selectedIndex == 0 ? _buildHomePage() : _pages[_selectedIndex],
+          bottomNavigationBar: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: Colors.grey[900],
+            selectedItemColor: Colors.green,
+            unselectedItemColor: Colors.grey,
+            currentIndex: _selectedIndex,
+            onTap: _onItemTapped,
+            items: const [
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.dashboard), label: "Home"),
+              BottomNavigationBarItem(icon: Icon(Icons.task), label: "Tasks"),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.payment), label: "Payments"),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.article), label: "Proposals"),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.person), label: "Account"),
+            ],
+          ),
+        );
+      },
     );
   }
 }
