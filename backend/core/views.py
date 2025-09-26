@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import IntegrityError, transaction
 from rest_framework import status
-from core.serializer import FreelancerRatingSerializer, LoginSerializer, PaymentSerializer, ProposalSerializer,   RegisterSerializer, TaskSerializer, UserProfileSerializer
+from core.serializer import FreelancerRatingSerializer, LoginSerializer, PaymentSerializer, ProposalSerializer,   RegisterSerializer, TaskSerializer, UserProfileSerializer, UserSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
 from payments.models import Payment
@@ -72,6 +72,10 @@ def otp(request):
     return render(request, 'otp.html')
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@api_view(['GET'])
+def current_user(request):
+    serializer = UserSerializer(request.user)
+    return Response(serializer.data)
 
 def apiuserprofile(request):
     serializer = UserProfileSerializer(data=request.data)
