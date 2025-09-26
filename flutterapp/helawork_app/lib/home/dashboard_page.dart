@@ -60,8 +60,8 @@ class _DashboardPageState extends State<DashboardPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ================= GREETING =================
-                Text("Hi, ${dashboard.userName} 👋",
+                // ================= USER NAME ONLY =================
+                Text("${dashboard.userName}",
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -209,7 +209,7 @@ class _DashboardPageState extends State<DashboardPage> {
           appBar: AppBar(
             backgroundColor: Colors.grey[900],
             elevation: 0,
-            title: Text("Welcome, ${dashboard.userName}",
+            title: Text("${dashboard.userName}",
                 style: const TextStyle(color: Colors.white)),
             actions: [
               IconButton(

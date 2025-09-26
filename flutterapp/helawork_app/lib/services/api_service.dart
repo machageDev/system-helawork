@@ -9,12 +9,13 @@ class ApiService{
   static const String registerUrl = '$baseUrl/apiregister';
   static const String  loginUrl ='$baseUrl/apilogin';
   static const String paymentsummaryUrl='$baseUrl/apipaymentsummary';
-  static const String userprofileUrl = '$baseUrl/apicreate_profile';
+  static const String getuserprofileUrl = '$baseUrl/apigetprofile';
   static const String recentUrl = '$baseUrl/apirecent';
   static const String active_sessionUrl = '$baseUrl/apiactivesession';
   static const String earningUrl = '$baseUrl/apiearing';  
   static const String taskUrl = '$baseUrl/task';
   static const String  withdraw_mpesaUrl = '$baseUrl/mpesa';
+  static const String  updateUserProfileUrl = '$baseUrl/apiuserprofile';
   
 
 Future<Map<String, dynamic>> register(String name, String email,String phoneNO, String password,  String confirmPassword) async {
@@ -46,7 +47,18 @@ Future<Map<String, dynamic>> register(String name, String email,String phoneNO, 
   }
 }
 
+ static Future<String> getLoggedInUserName() async {
+    final response = await http.get(Uri.parse("$baseUrl/auth/user/"));
 
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      
+      return data["username"] ?? "User";
+    } else {
+      return "User";
+    }
+  }
 Future<Map<String, dynamic>> login(String name, String password) async { 
   final url = Uri.parse(ApiService.loginUrl);
 
@@ -97,17 +109,17 @@ Future<Map<String, dynamic>> login(String name, String password) async {
 }
 
   Future<Map<String, dynamic>> getActiveSession() async {
-    final response = await http.get(Uri.parse("active_sessionUrl"));
+    final response = await http.get(Uri.parse(active_sessionUrl));
     return json.decode(response.body);
   }
  Future<Map<String, dynamic>> getEarnings() async {
-    final response = await http.get(Uri.parse("earningsUrl"));
+    final response = await http.get(Uri.parse(earningUrl));
     return json.decode(response.body);
   }
 
  
 static Future<List<Map<String, dynamic>>> fetchTasks() async {
-  final response = await http.get(Uri.parse("taskUrl"));
+  final response = await http.get(Uri.parse(taskUrl));
 
   if (response.statusCode == 200) {
     final List<dynamic> data = jsonDecode(response.body);
@@ -130,7 +142,7 @@ static Future<List<Map<String, dynamic>>> fetchTasks() async {
   Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) async {
     try {
       final response = await http.put(
-        Uri.parse(userprofileUrl),
+        Uri.parse(updateUserProfileUrl),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -156,14 +168,17 @@ static Future<List<Map<String, dynamic>>> fetchTasks() async {
     }
   }
 
-static Future<Map<String,dynamic>> getUserProfile() async {
-  final response = await http.get(Uri.parse("getUserProfileUrl"));
-  if (response.statusCode == 200) {
-    return jsonDecode(response.body);
-  }else {
-    throw Exception("Failed to load userprofile");
+ static Future<Map<String, dynamic>> getUserProfile() async {
+    final response = await http.get(Uri.parse(getuserprofileUrl));
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Failed to load user profile: ${response.statusCode}");
+    }
   }
-}
+
+  
    
   static Future<Map<String, dynamic>> getPaymentSummary() async {
     final response = await http.get(Uri.parse(paymentsummaryUrl));
@@ -250,8 +265,8 @@ static Future<Map<String,dynamic>> getUserProfile() async {
 
 
   /// Submit a new proposal
-  static Future<Proposal> submitProposal(Proposal proposal) async {
-    final url = Uri.parse("proposalUrl");
+  static Future<Proposal> submitProposal(Proposal proposal, String proposalUrl) async {
+    final url = Uri.parse(proposalUrl);
     try {
       final response = await http.post(
         url,
