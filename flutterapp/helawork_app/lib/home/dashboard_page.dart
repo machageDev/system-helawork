@@ -18,7 +18,7 @@ class _DashboardPageState extends State<DashboardPage> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const SizedBox(), // Home will be built dynamically
+    const SizedBox(), 
     const TaskPage(),
     const PaymentSummaryPage(),
     const ProposalsScreen(),

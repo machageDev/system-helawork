@@ -47,18 +47,25 @@ Future<Map<String, dynamic>> register(String name, String email,String phoneNO, 
   }
 }
 
- static Future<String> getLoggedInUserName() async {
-    final response = await http.get(Uri.parse("$baseUrl/auth/user/"));
+static Future<String> getLoggedInUserName() async {
+  final response = await http.get(
+    Uri.parse("$baseUrl/apiuserlogin"),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
 
-      
-      return data["username"] ?? "User";
-    } else {
-      return "User";
-    }
+    // adjust this key depending on your backend response
+    return data["username"] ?? data["name"] ?? "User";
+  } else {
+    return "User";
   }
+}
+
+
 Future<Map<String, dynamic>> login(String name, String password) async { 
   final url = Uri.parse(ApiService.loginUrl);
 
