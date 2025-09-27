@@ -231,9 +231,14 @@
 
                         <!-- User Info -->
                         <li class="nav-item d-flex align-items-center">
-                            <span>{{ request.user.username }}</span>
-                            <img class="img-profile" src="{% static 'img/default-avatar.png' %}">
+                           <span>{{ request.user.username }}</span>
+                        {% if profile and profile.profile_picture %}
+                         <img class="img-profile" src="{{ profile.profile_picture.url }}">
+                         {% else %}
+                        <img class="img-profile" src="{% static 'img/default-avatar.png' %}">
+                          {% endif %}
                         </li>
+
                     </ul>
                 </nav>
                 <!-- End Topbar -->

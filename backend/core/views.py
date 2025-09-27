@@ -397,7 +397,7 @@ def withdraw_mpesa(request, pk):
 
 
 def employer_dashboard(request):
-    #  Check if employer is logged in
+    
     if not request.session.get('employer_id'):
         return redirect('login')
 
@@ -408,17 +408,21 @@ def employer_dashboard(request):
     active_tasks = Task.objects.filter(is_approved=False).count()
     completed_tasks = Task.objects.filter(is_approved=True).count()
 
+    
+    employer_id = request.session.get("employer_id")
+    profile = EmployerProfile.objects.filter(pk=employer_id).first()
+
     context = {
         "total_workers": total_employees,
         "active_projects": active_projects,
         "pending_payments": pending_payments,
         "active_tasks": active_tasks,
         "completed_tasks": completed_tasks,
-        "employer_name": request.session.get("employer_name")  
+        "employer_name": request.session.get("employer_name"),
+        "profile": profile,   
     }
 
     return render(request, "dashboard.html", context)
-
 
 def register(request):
     if request.method == "POST":
