@@ -16,7 +16,7 @@ from core.serializer import FreelancerRatingSerializer, LoginSerializer, Payment
 from django.core.mail import send_mail
 from django.contrib import messages
 from payments.models import Payment
-from .models import Employer, EmployerProfile, EmployerRating, FreelancerRating, Proposal, Task, UserProfile
+from .models import Contract, Employer, EmployerProfile, EmployerRating, FreelancerRating, Proposal, Task, UserProfile
 from django.contrib.auth.hashers import check_password
 from .models import  User
 from rest_framework.permissions import IsAuthenticated
@@ -695,3 +695,19 @@ def create_employer_profile(request):
 def view_employer_profile(request, pk):
     profile = EmployerProfile.objects.get(pk=pk)
     return render(request, 'employer_profile_detail.html', {'profile': profile})
+
+def employer_accept_contract(request, contract_id):
+    
+    if not request.session.get("employer_id"):
+        return redirect("login")
+
+    
+    contract = get_object_or_404(Contract, pk=contract_id, employer_id=request.session.get("employer_id"))
+
+    if request.method == "POST":
+        contract.is_active = True   # Mark as active when accepted
+        contract.save()
+        messages.success(request, "You have successfully agreed to the contract.")
+        return redirect("employer_dashboard")
+
+    return render(request, "contract.html", {"contract": contract})
