@@ -1,7 +1,7 @@
 from rest_framework import serializers 
 
 from payments.models import Payment
-from .models import Proposal, User, UserProfile
+from .models import Contract, Proposal, User, UserProfile
 from .models import Employer, User
 from .models import Task
 from .models import EmployerRating, FreelancerRating
@@ -87,3 +87,21 @@ class ProposalSerializer(serializers.ModelSerializer):
         model = Proposal
         fields = ['proposal_id', 'task', 'freelancer', 'cover_letter', 'bid_amount', 'submitted_at']
         read_only_fields = ['proposal_id', 'submitted_at']
+
+
+class ContractSerializer(serializers.ModelSerializer):
+    task_title = serializers.CharField(source="task.title", read_only=True)
+    freelancer_name = serializers.CharField(source="freelancer.username", read_only=True)
+    employer_name = serializers.CharField(source="employer.username", read_only=True)
+
+    class Meta:
+        model = Contract
+        fields = [
+            "contract_id",
+            "task_title",
+            "freelancer_name",
+            "employer_name",
+            "start_date",
+            "end_date",
+            "is_active",
+        ]        

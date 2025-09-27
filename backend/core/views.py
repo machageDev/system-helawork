@@ -705,7 +705,7 @@ def employer_accept_contract(request, contract_id):
     contract = get_object_or_404(Contract, pk=contract_id, employer_id=request.session.get("employer_id"))
 
     if request.method == "POST":
-        contract.is_active = True   # Mark as active when accepted
+        contract.is_active = True   
         contract.save()
         messages.success(request, "You have successfully agreed to the contract.")
         return redirect("employer_dashboard")
