@@ -28,15 +28,21 @@ class Employer(models.Model):
     username = models.CharField(max_length=255)
     password = models.CharField(max_length=128, null=True, blank=True)
     contact_email = models.EmailField(unique=True)
-    phoneNo = models.CharField(max_length=13, null=True,blank=True)
-    company_name = models.CharField(max_length=255, blank=True, null=True)
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
+   
 
     def __str__(self):
         return self.username
 
+class EmployerProfile(models.Model):
+    employer_id = models.AutoField(primary_key=True)
+    company_name = models.CharField(max_length=255, blank=True, null=True)
+    contact_email = models.EmailField(unique=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='employer_profiles/', blank=True, null=True)
 
-
+    def __str__(self):
+        return self.company_name if self.company_name else self.contact_email
+    
 class Task(models.Model):
     task_id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=255)
