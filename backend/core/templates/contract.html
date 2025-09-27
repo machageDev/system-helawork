@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Contract Agreement{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow p-4">
+        <h2 class="mb-4 text-primary">Contract Agreement</h2>
+
+        <!-- Task and Freelancer Info -->
+        <p><strong>Task:</strong> {{ contract.task.title }}</p>
+        <p><strong>Freelancer:</strong> {{ contract.freelancer.username }}</p>
+        <p><strong>Start Date:</strong> {{ contract.start_date }}</p>
+        <p><strong>End Date:</strong> {{ contract.end_date|default:"Not set" }}</p>
+
+        <!-- Status -->
+        <p>
+            <strong>Employer Accepted:</strong>
+            {% if contract.employer_accepted %}
+                ✅ Yes
+            {% else %}
+                ❌ No
+            {% endif %}
+        </p>
+
+        <p>
+            <strong>Freelancer Accepted:</strong>
+            {% if contract.freelancer_accepted %}
+                ✅ Yes
+            {% else %}
+                ❌ No
+            {% endif %}
+        </p>
+
+        <p>
+            <strong>Contract Active:</strong>
+            {% if contract.is_active %}
+                🟢 Active
+            {% else %}
+                🔴 Pending
+            {% endif %}
+        </p>
+
+        <!-- Employer Action -->
+        {% if not contract.employer_accepted %}
+            <form method="post" action="{% url 'employer_accept_contract' contract.contract_id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">Agree to Contract</button>
+            </form>
+        {% else %}
+            <div class="alert alert-info mt-3">
+                You have already agreed to this contract ✅
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

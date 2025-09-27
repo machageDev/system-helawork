@@ -140,14 +140,28 @@ class Contract(models.Model):
     task = models.OneToOneField(Task, related_name="contract", on_delete=models.CASCADE)
     freelancer = models.ForeignKey(User, on_delete=models.CASCADE)
     employer = models.ForeignKey(Employer, on_delete=models.CASCADE)
+
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
+
+    employer_accepted = models.BooleanField(default=False)
+    freelancer_accepted = models.BooleanField(default=False)
+
+    is_active = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Contract for {self.task.title}"
 
+    @property
+    def is_fully_accepted(self):
+        """Check if both employer and freelancer agreed."""
+        return self.employer_accepted and self.freelancer_accepted
 
+    def activate_contract(self):
+        """Mark contract as active if both sides accepted."""
+        if self.is_fully_accepted:
+            self.is_active = True
+            self.save()
 
 
 class Payment(models.Model):
