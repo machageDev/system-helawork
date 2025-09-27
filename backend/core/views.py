@@ -16,7 +16,7 @@ from core.serializer import FreelancerRatingSerializer, LoginSerializer, Payment
 from django.core.mail import send_mail
 from django.contrib import messages
 from payments.models import Payment
-from .models import Employer, EmployerRating, FreelancerRating, Proposal, Task, UserProfile
+from .models import Employer, EmployerProfile, EmployerRating, FreelancerRating, Proposal, Task, UserProfile
 from django.contrib.auth.hashers import check_password
 from .models import  User
 from rest_framework.permissions import IsAuthenticated
@@ -664,3 +664,30 @@ def proposal(request):
         "proposals": proposals,
     }
     return render(request, "proposal.html", context)
+
+
+def create_employer_profile(request):
+    if request.method == 'POST':
+        company_name = request.POST.get('company_name')
+        contact_email = request.POST.get('contact_email')
+        phone_number = request.POST.get('phone_number')
+        profile_picture = request.FILES.get('profile_picture')
+
+        profile = EmployerProfile(
+            company_name=company_name,
+            contact_email=contact_email,
+            phone_number=phone_number,
+            profile_picture=profile_picture
+        )
+        profile.save()
+
+        messages.success(request, "Employer profile created successfully!")
+        return redirect('employer_dashboard')
+
+    return render(request, 'employer_profile.html')
+
+
+
+def view_employer_profile(request, pk):
+    profile = EmployerProfile.objects.get(pk=pk)
+    return render(request, 'employer_profile_detail.html', {'profile': profile})
