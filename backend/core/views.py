@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import IntegrityError, transaction
 from rest_framework import status
-from core.serializer import FreelancerRatingSerializer, LoginSerializer, PaymentSerializer, ProposalSerializer,   RegisterSerializer, TaskSerializer, UserProfileSerializer, UserSerializer
+from core.serializer import ContractSerializer, FreelancerRatingSerializer, LoginSerializer, PaymentSerializer, ProposalSerializer,   RegisterSerializer, TaskSerializer, UserProfileSerializer, UserSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
 from payments.models import Payment
@@ -370,7 +370,28 @@ def apipayment_summary(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+@api_view(["GET"])
+def freelancer_contracts(request, freelancer_id):
+    """
+    Get all contracts for a freelancer (to be used in Flutter app).
+    """
+    contracts = Contract.objects.filter(freelancer_id=freelancer_id)
+    serializer = ContractSerializer(contracts, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+@api_view(["GET"])
+def contract_detail(request, contract_id):
+    """
+    Get details of a specific contract.
+    """
+    try:
+        contract = Contract.objects.get(pk=contract_id)
+    except Contract.DoesNotExist:
+        return Response({"error": "Contract not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = ContractSerializer(contract)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 #  Withdraw via M-PESA (mock for now, replace with Daraja B2C logic later)
 @api_view(['POST'])
 @permission_classes([AllowAny])
