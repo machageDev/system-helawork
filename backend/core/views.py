@@ -688,25 +688,27 @@ def proposal(request):
 
 
 def create_employer_profile(request):
-    if request.method == 'POST':
-        company_name = request.POST.get('company_name')
-        contact_email = request.POST.get('contact_email')
-        phone_number = request.POST.get('phone_number')
-        profile_picture = request.FILES.get('profile_picture')
+    if request.method == "POST":
+        contact_email = request.POST.get("contact_email")
+        company_name = request.POST.get("company_name")
+        phone_number = request.POST.get("phone_number")
+        profile_picture = request.FILES.get("profile_picture")
 
-        profile = EmployerProfile(
-            company_name=company_name,
-            contact_email=contact_email,
-            phone_number=phone_number,
-            profile_picture=profile_picture
-        )
-        profile.save()
+        try:
+            EmployerProfile.objects.create(
+                contact_email=contact_email,
+                company_name=company_name,
+                phone_number=phone_number,
+                profile_picture=profile_picture,
+            )
+            messages.success(request, "Profile created successfully ✅")
+            return redirect("employer_dashboard")
 
-        messages.success(request, "Employer profile created successfully!")
-        return redirect('employer_dashboard')
+        except IntegrityError:
+            messages.warning(request, f"A profile with email {contact_email} already exists ❗")
+            return redirect("create_employer_profile")
 
-    return render(request, 'employer_profile.html')
-
+    return render(request, "employer_profile.html")
 
 
 def employer_profile(request, pk):
