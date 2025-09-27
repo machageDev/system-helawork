@@ -40,5 +40,6 @@ urlpatterns = [
     path('profile',views.create_employer_profile,name='employer_profile'),
     path('profileview',views.employer_profile,name='profileview'),
 
-    
+    path("test-404/", views.test_404, name="test_404"),
+
 ]

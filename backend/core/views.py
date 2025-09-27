@@ -730,3 +730,7 @@ def employer_contract(request, contract_id):
         return redirect("employer_dashboard")
 
     return render(request, "contract.html", {"contract": contract})
+
+
+def test_404(request):
+    return render(request, "404.html", status=404)
