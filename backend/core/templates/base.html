@@ -210,7 +210,7 @@
                 <nav class="navbar d-flex justify-content-between align-items-center">
 
                     <!-- Profile Icon (Top-left, link to create profile) -->
-                    <a href="{% url 'create_employer_profile' %}" class="d-flex align-items-center text-decoration-none me-3">
+                    <a href="{% url 'employer_profile' %}" class="d-flex align-items-center text-decoration-none me-3">
                         <img class="img-profile" 
                              src="{% if employer and employer.profile_picture %}{{ employer.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
                              alt="Profile">
