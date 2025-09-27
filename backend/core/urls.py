@@ -37,6 +37,8 @@ urlpatterns = [
     path("ratings/", views.employer_rating_list, name="employer_rating_list"),
     path("employer/<int:employer_id>/ratings/", views.employer_ratings_detail, name="employer_ratings_detail"),
     path("proposals", views.proposal, name="task_proposals"),
+    path('profile',views.create_employer_profile,name='employer_profile'),
+    path('profileview',views.employer_profile,name='profileview'),
 
     
 ]

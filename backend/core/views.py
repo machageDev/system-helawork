@@ -372,9 +372,7 @@ def apipayment_summary(request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 @api_view(["GET"])
 def freelancer_contracts(request, freelancer_id):
-    """
-    Get all contracts for a freelancer (to be used in Flutter app).
-    """
+   
     contracts = Contract.objects.filter(freelancer_id=freelancer_id)
     serializer = ContractSerializer(contracts, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -382,9 +380,7 @@ def freelancer_contracts(request, freelancer_id):
 
 @api_view(["GET"])
 def contract_detail(request, contract_id):
-    """
-    Get details of a specific contract.
-    """
+    
     try:
         contract = Contract.objects.get(pk=contract_id)
     except Contract.DoesNotExist:
@@ -713,11 +709,11 @@ def create_employer_profile(request):
 
 
 
-def view_employer_profile(request, pk):
+def employer_profile(request, pk):
     profile = EmployerProfile.objects.get(pk=pk)
     return render(request, 'employer_profile_detail.html', {'profile': profile})
 
-def employer_accept_contract(request, contract_id):
+def employer_contract(request, contract_id):
     
     if not request.session.get("employer_id"):
         return redirect("login")
