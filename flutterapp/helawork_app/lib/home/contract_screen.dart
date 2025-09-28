@@ -11,7 +11,7 @@ class ContractScreen extends StatelessWidget {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text("My Contracts"),
-        backgroundColor: const Color(0xFF007bff), // HelaWork blue
+        backgroundColor: const Color(0xFF007bff), 
       ),
       body: Consumer<ContractProvider>(
         builder: (context, provider, child) {
@@ -42,7 +42,7 @@ class ContractScreen extends StatelessWidget {
                     contract.taskTitle,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0056b3), // Darker HelaWork blue
+                      color: Color(0xFF0056b3), 
                     ),
                   ),
                   subtitle: Column(

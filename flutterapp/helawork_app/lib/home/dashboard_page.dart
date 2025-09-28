@@ -81,7 +81,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                         ),
-                        onPressed: () => _onItemTapped(1), // Tasks tab
+                        onPressed: () => _onItemTapped(1), //
                         icon: const Icon(Icons.task, color: Colors.white),
                         label: const Text(" Tasks",
                             style: TextStyle(

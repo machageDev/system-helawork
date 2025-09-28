@@ -6,9 +6,11 @@ class AuthProvider with ChangeNotifier {
 
   bool _isLoading = false;
   bool _isLoggedIn = false;
+  Map<String, dynamic>? _userData;
 
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _isLoggedIn;
+  Map<String, dynamic>? get userData => _userData;
 
   Future<Map<String, dynamic>> login(String username, String password) async {
     _isLoading = true;
@@ -19,13 +21,16 @@ class AuthProvider with ChangeNotifier {
 
       if (response["success"] == true) {
         _isLoggedIn = true;
+        _userData = response["data"]; // Save user data
       } else {
         _isLoggedIn = false;
+        _userData = null;
       }
 
       return response;
     } catch (e) {
       _isLoggedIn = false;
+      _userData = null;
       return {"success": false, "message": "Something went wrong"};
     } finally {
       _isLoading = false;
@@ -62,6 +67,7 @@ class AuthProvider with ChangeNotifier {
 
   void logout() {
     _isLoggedIn = false;
+    _userData = null;
     notifyListeners();
   }
 }

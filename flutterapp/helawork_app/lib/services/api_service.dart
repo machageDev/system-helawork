@@ -166,10 +166,23 @@ Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) asy
     );
 
     if (response.statusCode == 200) {
-      return {
-        "success": true,
-        "message": "Profile updated successfully",
-      };
+      // After successful update, refresh the user profile data
+      try {
+        final userProfile = await ApiService.getUserProfile();
+        // Update the dashboard provider with new profile data
+        // You'll need to access the provider here or return the data
+        return {
+          "success": true,
+          "message": "Profile updated successfully",
+          "userData": userProfile, // Include the updated user data
+        };
+      } catch (e) {
+        // Profile update was successful but fetching updated data failed
+        return {
+          "success": true,
+          "message": "Profile updated successfully, but failed to refresh data: $e",
+        };
+      }
     } else {
       return {
         "success": false,
