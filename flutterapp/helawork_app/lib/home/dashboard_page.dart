@@ -83,31 +83,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         ),
                         onPressed: () => _onItemTapped(1), // Tasks tab
                         icon: const Icon(Icons.task, color: Colors.white),
-                        label: const Text("My Tasks",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueGrey,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 10),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const RatingsScreen()),
-                          );
-                        },
-                        icon: const Icon(Icons.star, color: Colors.white),
-                        label: const Text("My Ratings",
+                        label: const Text(" Tasks",
                             style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold)),
@@ -115,7 +91,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ],
                 ),
-
+                
                 const SizedBox(height: 20),
 
                 // ================= ACTIVE TASKS ONLY =================
@@ -147,8 +123,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
                 const SizedBox(height: 20),
 
-                // ================= RATINGS BUTTON (existing one) =================
-                const Text("My Ratings",
+                // ================= RATINGS BUTTON =================
+                const Text("Ratings",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -170,14 +146,14 @@ class _DashboardPageState extends State<DashboardPage> {
                     );
                   },
                   icon: const Icon(Icons.star, color: Colors.white),
-                  label: const Text("View My Ratings",
+                  label: const Text("View Ratings",
                       style: TextStyle(color: Colors.white, fontSize: 16)),
                 ),
 
                 const SizedBox(height: 20),
 
-                // ================= CONTRACTS BUTTON (NEW) =================
-                const Text("My Contracts",
+                // ================= CONTRACTS BUTTON =================
+                const Text("Contracts",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -210,7 +186,7 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // ================= CARD WIDGETS =================
+  // ================= TASK CARD WIDGET =================
   Widget _buildTaskCard(String title, String subtitle, String status) {
     Color statusColor =
         status == "Completed" ? Colors.green : Colors.orangeAccent;
@@ -242,7 +218,8 @@ class _DashboardPageState extends State<DashboardPage> {
             title: Row(
               children: [
                 // Profile Picture in AppBar
-                if (dashboard.profilePictureUrl != null && dashboard.profilePictureUrl!.isNotEmpty)
+                if (dashboard.profilePictureUrl != null &&
+                    dashboard.profilePictureUrl!.isNotEmpty)
                   Container(
                     width: 35,
                     height: 35,

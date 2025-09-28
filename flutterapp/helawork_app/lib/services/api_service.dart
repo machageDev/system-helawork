@@ -1,6 +1,7 @@
 
 
 import 'dart:convert';
+import 'dart:io';
 import 'package:helawork_app/models/contract_model.dart';
 import 'package:helawork_app/models/proposal.dart';
 import 'package:http/http.dart' as http;
@@ -144,37 +145,44 @@ static Future<List<Map<String, dynamic>>> fetchTasks() async {
     throw Exception("Failed to load tasks: ${response.statusCode}");
   }
 }
+Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) async {
+  try {
+    final Map<String, dynamic> profileData = Map.from(profile);
+    
+    // Convert File to base64 string if present
+    if (profileData.containsKey('profile_picture') && profileData['profile_picture'] is File) {
+      File file = profileData['profile_picture'];
+      List<int> imageBytes = await file.readAsBytes();
+      String base64Image = base64Encode(imageBytes);
+      profileData['profile_picture'] = base64Image;
+    }
+    
+    final response = await http.put(
+      Uri.parse(updateUserProfileUrl),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(profileData),
+    );
 
-
- 
-  Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) async {
-    try {
-      final response = await http.put(
-        Uri.parse(updateUserProfileUrl),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: json.encode(profile),
-      );
-
-      if (response.statusCode == 200) {
-        return {
-          "success": true,
-          "message": "Profile updated successfully",
-        };
-      } else {
-        return {
-          "success": false,
-          "message": "Failed to update profile: ${response.statusCode}",
-        };
-      }
-    } catch (e) {
+    if (response.statusCode == 200) {
+      return {
+        "success": true,
+        "message": "Profile updated successfully",
+      };
+    } else {
       return {
         "success": false,
-        "message": "Network error: $e",
+        "message": "Failed to update profile: ${response.statusCode}",
       };
     }
+  } catch (e) {
+    return {
+      "success": false,
+      "message": "Network error: $e",
+    };
   }
+}
 
  static Future<Map<String, dynamic>> getUserProfile() async {
     final response = await http.get(Uri.parse(getuserprofileUrl));
