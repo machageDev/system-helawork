@@ -26,8 +26,6 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProposalProvider()),
         ChangeNotifierProvider(create: (_) => ContractProvider()..fetchContracts()),
         ChangeNotifierProvider(create: (_) => RatingProvider()), 
-
-      
       ],
       child: const MyApp(),
     ),
@@ -45,7 +43,19 @@ class MyApp extends StatelessWidget {
       home: Consumer<AuthProvider>(
         builder: (context, auth, _) {
           if (auth.isLoggedIn) {
-            return const DashboardPage();
+            return FutureBuilder(
+              future: context.read<DashboardProvider>().loadData(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Scaffold(
+                    body: Center(
+                      child: CircularProgressIndicator(color: Colors.green),
+                    ),
+                  );
+                }
+                return const DashboardPage();
+              },
+            );
           } else {
             return const LoginScreen();
           }
