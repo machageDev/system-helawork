@@ -76,12 +76,19 @@ class FreelancerRatingSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = '__all__'
+        fields = [
+            "bio",
+            "skills",
+            "experience",
+            "portfolio_link",
+            "hourly_rate",
+            "profile_picture",
+        ]
         read_only_fields = ("user",)
 
     def get_average_rating(self, obj):
         return obj.average_rating()
-    
+
 class ProposalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Proposal

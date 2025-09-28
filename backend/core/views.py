@@ -79,11 +79,13 @@ def current_user(request):
 
 @csrf_exempt
 @permission_classes([AllowAny])
-@api_view(['POST'])
+@api_view(['POST' ,'PUT'])
 def apiuserprofile(request):
     serializer = UserProfileSerializer(data=request.data)
+    profile = serializer.save(user=request.user)
     
     if serializer.is_valid():
+        
         bio = serializer.validated_data.get('bio', "").strip()
         skills = serializer.validated_data.get('skills', "")
         experience = serializer.validated_data.get('experience', "")
