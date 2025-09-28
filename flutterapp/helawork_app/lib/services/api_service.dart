@@ -148,15 +148,15 @@ static Future<List<Map<String, dynamic>>> fetchTasks() async {
 Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) async {
   try {
     final Map<String, dynamic> profileData = Map.from(profile);
-    
-    // Convert File to base64 string if present
+
+    // Convert File to base64 if it's a File
     if (profileData.containsKey('profile_picture') && profileData['profile_picture'] is File) {
       File file = profileData['profile_picture'];
       List<int> imageBytes = await file.readAsBytes();
       String base64Image = base64Encode(imageBytes);
       profileData['profile_picture'] = base64Image;
     }
-    
+
     final response = await http.post(
       Uri.parse(updateUserProfileUrl),
       headers: {
@@ -165,28 +165,24 @@ Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) asy
       body: json.encode(profileData),
     );
 
-    if (response.statusCode == 200) {
-      
+    if (response.statusCode == 200 || response.statusCode == 201) {
       try {
         final userProfile = await ApiService.getUserProfile();
-        // Update the dashboard provider with new profile data
-        // You'll need to access the provider here or return the data
         return {
           "success": true,
           "message": "Profile updated successfully",
-          "userData": userProfile, 
+          "userData": userProfile,
         };
       } catch (e) {
-        
         return {
           "success": true,
-          "message": "Profile updated successfully, but failed to refresh data: $e",
+          "message": "Profile updated, but failed to refresh: $e",
         };
       }
     } else {
       return {
         "success": false,
-        "message": "Failed to update profile: ${response.statusCode}",
+        "message": "Failed to update profile: ${response.statusCode} ${response.body}",
       };
     }
   } catch (e) {
@@ -196,6 +192,7 @@ Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) asy
     };
   }
 }
+
 
  static Future<Map<String, dynamic>> getUserProfile() async {
     final response = await http.get(Uri.parse(getuserprofileUrl));
