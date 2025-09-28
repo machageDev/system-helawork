@@ -77,35 +77,29 @@ def current_user(request):
     serializer = UserSerializer(request.user)
     return Response(serializer.data)
 
+
 @csrf_exempt
-@permission_classes([AllowAny])
-@api_view(['POST' ,'PUT'])
+@permission_classes([IsAuthenticated])   
+@api_view(['POST', 'PUT'])
 def apiuserprofile(request):
-    serializer = UserProfileSerializer(data=request.data)
-    profile = serializer.save(user=request.user)
-    
-    if serializer.is_valid():
-        
-        bio = serializer.validated_data.get('bio', "").strip()
-        skills = serializer.validated_data.get('skills', "")
-        experience = serializer.validated_data.get('experience', "")
-        portfolio_link = serializer.validated_data.get('portfolio_link', "").strip()
-        hourly_rate = serializer.validated_data.get('hourly_rate')
-        profile_picture = serializer.validated_data.get('profile_picture')      
+    if request.method == 'POST':
+        serializer = UserProfileSerializer(data=request.data)
+        if serializer.is_valid():
+            profile = serializer.save(user=request.user)   # only works if authenticated
+            return Response(UserProfileSerializer(profile).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        profile = UserProfile.objects.create(
-            user=request.user if request.user.is_authenticated else None,
-            bio=bio,
-            skills=skills,
-            experience=experience,
-            portfolio_link=portfolio_link,
-            hourly_rate=hourly_rate,
-            profile_picture=profile_picture,
-        )
+    elif request.method == 'PUT':
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response(UserProfileSerializer(profile).data, status=status.HTTP_201_CREATED)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            profile = serializer.save(user=request.user)
+            return Response(UserProfileSerializer(profile).data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
