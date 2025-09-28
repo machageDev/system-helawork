@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
 class DashboardProvider with ChangeNotifier {
-  String userName = "";
+  String? userName;
+  String? profilePictureUrl; // Added profile picture URL
   int inProgress = 0;
   int completed = 0;
   List<Map<String, dynamic>> activeTasks = [];
@@ -17,8 +18,11 @@ class DashboardProvider with ChangeNotifier {
       // Fetch tasks only
       final tasksRaw = await ApiService.fetchTasks();
 
-      // 👇 Get the logged-in user directly (from ApiService or token)
+      // Get the logged-in user directly (from ApiService or token)
       userName = await ApiService.getLoggedInUserName();
+      
+      // TODO: Add this method to your ApiService to fetch profile picture
+      // profilePictureUrl = await ApiService.getUserProfilePicture();
 
       // Convert tasks to a list of maps
       final tasks = List<Map<String, dynamic>>.from(tasksRaw);

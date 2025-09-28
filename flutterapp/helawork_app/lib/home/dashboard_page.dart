@@ -239,8 +239,43 @@ class _DashboardPageState extends State<DashboardPage> {
           appBar: AppBar(
             backgroundColor: Colors.grey[900],
             elevation: 0,
-            title: Text("${dashboard.userName}",
-                style: const TextStyle(color: Colors.white)),
+            title: Row(
+              children: [
+                // Profile Picture in AppBar
+                if (dashboard.profilePictureUrl != null && dashboard.profilePictureUrl!.isNotEmpty)
+                  Container(
+                    width: 35,
+                    height: 35,
+                    margin: const EdgeInsets.only(right: 12),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.green, width: 2),
+                      image: DecorationImage(
+                        image: NetworkImage(dashboard.profilePictureUrl!),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    width: 35,
+                    height: 35,
+                    margin: const EdgeInsets.only(right: 12),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.grey[700],
+                      border: Border.all(color: Colors.green, width: 2),
+                    ),
+                    child: const Icon(Icons.person, color: Colors.white, size: 20),
+                  ),
+                
+                // User Name
+                Expanded(
+                  child: Text("${dashboard.userName}",
+                      style: const TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
             actions: [
               IconButton(
                 icon: const Icon(Icons.refresh, color: Colors.white),
