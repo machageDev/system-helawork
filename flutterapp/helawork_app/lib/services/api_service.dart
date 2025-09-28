@@ -157,7 +157,7 @@ Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) asy
       profileData['profile_picture'] = base64Image;
     }
     
-    final response = await http.put(
+    final response = await http.post(
       Uri.parse(updateUserProfileUrl),
       headers: {
         'Content-Type': 'application/json',
