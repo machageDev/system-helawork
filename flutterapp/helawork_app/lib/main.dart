@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:helawork_app/providers/contract_provider.dart';
 import 'package:helawork_app/providers/dashboard_provider.dart';
 import 'package:helawork_app/providers/forgot_password_provider.dart';
 import 'package:helawork_app/providers/payment_provider.dart';
@@ -22,6 +23,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => TaskProvider()) , 
         ChangeNotifierProvider(create: (_) => PaymentProvider()),   
         ChangeNotifierProvider(create: (_) => ProposalProvider()),
+         ChangeNotifierProvider(create: (_) => ContractProvider()..fetchContracts()),
 
       
       ],

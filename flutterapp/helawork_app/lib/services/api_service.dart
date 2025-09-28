@@ -1,6 +1,7 @@
 
 
 import 'dart:convert';
+import 'package:helawork_app/models/contract_model.dart';
 import 'package:helawork_app/models/proposal.dart';
 import 'package:http/http.dart' as http;
 
@@ -290,4 +291,39 @@ static Future<List<Map<String, dynamic>>> fetchTasks() async {
       throw Exception("Error submitting proposal: $e");
     }
   }
+
+   Future<List<Contract>> fetchContracts() async {
+    final url = Uri.parse("$baseUrl/contracts/");
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((json) => Contract.fromJson(json)).toList();
+    } else {
+      throw Exception("Failed to load contracts: ${response.body}");
+    }
+  }
+
+  /// ✅ Accept a contract
+  Future<void> acceptContract(int contractId) async {
+    final url = Uri.parse("$baseUrl/contracts/$contractId/accept/");
+    final response = await http.post(url);
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to accept contract: ${response.body}");
+    }
+  }
+
+  /// ✅ Reject a contract
+  Future<void> rejectContract(int contractId) async {
+    final url = Uri.parse("$baseUrl/contracts/$contractId/reject/");
+    final response = await http.post(url);
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to reject contract: ${response.body}");
+    }
+  }
 }
+
+
+  
