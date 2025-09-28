@@ -26,7 +26,7 @@ from django.contrib import messages
 from django.contrib.auth.hashers import make_password
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
-
+from django.views.decorators.csrf import csrf_exempt
 
 
 def send_otp(request):
@@ -77,29 +77,33 @@ def current_user(request):
     serializer = UserSerializer(request.user)
     return Response(serializer.data)
 
+@csrf_exempt
+@permission_classes([AllowAny])
+@api_view(['POST'])
 def apiuserprofile(request):
     serializer = UserProfileSerializer(data=request.data)
+    
     if serializer.is_valid():
-        bio = serializer.validated_data['bio'].strip() if serializer.validated_data.get('bio') else ""
+        bio = serializer.validated_data.get('bio', "").strip()
         skills = serializer.validated_data.get('skills', "")
         experience = serializer.validated_data.get('experience', "")
         portfolio_link = serializer.validated_data.get('portfolio_link', "").strip()
         hourly_rate = serializer.validated_data.get('hourly_rate')
         profile_picture = serializer.validated_data.get('profile_picture')      
-    
-        
-    profile = UserProfile.objects.create(
-        user = request.user,
-        bio = bio,
-        skills = skills,
-        experience = experience,
-        portfolio_link = portfolio_link,
-        hourly_rate = hourly_rate,
-        profile_picture = profile_picture,       
-        
-    )
-    return Response(UserProfileSerializer(profile).data, status=status.HTTP_201_CREATED)
 
+        profile = UserProfile.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            bio=bio,
+            skills=skills,
+            experience=experience,
+            portfolio_link=portfolio_link,
+            hourly_rate=hourly_rate,
+            profile_picture=profile_picture,
+        )
+
+        return Response(UserProfileSerializer(profile).data, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
