@@ -38,9 +38,9 @@ class DashboardProvider with ChangeNotifier {
       // Convert tasks to a list of maps
       final tasks = List<Map<String, dynamic>>.from(tasksRaw);
 
-      // Tasks - FIXED THE SYNTAX ERROR HERE
+      // Count tasks
       inProgress = tasks.where((t) => t["status"] == "In Progress").length;
-      completed = tasks.where((t) => t["status"] == "Completed").length; // Fixed this line
+      completed = tasks.where((t) => t["status"] == "Completed").length;
       activeTasks = tasks.take(5).toList();
 
       error = null;
@@ -70,7 +70,7 @@ class DashboardProvider with ChangeNotifier {
     }
   }
 
-  // Update user profile data
+  // ✅ Fixed: Only one updateUserProfile
   Future<void> updateUserProfile(String name, String profileUrl) async {
     userName = name;
     profilePictureUrl = profileUrl;

@@ -15,22 +15,24 @@ class LoginScreen extends StatelessWidget {
     final TextEditingController passwordController = TextEditingController();
 
     Future<void> handleLogin() async {
-      final response = await authProvider.login(
-        nameController.text.trim(),
-        passwordController.text.trim(),
-      );
+  final response = await authProvider.login(
+    context, 
+    nameController.text.trim(),
+    passwordController.text.trim(),
+  );
 
-      if (response["success"] == true && context.mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const DashboardPage()),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response["message"] ?? "Login failed")),
-        );
-      }
-    }
+  if (response["success"] == true && context.mounted) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const DashboardPage()),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(response["message"] ?? "Login failed")),
+    );
+  }
+}
+
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
