@@ -6,7 +6,7 @@ import 'task_page.dart';
 import 'payment_summary_page.dart';
 import 'proposal_screen.dart';
 import 'user_profile_screen.dart';
-import 'contract_screen.dart'; // 👈 Create this screen for contracts list
+import 'contract_screen.dart'; 
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
