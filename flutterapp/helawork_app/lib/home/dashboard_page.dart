@@ -6,6 +6,7 @@ import 'task_page.dart';
 import 'payment_summary_page.dart';
 import 'proposal_screen.dart';
 import 'user_profile_screen.dart';
+import 'contract_screen.dart'; // 👈 Create this screen for contracts list
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -18,7 +19,7 @@ class _DashboardPageState extends State<DashboardPage> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const SizedBox(), 
+    const SizedBox(),
     const TaskPage(),
     const PaymentSummaryPage(),
     const ProposalsScreen(),
@@ -170,6 +171,35 @@ class _DashboardPageState extends State<DashboardPage> {
                   },
                   icon: const Icon(Icons.star, color: Colors.white),
                   label: const Text("View My Ratings",
+                      style: TextStyle(color: Colors.white, fontSize: 16)),
+                ),
+
+                const SizedBox(height: 20),
+
+                // ================= CONTRACTS BUTTON (NEW) =================
+                const Text("My Contracts",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueGrey.shade700,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 20),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ContractScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.article, color: Colors.white),
+                  label: const Text("View Contracts",
                       style: TextStyle(color: Colors.white, fontSize: 16)),
                 ),
               ],

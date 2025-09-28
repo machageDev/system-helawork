@@ -304,7 +304,7 @@ static Future<List<Map<String, dynamic>>> fetchTasks() async {
     }
   }
 
-  /// ✅ Accept a contract
+  
   Future<void> acceptContract(int contractId) async {
     final url = Uri.parse("$baseUrl/contracts/$contractId/accept/");
     final response = await http.post(url);
@@ -314,7 +314,7 @@ static Future<List<Map<String, dynamic>>> fetchTasks() async {
     }
   }
 
-  /// ✅ Reject a contract
+  
   Future<void> rejectContract(int contractId) async {
     final url = Uri.parse("$baseUrl/contracts/$contractId/reject/");
     final response = await http.post(url);
