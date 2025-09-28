@@ -147,42 +147,34 @@ static Future<List<Map<String, dynamic>>> fetchTasks() async {
 }
 Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) async {
   try {
-    final Map<String, dynamic> profileData = Map.from(profile);
+    var request = http.MultipartRequest("POST", Uri.parse(updateUserProfileUrl));
 
-    // Convert File to base64 if it's a File
-    if (profileData.containsKey('profile_picture') && profileData['profile_picture'] is File) {
-      File file = profileData['profile_picture'];
-      List<int> imageBytes = await file.readAsBytes();
-      String base64Image = base64Encode(imageBytes);
-      profileData['profile_picture'] = base64Image;
+    // Add normal text fields
+    profile.forEach((key, value) {
+      if (value != null && value is! File) {
+        request.fields[key] = value.toString();
+      }
+    });
+
+    // Add image file if present
+    if (profile['profile_picture'] != null && profile['profile_picture'] is File) {
+      File file = profile['profile_picture'];
+      request.files.add(await http.MultipartFile.fromPath('profile_picture', file.path));
     }
 
-    final response = await http.post(
-      Uri.parse(updateUserProfileUrl),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(profileData),
-    );
+    var streamedResponse = await request.send();
+    var response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      try {
-        final userProfile = await ApiService.getUserProfile();
-        return {
-          "success": true,
-          "message": "Profile updated successfully",
-          "userData": userProfile,
-        };
-      } catch (e) {
-        return {
-          "success": true,
-          "message": "Profile updated, but failed to refresh: $e",
-        };
-      }
+      return {
+        "success": true,
+        "message": "Profile updated successfully",
+        "data": json.decode(response.body),
+      };
     } else {
       return {
         "success": false,
-        "message": "Failed to update profile: ${response.statusCode} ${response.body}",
+        "message": "Failed: ${response.statusCode} ${response.body}",
       };
     }
   } catch (e) {
