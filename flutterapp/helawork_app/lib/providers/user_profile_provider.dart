@@ -4,7 +4,7 @@ import 'package:helawork_app/services/api_service.dart';
 class UserProfileProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
 
-  Map<String, dynamic> _userProfile = {};
+  final Map<String, dynamic> _userProfile = {};
   Map<String, dynamic> get userProfile => _userProfile;
 
   bool _isLoading = false;
@@ -20,13 +20,13 @@ class UserProfileProvider with ChangeNotifier {
   }
 
   /// Create or update profile on server
-  Future<void> saveProfile(BuildContext context) async {
+  Future<void> saveProfile(BuildContext context, String token) async {
     _isLoading = true;
     _errorMessage = '';
     notifyListeners();
 
     try {
-      final response = await _apiService.updateUserProfile(_userProfile);
+      final response = await _apiService.updateUserProfile(_userProfile, token);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(response["message"] ?? 'Profile saved successfully')),
       );

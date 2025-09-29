@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:helawork_app/providers/user_profile_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart'; 
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -15,6 +16,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
   File? _pickedImage;
+
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage(); 
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +58,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     _buildTextField(
                       context,
                       label: "Bio",
-                      onChanged: (val) => profileProvider.setProfileField('bio', val),
+                      onChanged: (val) =>
+                          profileProvider.setProfileField('bio', val),
                       maxLines: 3,
                     ),
                     const SizedBox(height: 15),
@@ -63,14 +67,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     _buildTextField(
                       context,
                       label: "Skills (comma-separated)",
-                      onChanged: (val) => profileProvider.setProfileField('skills', val),
+                      onChanged: (val) =>
+                          profileProvider.setProfileField('skills', val),
                     ),
                     const SizedBox(height: 15),
 
                     _buildTextField(
                       context,
                       label: "Experience",
-                      onChanged: (val) => profileProvider.setProfileField('experience', val),
+                      onChanged: (val) =>
+                          profileProvider.setProfileField('experience', val),
                       maxLines: 3,
                     ),
                     const SizedBox(height: 15),
@@ -78,7 +84,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     _buildTextField(
                       context,
                       label: "Portfolio Link",
-                      onChanged: (val) => profileProvider.setProfileField('portfolio_link', val),
+                      onChanged: (val) => profileProvider.setProfileField(
+                          'portfolio_link', val),
                     ),
                     const SizedBox(height: 15),
 
@@ -86,16 +93,30 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       context,
                       label: "Hourly Rate",
                       keyboardType: TextInputType.number,
-                      onChanged: (val) => profileProvider.setProfileField('hourly_rate', val),
+                      onChanged: (val) =>
+                          profileProvider.setProfileField('hourly_rate', val),
                     ),
                     const SizedBox(height: 25),
 
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (_formKey.currentState!.validate()) {
-                            profileProvider.saveProfile(context);
+                            
+                            String? token =
+                                await _secureStorage.read(key: "auth_token");
+
+                            if (token == null || token.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("You must log in first"),
+                                ),
+                              );
+                              return;
+                            }
+
+                            profileProvider.saveProfile(context, token);
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -137,7 +158,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       ),
       onChanged: onChanged,
-      validator: (val) => val == null || val.isEmpty ? 'This field cannot be empty' : null,
+      validator: (val) =>
+          val == null || val.isEmpty ? 'This field cannot be empty' : null,
     );
   }
 

@@ -67,8 +67,7 @@ static Future<String> getLoggedInUserName() async {
   }
 }
 
-
-Future<Map<String, dynamic>> login(String name, String password) async { 
+Future<Map<String, dynamic>> login(String name, String password) async {
   final url = Uri.parse(ApiService.loginUrl);
 
   print("Logging in with name: $name, password: $password");
@@ -83,12 +82,10 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     print("HTTP status: ${response.statusCode}");
     print("Raw response body: ${response.body}");
 
-    
     Map<String, dynamic> responseData;
     try {
       responseData = jsonDecode(response.body);
     } catch (_) {
-      
       return {
         "success": false,
         "message": "Invalid response from server",
@@ -99,7 +96,12 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     if (response.statusCode == 200) {
       return {
         "success": true,
-        "data": responseData,
+        "data": {
+          "user_id": responseData["user_id"],
+          "name": responseData["name"],
+          "message": responseData["message"],
+          "token": responseData["token"], // capture token
+        }
       };
     } else {
       return {
@@ -145,9 +147,16 @@ static Future<List<Map<String, dynamic>>> fetchTasks() async {
     throw Exception("Failed to load tasks: ${response.statusCode}");
   }
 }
-Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) async {
+Future<Map<String, dynamic>> updateUserProfile(
+    Map<String, dynamic> profile, String token) async {
   try {
-    var request = http.MultipartRequest("POST", Uri.parse(updateUserProfileUrl));
+    
+    var method = "PUT"; 
+    var request = http.MultipartRequest(method, Uri.parse(updateUserProfileUrl));
+
+    
+    request.headers['Authorization'] = 'Token $token';
+    request.headers['Accept'] = 'application/json';
 
     // Add normal text fields
     profile.forEach((key, value) {
@@ -184,7 +193,6 @@ Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> profile) asy
     };
   }
 }
-
 
  static Future<Map<String, dynamic>> getUserProfile() async {
     final response = await http.get(Uri.parse(getuserprofileUrl));

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/api_service.dart';
@@ -10,10 +9,12 @@ class AuthProvider with ChangeNotifier {
   bool _isLoading = false;
   bool _isLoggedIn = false;
   Map<String, dynamic>? _userData;
+  String? _token; // ✅ store token here
 
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _isLoggedIn;
   Map<String, dynamic>? get userData => _userData;
+  String? get token => _token;
 
   Future<Map<String, dynamic>> login(
     BuildContext context,
@@ -29,24 +30,30 @@ class AuthProvider with ChangeNotifier {
       if (response["success"] == true) {
         _isLoggedIn = true;
         _userData = response["data"];
+        _token = response["data"]["token"]; // ✅ save token
 
-        // ✅ Update DashboardProvider with user data
-        final dashboardProvider =
-            Provider.of<DashboardProvider>(context, listen: false);
+        // ✅ Update dashboard with logged in user info
+        if (context.mounted) {
+          final dashboardProvider =
+              Provider.of<DashboardProvider>(context, listen: false);
 
-        dashboardProvider.updateUserProfile(
-          _userData?['name'] ?? "User",
-          _userData?['profile_picture'] ?? "",
-        );
+          dashboardProvider.updateUserProfile(
+            _userData?['name'] ?? "User",
+            _userData?['profile_picture'] ?? "",
+          );
+        }
       } else {
         _isLoggedIn = false;
         _userData = null;
+        _token = null;
       }
 
       return response;
     } catch (e) {
+      debugPrint("Login error: $e");
       _isLoggedIn = false;
       _userData = null;
+      _token = null;
       return {"success": false, "message": "Something went wrong"};
     } finally {
       _isLoading = false;
@@ -74,6 +81,7 @@ class AuthProvider with ChangeNotifier {
       );
       return response;
     } catch (e) {
+      debugPrint("Register error: $e");
       return {"success": false, "message": "Something went wrong"};
     } finally {
       _isLoading = false;
@@ -84,6 +92,7 @@ class AuthProvider with ChangeNotifier {
   void logout() {
     _isLoggedIn = false;
     _userData = null;
+    _token = null; 
     notifyListeners();
   }
 }
