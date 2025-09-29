@@ -80,7 +80,7 @@ def current_user(request):
 
 
 @csrf_exempt
-@permission_classes([IsAuthenticated])   
+@permission_classes([IsCustomUserAuthenticated]) 
 @api_view(['POST', 'PUT'])
 def apiuserprofile(request):
     if request.method == 'POST':
