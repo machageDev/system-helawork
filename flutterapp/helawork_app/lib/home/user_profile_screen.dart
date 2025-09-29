@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:helawork_app/providers/user_profile_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; 
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -16,8 +15,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
   File? _pickedImage;
-
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage(); 
 
   @override
   Widget build(BuildContext context) {
@@ -84,8 +81,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     _buildTextField(
                       context,
                       label: "Portfolio Link",
-                      onChanged: (val) => profileProvider.setProfileField(
-                          'portfolio_link', val),
+                      onChanged: (val) =>
+                          profileProvider.setProfileField('portfolio_link', val),
                     ),
                     const SizedBox(height: 15),
 
@@ -103,20 +100,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       child: ElevatedButton(
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
-                            
-                            String? token =
-                                await _secureStorage.read(key: "auth_token");
-
-                            if (token == null || token.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("You must log in first"),
-                                ),
-                              );
-                              return;
-                            }
-
-                            profileProvider.saveProfile(context, token);
+                            // ✅ Now just call without token
+                            profileProvider.saveProfile(context);
                           }
                         },
                         style: ElevatedButton.styleFrom(

@@ -147,53 +147,56 @@ static Future<List<Map<String, dynamic>>> fetchTasks() async {
     throw Exception("Failed to load tasks: ${response.statusCode}");
   }
 }
-Future<Map<String, dynamic>> updateUserProfile(
-    Map<String, dynamic> profile, String token) async {
-  try {
-    
-    var method = "PUT"; 
-    var request = http.MultipartRequest(method, Uri.parse(updateUserProfileUrl));
+ Future<Map<String, dynamic>> updateUserProfile(
+      Map<String, dynamic> profile, String token, String userId) async {
+    try {
+     final String url = "$baseUrl/apiuserprofile";
 
-    
-    request.headers['Authorization'] = 'Token $token';
-    request.headers['Accept'] = 'application/json';
+      var request = http.MultipartRequest("PUT", Uri.parse(url));
 
-    // Add normal text fields
-    profile.forEach((key, value) {
-      if (value != null && value is! File) {
-        request.fields[key] = value.toString();
+      request.headers.addAll({
+        'Authorization': 'Token $token',
+        'Accept': 'application/json',
+        
+      });
+
+      // Add fields
+      profile.forEach((key, value) {
+        if (value != null && value is! File) {
+          request.fields[key] = value.toString();
+        }
+      });
+
+      // Add profile picture if available
+      if (profile['profile_picture'] != null && profile['profile_picture'] is File) {
+        File file = profile['profile_picture'];
+        request.files.add(
+            await http.MultipartFile.fromPath('profile_picture', file.path));
       }
-    });
 
-    // Add image file if present
-    if (profile['profile_picture'] != null && profile['profile_picture'] is File) {
-      File file = profile['profile_picture'];
-      request.files.add(await http.MultipartFile.fromPath('profile_picture', file.path));
+      // Send request
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      // Handle response
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          "success": true,
+          "message": "Profile updated successfully",
+          "data": json.decode(response.body),
+        };
+      } else if (response.statusCode == 401) {
+        return {"success": false, "message": "Unauthorized. Please log in again."};
+      } else {
+        return {
+          "success": false,
+          "message": "Failed: ${response.statusCode} ${response.body}"
+        };
+      }
+    } catch (e) {
+      return {"success": false, "message": "Network error: $e"};
     }
-
-    var streamedResponse = await request.send();
-    var response = await http.Response.fromStream(streamedResponse);
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return {
-        "success": true,
-        "message": "Profile updated successfully",
-        "data": json.decode(response.body),
-      };
-    } else {
-      return {
-        "success": false,
-        "message": "Failed: ${response.statusCode} ${response.body}",
-      };
-    }
-  } catch (e) {
-    return {
-      "success": false,
-      "message": "Network error: $e",
-    };
   }
-}
-
  static Future<Map<String, dynamic>> getUserProfile() async {
     final response = await http.get(Uri.parse(getuserprofileUrl));
 
