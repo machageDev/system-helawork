@@ -3,7 +3,8 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.utils import timezone
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-
+import uuid
+from django.db import models
 
 class User(models.Model):
     user_id = models.AutoField(primary_key=True)
@@ -21,6 +22,11 @@ class User(models.Model):
     def __str__(self):
         return self.name
 
+
+class UserToken(models.Model):
+    user = models.OneToOneField("User", on_delete=models.CASCADE)
+    key = models.CharField(max_length=40, unique=True, default=uuid.uuid4)
+    created = models.DateTimeField(auto_now_add=True)
 
 # Employer (for clients)
 class Employer(models.Model):

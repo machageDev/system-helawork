@@ -6,10 +6,30 @@ from .models import Employer, User
 from .models import Task
 from .models import EmployerRating, FreelancerRating
 
-class UserSerializer(serializers.ModelField):
-    class meta:
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
         model = User
         fields = "__all__"
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)  # ✅ nested user, safe to expose
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            "user",
+            "bio",
+            "skills",
+            "experience",
+            "portfolio_link",
+            "hourly_rate",
+            "profile_picture",
+        ]
+        read_only_fields = ("user",)
+
+    def get_average_rating(self, obj):
+        return obj.average_rating()
 
 
 
@@ -73,21 +93,7 @@ class FreelancerRatingSerializer(serializers.ModelSerializer):
         model = FreelancerRating
         fields = ['id', 'task', 'freelancer', 'employer', 'score', 'review', 'created_at']
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = [
-            "bio",
-            "skills",
-            "experience",
-            "portfolio_link",
-            "hourly_rate",
-            "profile_picture",
-        ]
-        read_only_fields = ("user",)
 
-    def get_average_rating(self, obj):
-        return obj.average_rating()
 
 class ProposalSerializer(serializers.ModelSerializer):
     class Meta:

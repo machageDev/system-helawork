@@ -27,6 +27,7 @@ from django.contrib.auth.hashers import make_password
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.views.decorators.csrf import csrf_exempt
+from .permissions import IsCustomUserAuthenticated
 
 
 def send_otp(request):
@@ -85,7 +86,7 @@ def apiuserprofile(request):
     if request.method == 'POST':
         serializer = UserProfileSerializer(data=request.data)
         if serializer.is_valid():
-            profile = serializer.save(user=request.user)   # only works if authenticated
+            profile = serializer.save(user=request.user)  
             return Response(UserProfileSerializer(profile).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -171,9 +172,12 @@ def freelancer_rating_detail(request, pk):
         """Delete a freelancer rating"""
         rating.delete()
         return Response({"message": "Rating deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
-       
+   
+from .models import User, UserToken
+import uuid
+
 @api_view(['POST'])
-@permission_classes([AllowAny])        
+@permission_classes([AllowAny])
 def apilogin(request):
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid():
@@ -183,27 +187,30 @@ def apilogin(request):
         try:
             user = User.objects.get(name=name)
 
-            
-            if check_password(password, user.password):
+            if user.check_password(password):  # uses your custom check_password method
+                # Get or create token
+                token, created = UserToken.objects.get_or_create(user=user)
+                if not created:
+                    # refresh old token if you want
+                    token.key = uuid.uuid4()
+                    token.save()
+
                 return Response(
                     {
                         "message": "Login successful",
                         "user_id": user.user_id,
-                        "name": user.name
+                        "name": user.name,
+                        "token": str(token.key),
                     },
                     status=status.HTTP_200_OK
                 )
             else:
-                
-                return Response({"error": "invalid login"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Invalid login"}, status=status.HTTP_400_BAD_REQUEST)
 
         except User.DoesNotExist:
-        
-            return Response({"error": "invalid login"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Invalid login"}, status=status.HTTP_400_BAD_REQUEST)
 
-    
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 @api_view(['POST'])
@@ -486,8 +493,6 @@ def login_view(request):
             return render(request, 'login.html')
 
     return render(request, 'login.html')
-
-
 
 def logout_view(request):
     request.session.flush()
