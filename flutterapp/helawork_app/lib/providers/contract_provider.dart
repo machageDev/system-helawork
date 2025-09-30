@@ -16,7 +16,7 @@ class ContractProvider with ChangeNotifier {
 
     try {
       final response =
-          await http.get(Uri.parse("http://127.0.0.1:8000/api/contracts/")); // Update API URL
+          await http.get(Uri.parse("http://127.0.0.1:8000/api/contracts/")); 
 
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);

@@ -18,6 +18,7 @@ class ApiService{
   static const String taskUrl = '$baseUrl/task';
   static const String  withdraw_mpesaUrl = '$baseUrl/mpesa';
   static const String  updateUserProfileUrl = '$baseUrl/apiuserprofile';
+  static const String ProposalUrl = '$baseUrl/apiproposal';
   
 
 Future<Map<String, dynamic>> register(String name, String email,String phoneNO, String password,  String confirmPassword) async {
@@ -130,8 +131,8 @@ Future<Map<String, dynamic>> login(String name, String password) async {
 
  static Future<List<Map<String, dynamic>>> fetchTasks() async {
   try {
-    // Use your actual API endpoint - make sure the URL is correct
-    final response = await http.get(Uri.parse('$baseUrl/task')); // Your Django endpoint is 'task' not 'tasks/'
+    
+    final response = await http.get(Uri.parse('$baseUrl/task')); 
     
     print('Task API Response Status: ${response.statusCode}');
     print('Task API Response Body: ${response.body}');
@@ -139,7 +140,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     if (response.statusCode == 200) {
       final dynamic data = jsonDecode(response.body);
       
-      // Handle different response formats
+      
       if (data is List) {
         if (data.isEmpty) {
           return [
@@ -152,7 +153,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
           ];
         }
         
-        // Convert to proper format
+        
         return data.map((task) {
           final mappedTask = Map<String, dynamic>.from(task);
           
@@ -333,24 +334,47 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     return await postData("ratings/", body);
   }
 
-
-  /// Submit a new proposal
-  static Future<Proposal> submitProposal(Proposal proposal, String proposalUrl) async {
-    final url = Uri.parse(proposalUrl);
+ static Future<Proposal> submitProposal(Proposal proposal) async {
+    final url = Uri.parse(ProposalUrl);
+    
     try {
       final response = await http.post(
         url,
-        headers: {"Content-Type": "application/json"},
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: json.encode(proposal.toJson()),
       );
 
-      if (response.statusCode == 201) {
-        return Proposal.fromJson(json.decode(response.body));
+      print('Proposal API Response: ${response.statusCode}');
+      print('Proposal API Body: ${response.body}');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        return Proposal.fromJson(responseData);
       } else {
-        throw Exception("Failed to submit proposal: ${response.statusCode}");
+        throw Exception("Failed to submit proposal: ${response.statusCode} - ${response.body}");
       }
     } catch (e) {
-      throw Exception("Error submitting proposal: $e");
+      throw Exception("Network error submitting proposal: $e");
+    }
+  }
+  
+  // ✅ Static method to fetch proposals
+  static Future<List<Proposal>> fetchProposals() async {
+    final url = Uri.parse('$baseUrl/proposals/');
+    
+    try {
+      final response = await http.get(url);
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => Proposal.fromJson(json)).toList();
+      } else {
+        throw Exception("Failed to load proposals: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error loading proposals: $e");
     }
   }
 

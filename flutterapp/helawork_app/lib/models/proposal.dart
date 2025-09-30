@@ -1,43 +1,38 @@
 class Proposal {
-  final int? id;
   final int taskId;
   final int freelancerId;
-  final String? title;       
   final String coverLetter;
   final double bidAmount;
-  String status;             
+  String status;
+  String? title;
 
   Proposal({
-    this.id,
     required this.taskId,
     required this.freelancerId,
-    this.title,
     required this.coverLetter,
     required this.bidAmount,
-    this.status = "Pending", // <-- default value
+    this.status = "Pending",
+    this.title,
   });
-
-  factory Proposal.fromJson(Map<String, dynamic> json) {
-    return Proposal(
-      id: json['id'],
-      taskId: json['taskId'],
-      freelancerId: json['freelancerId'],
-      title: json['title'],
-      coverLetter: json['coverLetter'],
-      bidAmount: (json['bidAmount'] as num).toDouble(),
-      status: json['status'] ?? "Pending",
-    );
-  }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'taskId': taskId,
-      'freelancerId': freelancerId,
-      'title': title,
-      'coverLetter': coverLetter,
-      'bidAmount': bidAmount,
+      'task_id': taskId,
+      'freelancer_id': freelancerId,
+      'cover_letter': coverLetter,
+      'bid_amount': bidAmount,
       'status': status,
     };
+  }
+
+  factory Proposal.fromJson(Map<String, dynamic> json) {
+    return Proposal(
+      taskId: json['task_id'] ?? json['id'],
+      freelancerId: json['freelancer_id'] ?? json['freelancerId'],
+      coverLetter: json['cover_letter'] ?? json['coverLetter'],
+      bidAmount: (json['bid_amount'] ?? json['bidAmount']).toDouble(),
+      status: json['status'] ?? 'Pending',
+      title: json['title'],
+    );
   }
 }
