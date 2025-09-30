@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:helawork_app/models/contract_model.dart';
 import 'package:helawork_app/models/proposal.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService{
   static const String baseUrl = 'http://192.168.100.188:8000';
@@ -239,17 +240,92 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     return {"success": false, "message": "Network error: $e"};
   }
 }
- static Future<Map<String, dynamic>> getUserProfile() async {
-    final response = await http.get(Uri.parse(getuserprofileUrl));
+
+static Future<String?> _getUserToken() async {
+  try {
+    // Method 1: Get from SharedPreferences (most common)
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('user_token'); // Adjust key as needed
+    
+    // Method 2: If you have a different storage system, use that instead
+    // final token = YourAuthProvider.token;
+    
+    if (token == null || token.isEmpty) {
+      print(' No user token found in storage');
+      return null;
+    }
+    
+    print('Retrieved user token: ${token.substring(0, 10)}...');
+    return token;
+  } catch (e) {
+    print(' Error retrieving user token: $e');
+    return null;
+  }
+}
+ 
+static Future<Map<String, dynamic>?> getUserProfile() async {
+  try {
+    
+    final String? token = await _getUserToken();
+    
+    if (token == null) {
+      print(' No authentication token found - user may not be logged in');
+      return null;
+    }
+
+    print(' Fetching user profile with token: ${token.substring(0, 10)}...');
+    
+    final response = await http.get(
+      Uri.parse('$baseUrl/apiuserprofile'),
+      headers: {
+        'Authorization': 'Bearer $token', 
+        'Accept': 'application/json',
+      },
+    );
+
+    print('📡 Profile API Response Status: ${response.statusCode}');
+    
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      print(' User profile loaded successfully');
+      print(' Profile data: $data');
+      return Map<String, dynamic>.from(data);
+    } else if (response.statusCode == 401) {
+      print(' Unauthorized (401) - Token may be invalid or expired');
+      print(' Response body: ${response.body}');
+      return null;
+    } else {
+      print(' Failed to load user profile: ${response.statusCode}');
+      print(' Response body: ${response.body}');
+      return null;
+    }
+  } catch (e) {
+    print(' Network error loading user profile: $e');
+    return null;
+  }
+}
+// Alternative: Direct method for profile picture only
+static Future<String?> getUserProfilePicture() async {
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/apiuserprofile'),
+      headers: {
+        'Authorization': 'Bearer your_token_here',
+        'Accept': 'application/json',
+      },
+    );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception("Failed to load user profile: ${response.statusCode}");
+      final data = json.decode(response.body);
+      final profilePic = data['profile_picture'];
+      return profilePic != null ? profilePic.toString() : null;
     }
+    return null;
+  } catch (e) {
+    print(' Error loading profile picture: $e');
+    return null;
   }
-
-  
+}  
    
   static Future<Map<String, dynamic>> getPaymentSummary() async {
     final response = await http.get(Uri.parse(paymentsummaryUrl));

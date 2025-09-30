@@ -19,7 +19,7 @@ class _DashboardPageState extends State<DashboardPage> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = const [
-    SizedBox(),
+    SizedBox(), // Home page is built separately
     TaskPage(),
     PaymentSummaryPage(),
     ProposalsScreen(),
@@ -29,7 +29,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    // ✅ Safe call to load data
+    // Load dashboard data after build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<DashboardProvider>(context, listen: false).loadData();
     });
@@ -44,184 +44,242 @@ class _DashboardPageState extends State<DashboardPage> {
   // ================= MAIN DASHBOARD BODY (Home Tab) =================
   Widget _buildHomePage(DashboardProvider dashboard) {
     if (dashboard.isLoading) {
-      return const Center(
-          child: CircularProgressIndicator(color: Colors.green));
+      return const Center(child: CircularProgressIndicator(color: Colors.green));
     }
 
     if (dashboard.error != null) {
       return Center(
-        child: Text(dashboard.error!,
-            style: TextStyle(color: Colors.red.shade400)),
+        child: Text(
+          dashboard.error!,
+          style: TextStyle(color: Colors.red.shade400),
+        ),
       );
     }
 
     return RefreshIndicator(
-      onRefresh: dashboard.loadData,
+      onRefresh: () => dashboard.loadData(),
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ================= USER HEADER =================
-            Row(
-              children: [
-                if (dashboard.profilePictureUrl != null &&
-                    dashboard.profilePictureUrl!.isNotEmpty)
-                  CircleAvatar(
-                    radius: 25,
-                    backgroundImage: NetworkImage(dashboard.profilePictureUrl!),
-                    backgroundColor: Colors.grey[800],
-                  )
-                else
-                  CircleAvatar(
-                    radius: 25,
-                    backgroundColor: Colors.grey[700],
-                    child:
-                        const Icon(Icons.person, color: Colors.white, size: 24),
-                  ),
-                const SizedBox(width: 12),
-                Text(
-                  dashboard.userName ?? "Guest User",
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
+            _buildUserHeader(dashboard),
             const SizedBox(height: 20),
-
-            // ================= QUICK ACTIONS =================
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 10),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    onPressed: () => _onItemTapped(1),
-                    icon: const Icon(Icons.task, color: Colors.white),
-                    label: const Text(" Tasks",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
-            ),
+            _buildQuickActions(),
             const SizedBox(height: 20),
-
-            // ================= ACTIVE TASKS =================
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Active Tasks",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold)),
-                TextButton(
-                  onPressed: () => _onItemTapped(1),
-                  child: const Text("View All",
-                      style: TextStyle(color: Colors.green)),
-                )
-              ],
-            ),
-            const SizedBox(height: 10),
-            if (dashboard.activeTasks.isEmpty)
-              const Text("No active tasks",
-                  style: TextStyle(color: Colors.grey))
-            else
-              ...dashboard.activeTasks.map((task) => _buildTaskCard(
-                    task["title"] ?? "Untitled Task",
-                    "Due: ${task["deadline"] ?? 'N/A'}",
-                    task["status"] ?? "Unknown",
-                  )),
-
+            _buildActiveTasksSection(dashboard),
             const SizedBox(height: 20),
-
-            // ================= RATINGS =================
-            const Text("Ratings",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const RatingsScreen()),
-                );
-              },
-              icon: const Icon(Icons.star, color: Colors.white),
-              label: const Text("View Ratings",
-                  style: TextStyle(color: Colors.white, fontSize: 16)),
-            ),
-
+            _buildRatingsSection(),
             const SizedBox(height: 20),
-
-            // ================= CONTRACTS =================
-            const Text("Contracts",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueGrey.shade700,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ContractScreen()),
-                );
-              },
-              icon: const Icon(Icons.article, color: Colors.white),
-              label: const Text("View Contracts",
-                  style: TextStyle(color: Colors.white, fontSize: 16)),
-            ),
+            _buildContractsSection(),
           ],
         ),
       ),
     );
   }
 
+  // ================= USER HEADER =================
+  Widget _buildUserHeader(DashboardProvider dashboard) {
+    return Row(
+      children: [
+        // Profile Picture
+        CircleAvatar(
+          radius: 25,
+          backgroundImage: dashboard.profilePictureUrl != null && 
+                          dashboard.profilePictureUrl!.isNotEmpty
+              ? NetworkImage(dashboard.profilePictureUrl!)
+              : null,
+          backgroundColor: dashboard.profilePictureUrl != null ? 
+                          Colors.transparent : Colors.grey[700],
+          child: dashboard.profilePictureUrl == null || 
+                 dashboard.profilePictureUrl!.isEmpty
+              ? const Icon(Icons.person, color: Colors.white, size: 24)
+              : null,
+        ),
+        const SizedBox(width: 12),
+        // User Name
+        Text(
+          dashboard.userName ?? "Guest User",
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ================= QUICK ACTIONS =================
+  Widget _buildQuickActions() {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => _onItemTapped(1), // Navigate to Tasks
+            icon: const Icon(Icons.task, color: Colors.white),
+            label: const Text(
+              "Tasks",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ================= ACTIVE TASKS SECTION =================
+  Widget _buildActiveTasksSection(DashboardProvider dashboard) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              "Active Tasks",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextButton(
+              onPressed: () => _onItemTapped(1), // Navigate to Tasks
+              child: const Text(
+                "View All",
+                style: TextStyle(color: Colors.green),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (dashboard.activeTasks.isEmpty)
+          const Text(
+            "No active tasks",
+            style: TextStyle(color: Colors.grey),
+          )
+        else
+          ...dashboard.activeTasks.map((task) => _buildTaskCard(
+                task["title"] ?? "Untitled Task",
+                "Due: ${task["deadline"] ?? 'N/A'}",
+                task["status"] ?? "Unknown",
+              )),
+      ],
+    );
+  }
+
+  // ================= RATINGS SECTION =================
+  Widget _buildRatingsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Ratings",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 10),
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const RatingsScreen()),
+            );
+          },
+          icon: const Icon(Icons.star, color: Colors.white),
+          label: const Text(
+            "View Ratings",
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ================= CONTRACTS SECTION =================
+  Widget _buildContractsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Contracts",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 10),
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blueGrey.shade700,
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ContractScreen()),
+            );
+          },
+          icon: const Icon(Icons.article, color: Colors.white),
+          label: const Text(
+            "View Contracts",
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+        ),
+      ],
+    );
+  }
+
   // ================= TASK CARD =================
   Widget _buildTaskCard(String title, String subtitle, String status) {
-    Color statusColor =
-        status == "Completed" ? Colors.green : Colors.orangeAccent;
+    Color statusColor = status == "Completed" ? Colors.green : Colors.orangeAccent;
 
     return Card(
       color: Colors.grey[900],
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
-        title: Text(title,
-            style: const TextStyle(color: Colors.white, fontSize: 16)),
-        subtitle: Text(subtitle,
-            style: const TextStyle(color: Colors.grey, fontSize: 14)),
-        trailing: Text(status,
-            style: TextStyle(color: statusColor, fontWeight: FontWeight.bold)),
+        title: Text(
+          title,
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(color: Colors.grey, fontSize: 14),
+        ),
+        trailing: Text(
+          status,
+          style: TextStyle(
+            color: statusColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
@@ -235,14 +293,14 @@ class _DashboardPageState extends State<DashboardPage> {
           appBar: AppBar(
             backgroundColor: Colors.grey[900],
             elevation: 0,
-            title: Text(
+            title: const Text(
               "Dashboard",
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white),
             ),
             actions: [
               IconButton(
                 icon: const Icon(Icons.refresh, color: Colors.white),
-                onPressed: dashboard.loadData,
+                onPressed: () => dashboard.loadData(),
               ),
             ],
           ),
@@ -258,14 +316,25 @@ class _DashboardPageState extends State<DashboardPage> {
             onTap: _onItemTapped,
             items: const [
               BottomNavigationBarItem(
-                  icon: Icon(Icons.dashboard), label: "Home"),
-              BottomNavigationBarItem(icon: Icon(Icons.task), label: "Tasks"),
+                icon: Icon(Icons.dashboard),
+                label: "Home",
+              ),
               BottomNavigationBarItem(
-                  icon: Icon(Icons.payment), label: "Payments"),
+                icon: Icon(Icons.task),
+                label: "Tasks",
+              ),
               BottomNavigationBarItem(
-                  icon: Icon(Icons.article), label: "Proposals"),
+                icon: Icon(Icons.payment),
+                label: "Payments",
+              ),
               BottomNavigationBarItem(
-                  icon: Icon(Icons.person), label: "Account"),
+                icon: Icon(Icons.article),
+                label: "Proposals",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: "Account",
+              ),
             ],
           ),
         );
