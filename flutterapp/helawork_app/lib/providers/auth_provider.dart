@@ -34,7 +34,7 @@ class AuthProvider with ChangeNotifier {
         _userData = response["data"];
         _token = response["data"]["token"];
 
-        // ✅ FIX: Save BOTH token AND user_id to secure storage
+      
         await _secureStorage.write(key: "auth_token", value: _token);
         await _secureStorage.write(
           key: "user_id", 
@@ -45,7 +45,7 @@ class AuthProvider with ChangeNotifier {
         debugPrint('Saved token: $_token');
         debugPrint('Saved user ID: ${_userData?['id'] ?? _userData?['user_id']}');
 
-        // ✅ Update dashboard with logged in user info
+        
         if (context.mounted) {
           final dashboardProvider =
               Provider.of<DashboardProvider>(context, listen: false);
@@ -110,13 +110,13 @@ class AuthProvider with ChangeNotifier {
     _isLoggedIn = false;
     _userData = null;
     _token = null;
-    // ✅ Clear both token and user_id on logout
+    
     await _secureStorage.delete(key: "auth_token");
     await _secureStorage.delete(key: "user_id");
     notifyListeners();
   }
 
-  // ✅ Add method to check if user data exists in secure storage
+  
   Future<void> checkLoginStatus() async {
     final token = await _secureStorage.read(key: "auth_token");
     final userId = await _secureStorage.read(key: "user_id");
@@ -124,7 +124,7 @@ class AuthProvider with ChangeNotifier {
     if (token != null && userId != null) {
       _isLoggedIn = true;
       _token = token;
-      // You might want to fetch user data here if needed
+      
     } else {
       _isLoggedIn = false;
       _token = null;
