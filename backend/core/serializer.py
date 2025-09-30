@@ -13,23 +13,31 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)  # ✅ nested user, safe to expose
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = UserProfile
         fields = [
             "user",
-            "bio",
+            "bio", 
             "skills",
             "experience",
-            "portfolio_link",
+            "portfolio_link", 
             "hourly_rate",
             "profile_picture",
         ]
         read_only_fields = ("user",)
 
-    def get_average_rating(self, obj):
-        return obj.average_rating()
+    def create(self, validated_data):
+        
+        return UserProfile.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 
 

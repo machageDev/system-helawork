@@ -81,6 +81,7 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
+CORS_EXPOSE_HEADERS = ['Authorization']
 
 # Optional: Methods allowed (default already covers most)
 CORS_ALLOW_METHODS = [
@@ -110,11 +111,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'helawork.wsgi.application'
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-    ]
-}
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

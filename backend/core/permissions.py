@@ -1,17 +1,8 @@
-from rest_framework.permissions import BasePermission
-from .models import UserToken
+from rest_framework import permissions
 
-class IsCustomUserAuthenticated(BasePermission):
+class IsAuthenticated(permissions.BasePermission):
+    """
+    Custom permission that works with your User model
+    """
     def has_permission(self, request, view):
-        auth_header = request.headers.get("Authorization")
-        if not auth_header:
-            return False
-
-        try:
-            prefix, key = auth_header.split()
-            if prefix.lower() != "bearer":
-                return False
-        except:
-            return False
-
-        return UserToken.objects.filter(key=key).exists()
+        return bool(request.user and getattr(request.user, 'is_authenticated', False))

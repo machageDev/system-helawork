@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import IntegrityError, transaction
 from rest_framework import status
+from core.authentication import CustomTokenAuthentication
 from core.serializer import ContractSerializer, FreelancerRatingSerializer, LoginSerializer, PaymentSerializer, ProposalSerializer,   RegisterSerializer, TaskSerializer, UserProfileSerializer, UserSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
@@ -27,8 +28,7 @@ from django.contrib.auth.hashers import make_password
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.views.decorators.csrf import csrf_exempt
-from .permissions import IsCustomUserAuthenticated
-
+from rest_framework.decorators import authentication_classes, permission_classes, api_view
 
 def send_otp(request):
     if request.method == 'POST':
@@ -78,30 +78,85 @@ def current_user(request):
     serializer = UserSerializer(request.user)
     return Response(serializer.data)
 
-
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import authentication_classes, permission_classes, api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .authentication import CustomTokenAuthentication
+from .permissions import IsAuthenticated  
+from .models import UserProfile
 @csrf_exempt
-@permission_classes([IsCustomUserAuthenticated]) 
 @api_view(['POST', 'PUT'])
+@authentication_classes([CustomTokenAuthentication])
+@permission_classes([IsAuthenticated])
 def apiuserprofile(request):
+    print(f"=== PROFILE API CALLED ===")
+    print(f"AUTH SUCCESS: {request.user.name} (ID: {request.user.user_id})")
+    print(f"Method: {request.method}")
+    
     if request.method == 'POST':
+        print("POST - Creating new profile...")
         serializer = UserProfileSerializer(data=request.data)
         if serializer.is_valid():
             profile = serializer.save(user=request.user)  
             return Response(UserProfileSerializer(profile).data, status=status.HTTP_201_CREATED)
+        print("POST errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'PUT':
+        print("PUT data:", request.data)
+        print("FILES:", request.FILES)
+        
         try:
+            # Try to get existing profile
             profile = UserProfile.objects.get(user=request.user)
+            print(f" Found existing profile: {profile}")
+            
+            # UPDATE existing profile
+            serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+            if serializer.is_valid():
+                updated_profile = serializer.save()
+                print(" Profile updated successfully")
+                return Response(UserProfileSerializer(updated_profile).data, status=status.HTTP_200_OK)
+            print(" PUT validation errors:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
         except UserProfile.DoesNotExist:
-            return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
-        if serializer.is_valid():
-            profile = serializer.save(user=request.user)
-            return Response(UserProfileSerializer(profile).data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+            print(" No profile found - CREATING new profile")
+            # CREATE new profile if doesn't exist
+            serializer = UserProfileSerializer(data=request.data)
+            if serializer.is_valid():
+                new_profile = serializer.save(user=request.user)
+                print(" New profile created successfully")
+                return Response(UserProfileSerializer(new_profile).data, status=status.HTTP_201_CREATED)
+            print(" CREATE validation errors:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+@csrf_exempt
+@api_view(['GET'])
+def debug_auth_test(request):
+    """Temporary endpoint to test authentication"""
+    from .models import UserToken
+    
+    auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+    print(f" DEBUG - Raw header: {auth_header}")
+    
+    if auth_header.startswith('Bearer '):
+        token = auth_header.split(' ')[1].strip()
+        print(f" DEBUG - Token: '{token}'")
+        
+        try:
+            user_token = UserToken.objects.get(key=token)
+            return Response({
+                "status": "success", 
+                "user": user_token.user.name,
+                "user_id": user_token.user.user_id
+            })
+        except UserToken.DoesNotExist:
+            return Response({"status": "token_not_found"}, status=401)
+        except Exception as e:
+            return Response({"status": "error", "message": str(e)}, status=500)
+    
+    return Response({"status": "no_token"}, status=401)    
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def apiregister(request):

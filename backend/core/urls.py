@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     #worker/ mobile app
+    path('debug-auth-test/', views.debug_auth_test, name='debug-auth-test'),
     path('apilogin',views.apilogin, name = 'apilogin'),
     path('apiregister',views.apiregister,name='apiregister'),
     path('apiforgot_password',views.apiforgot_password, name = 'apiforgotpassword'),
