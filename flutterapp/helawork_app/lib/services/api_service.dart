@@ -128,25 +128,58 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     return json.decode(response.body);
   }
 
- 
-static Future<List<Map<String, dynamic>>> fetchTasks() async {
-  final response = await http.get(Uri.parse(taskUrl));
-
-  if (response.statusCode == 200) {
-    final List<dynamic> data = jsonDecode(response.body);
-
+ static Future<List<Map<String, dynamic>>> fetchTasks() async {
+  try {
+    // Use your actual API endpoint - make sure the URL is correct
+    final response = await http.get(Uri.parse('$baseUrl/task')); // Your Django endpoint is 'task' not 'tasks/'
     
-    if (data.isEmpty) {
-      return [
-        {"id": 0, "title": "No tasks available"}
-      ];
-    }
+    print('Task API Response Status: ${response.statusCode}');
+    print('Task API Response Body: ${response.body}');
 
-    return data.map((task) => Map<String, dynamic>.from(task)).toList();
-  } else {
-    throw Exception("Failed to load tasks: ${response.statusCode}");
+    if (response.statusCode == 200) {
+      final dynamic data = jsonDecode(response.body);
+      
+      // Handle different response formats
+      if (data is List) {
+        if (data.isEmpty) {
+          return [
+            {
+              "task_id": 0, 
+              "title": "No tasks available",
+              "description": "Check back later for new tasks",
+              "employer": {"username": "System"}
+            }
+          ];
+        }
+        
+        // Convert to proper format
+        return data.map((task) {
+          final mappedTask = Map<String, dynamic>.from(task);
+          
+          // Ensure all required fields exist
+          mappedTask['completed'] = mappedTask['completed'] ?? false;
+          mappedTask['employer'] = mappedTask['employer'] ?? {
+            'username': 'Unknown Client',
+            'company_name': 'Unknown Company'
+          };
+          
+          return mappedTask;
+        }).toList();
+        
+      } else if (data is Map && data.containsKey('error')) {
+        throw Exception("API Error: ${data['error']}");
+      } else {
+        throw Exception("Unexpected response format");
+      }
+    } else {
+      throw Exception("Failed to load tasks: ${response.statusCode} - ${response.body}");
+    }
+  } catch (e) {
+    print('Error fetching tasks: $e');
+    rethrow;
   }
 }
+
  Future<Map<String, dynamic>> updateUserProfile(
     Map<String, dynamic> profile, String token, String userId) async {
   try {
