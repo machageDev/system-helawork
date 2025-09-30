@@ -436,7 +436,7 @@ static Future<String?> getUserProfilePicture() async {
     }
   }
   
-  // ✅ Static method to fetch proposals
+  
   static Future<List<Proposal>> fetchProposals() async {
     final url = Uri.parse('$baseUrl/proposals/');
     
