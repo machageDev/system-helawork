@@ -123,7 +123,7 @@ def apiuserprofile(request):
             
         except UserProfile.DoesNotExist:
             print(" No profile found - CREATING new profile")
-            # CREATE new profile if doesn't exist
+            
             serializer = UserProfileSerializer(data=request.data)
             if serializer.is_valid():
                 new_profile = serializer.save(user=request.user)
@@ -219,12 +219,12 @@ def freelancer_rating_detail(request, pk):
     rating = get_object_or_404(FreelancerRating, pk=pk)
 
     if request.method == "GET":
-        """Retrieve a specific freelancer rating"""
+        
         serializer = FreelancerRatingSerializer(rating)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == "DELETE":
-        """Delete a freelancer rating"""
+        
         rating.delete()
         return Response({"message": "Rating deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
    
@@ -242,11 +242,11 @@ def apilogin(request):
         try:
             user = User.objects.get(name=name)
 
-            if user.check_password(password):  # uses your custom check_password method
-                # Get or create token
+            if user.check_password(password):  
+                
                 token, created = UserToken.objects.get_or_create(user=user)
                 if not created:
-                    # refresh old token if you want
+                    
                     token.key = uuid.uuid4()
                     token.save()
 
@@ -351,11 +351,11 @@ def apitask_list(request):
             }
             data.append(task_data)
         
-        print(f"✅ Returning {len(data)} tasks with employer data")
+        print(f" Returning {len(data)} tasks with employer data")
         return Response(data)
         
     except Exception as e:
-        print(f"❌ Error in apitask_list: {e}")
+        print(f" Error in apitask_list: {e}")
         return Response({"error": str(e)}, status=500)
 
 
