@@ -15,25 +15,25 @@ class UserProfileProvider with ChangeNotifier {
   String _errorMessage = '';
   String get errorMessage => _errorMessage;
 
-  /// Set a field locally
+  
   void setProfileField(String key, dynamic value) {
     _userProfile[key] = value;
     notifyListeners();
   }
 
-  /// Create or update profile on server
+  
   Future<void> saveProfile(BuildContext context) async {
     _isLoading = true;
     _errorMessage = '';
     notifyListeners();
 
     try {
-      // ✅ Read token and userId from secure storage
+      
       final token = await _secureStorage.read(key: "auth_token");
       final userId = await _secureStorage.read(key: "user_id");
 
-      print('Token: $token'); // Debug print
-      print('User ID: $userId'); // Debug print
+      print('Token: $token'); 
+      print('User ID: $userId'); 
 
       if (token == null || userId == null) {
         _errorMessage = 'You must log in first';
@@ -51,7 +51,7 @@ class UserProfileProvider with ChangeNotifier {
         SnackBar(content: Text(response["message"] ?? 'Profile saved successfully')),
       );
     } catch (e) {
-      print('Error saving profile: $e'); // Debug print
+      print('Error saving profile: $e'); 
       _errorMessage = 'Failed to save profile: $e';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to save profile: $e')),
