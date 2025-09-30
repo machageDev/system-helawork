@@ -11,7 +11,7 @@ class TaskProvider with ChangeNotifier {
   String _errorMessage = '';
   String get errorMessage => _errorMessage;
 
-  // ✅ KEEP the existing method that works with authentication
+ 
   Future<void> fetchTasks(BuildContext context) async {
     _setLoading(true);
     _errorMessage = '';
@@ -20,11 +20,11 @@ class TaskProvider with ChangeNotifier {
       final data = await ApiService.fetchTasks(); 
       _tasks = List<Map<String, dynamic>>.from(data);
       
-      print('✅ Successfully loaded ${_tasks.length} tasks');
+      print(' Successfully loaded ${_tasks.length} tasks');
       
     } catch (e) {
       _errorMessage = 'Failed to load tasks: $e';
-      print('❌ Error loading tasks: $e');
+      print(' Error loading tasks: $e');
       
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -36,7 +36,7 @@ class TaskProvider with ChangeNotifier {
     }
   }
 
-  // ✅ ADD this new method for proposals (without context for flexibility)
+  
   Future<void> fetchTasksForProposals() async {
     _setLoading(true);
     _errorMessage = '';
@@ -45,24 +45,24 @@ class TaskProvider with ChangeNotifier {
       final data = await ApiService.fetchTasks(); 
       _tasks = List<Map<String, dynamic>>.from(data);
       
-      print('✅ Successfully loaded ${_tasks.length} tasks for proposals');
+      print(' Successfully loaded ${_tasks.length} tasks for proposals');
       
     } catch (e) {
       _errorMessage = 'Failed to load tasks: $e';
-      print('❌ Error loading tasks for proposals: $e');
+      print('Error loading tasks for proposals: $e');
       rethrow; // Important for error handling in forms
     } finally {
       _setLoading(false);
     }
   }
 
-  // ✅ OPTION 1: Show ALL tasks (remove filtering)
+  
   List<Map<String, dynamic>> get availableTasks {
-    print('🔄 Available tasks called - total tasks: ${_tasks.length}');
+    print(' Available tasks called - total tasks: ${_tasks.length}');
     
     // Debug: Print all tasks to see what we have
     for (var task in _tasks) {
-      print('📋 Task: ${task['title']} - assigned: ${task['assigned_user'] != null}, completed: ${task['completed'] ?? false}, approved: ${task['is_approved'] ?? false}');
+      print(' Task: ${task['title']} - assigned: ${task['assigned_user'] != null}, completed: ${task['completed'] ?? false}, approved: ${task['is_approved'] ?? false}');
     }
     
     return _tasks.map((task) {
@@ -75,7 +75,7 @@ class TaskProvider with ChangeNotifier {
     }).toList();
   }
 
-  // ✅ Get task title by ID (for proposal display)
+  
   String getTaskTitleById(int taskId) {
     try {
       final task = _tasks.firstWhere(
@@ -84,7 +84,7 @@ class TaskProvider with ChangeNotifier {
       );
       return task['title'] ?? 'Selected Task';
     } catch (e) {
-      print('❌ Error finding task title for ID $taskId: $e');
+      print(' Error finding task title for ID $taskId: $e');
       return 'Selected Task';
     }
   }
