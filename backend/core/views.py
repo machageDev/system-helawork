@@ -319,19 +319,45 @@ def apisubmit_proposal(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET', 'POST'])
-def apitask_list(request):
-    if request.method == 'GET':
-        tasks = Task.objects.all()
-        serializer = TaskSerializer(tasks, many=True)
-        return Response(serializer.data)
 
-    elif request.method == 'POST':
-        serializer = TaskSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['GET'])
+def apitask_list(request):
+    """Get all tasks with employer details"""
+    try:
+        # Use prefetch_related to get employer profiles efficiently
+        tasks = Task.objects.select_related('employer').prefetch_related('employer__profile').all()
+        
+        data = []
+        for task in tasks:
+            # Get employer profile using the correct relationship name
+            employer_profile = getattr(task.employer, 'profile', None)
+            
+            task_data = {
+                'task_id': task.task_id,
+                'title': task.title,
+                'description': task.description,
+                'is_approved': task.is_approved,
+                'created_at': task.created_at.isoformat() if task.created_at else None,
+                'assigned_user': task.assigned_user.user_id if task.assigned_user else None,
+                'completed': False,  # Add this field if missing
+                'employer': {
+                    'id': task.employer.employer_id,
+                    'username': task.employer.username,
+                    'contact_email': task.employer.contact_email,
+                    'company_name': employer_profile.company_name if employer_profile else None,
+                    'profile_picture': employer_profile.profile_picture.url if employer_profile and employer_profile.profile_picture else None,
+                    'phone_number': employer_profile.phone_number if employer_profile else None,
+                }
+            }
+            data.append(task_data)
+        
+        print(f"✅ Returning {len(data)} tasks with employer data")
+        return Response(data)
+        
+    except Exception as e:
+        print(f"❌ Error in apitask_list: {e}")
+        return Response({"error": str(e)}, status=500)
+
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def apitask_detail(request, pk):
