@@ -118,130 +118,130 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            // Task Dropdown
-            DropdownButtonFormField<int>(
-              decoration: const InputDecoration(
-                labelText: "Select Task",
-                border: OutlineInputBorder(),
-              ),
-              value: selectedTaskId,
-              items: taskProvider.availableTasks
-                  .map((task) {
-                    print('📝 Dropdown item - id: ${task['id']}, title: ${task['title']}');
-                    return DropdownMenuItem<int>(
-                      value: task['id'],
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            task['title'] ?? 'Untitled Task',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          if (task['employer']?['company_name'] != null)
-                            Text(
-                              'Client: ${task['employer']?['company_name']}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                        ],
-                      ),
-                    );
-                  })
-                  .toList(),
-              validator: (val) => val == null ? 'Please select a task' : null,
-              onChanged: (val) {
-                print(' Dropdown changed - selected: $val');
-                setState(() {
-                  selectedTaskId = val;
-                });
-              },
-            ),
-            const SizedBox(height: 20),
-
-            // Cover Letter
-            TextFormField(
-              controller: _coverLetterController,
-              decoration: const InputDecoration(
-                labelText: "Proposal / Cover Letter",
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 4,
-              validator: (val) {
-                final isValid = val == null || val.isEmpty ? 'Please enter a cover letter' : null;
-                print(' Cover letter validation: ${isValid == null ? 'valid' : 'invalid'}');
-                return isValid;
-              },
-            ),
-            const SizedBox(height: 20),
-
-            // Bid Amount
-            TextFormField(
-              controller: _bidAmountController,
-              decoration: const InputDecoration(
-                labelText: "Bid Amount",
-                border: OutlineInputBorder(),
-                prefixText: '\$ ',
-              ),
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              validator: (val) {
-                if (val == null || val.isEmpty) {
-                  print(' Bid amount validation: empty');
-                  return 'Please enter a bid amount';
-                }
-                if (double.tryParse(val) == null) {
-                  print(' Bid amount validation: not a number');
-                  return 'Please enter a valid number';
-                }
-                print(' Bid amount validation: valid');
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
-
-            // Submit Button - DEBUG VERSION
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: proposalProvider.isLoading 
-                    ? () {
-                        print(' Button disabled - proposalProvider.isLoading: ${proposalProvider.isLoading}');
-                        return null;
-                      }
-                    : () {
-                        print(' SUBMIT BUTTON PRESSED!');
-                        print(' Current state:');
-                        print('   - selectedTaskId: $selectedTaskId');
-                        print('   - coverLetter length: ${_coverLetterController.text.length}');
-                        print('   - bidAmount: ${_bidAmountController.text}');
-                        print('   - proposalProvider.isLoading: ${proposalProvider.isLoading}');
-                        
-                        _submitProposal(proposalProvider, taskProvider);
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+      
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              // Task Dropdown
+              DropdownButtonFormField<int>(
+                decoration: const InputDecoration(
+                  labelText: "Select Task",
+                  border: OutlineInputBorder(),
                 ),
-                child: proposalProvider.isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Text(
-                        "Submit Proposal",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
+                value: selectedTaskId,
+                items: taskProvider.availableTasks
+                    .map((task) {
+                      print('📝 Dropdown item - id: ${task['id']}, title: ${task['title']}');
+                      return DropdownMenuItem<int>(
+                        value: task['id'],
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              task['title'] ?? 'Untitled Task',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            if (task['employer']?['company_name'] != null)
+                              Text(
+                                'Client: ${task['employer']?['company_name']}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    })
+                    .toList(),
+                validator: (val) => val == null ? 'Please select a task' : null,
+                onChanged: (val) {
+                  print(' Dropdown changed - selected: $val');
+                  setState(() {
+                    selectedTaskId = val;
+                  });
+                },
               ),
-            )
-          ],
+              const SizedBox(height: 20),
+
+              // Cover Letter
+              TextFormField(
+                controller: _coverLetterController,
+                decoration: const InputDecoration(
+                  labelText: "Proposal / Cover Letter",
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 4,
+                validator: (val) {
+                  final isValid = val == null || val.isEmpty ? 'Please enter a cover letter' : null;
+                  print(' Cover letter validation: ${isValid == null ? 'valid' : 'invalid'}');
+                  return isValid;
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Bid Amount
+              TextFormField(
+                controller: _bidAmountController,
+                decoration: const InputDecoration(
+                  labelText: "Bid Amount",
+                  border: OutlineInputBorder(),
+                  prefixText: '\$ ',
+                ),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                validator: (val) {
+                  if (val == null || val.isEmpty) {
+                    print(' Bid amount validation: empty');
+                    return 'Please enter a bid amount';
+                  }
+                  if (double.tryParse(val) == null) {
+                    print(' Bid amount validation: not a number');
+                    return 'Please enter a valid number';
+                  }
+                  print(' Bid amount validation: valid');
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+
+              
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: proposalProvider.isLoading 
+                      ? null 
+                      : () {
+                          print(' SUBMIT BUTTON PRESSED!');
+                          print(' Current state:');
+                          print('   - selectedTaskId: $selectedTaskId');
+                          print('   - coverLetter length: ${_coverLetterController.text.length}');
+                          print('   - bidAmount: ${_bidAmountController.text}');
+                          print('   - proposalProvider.isLoading: ${proposalProvider.isLoading}');
+                          
+                          _submitProposal(proposalProvider, taskProvider);
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: proposalProvider.isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text(
+                          "Submit Proposal",
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -250,7 +250,6 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
   
   Future<void> _submitProposal(ProposalProvider proposalProvider, TaskProvider taskProvider) async {
     print(' _submitProposal method started');
-    
     
     print(' Validating form...');
     if (!_formKey.currentState!.validate()) {
@@ -304,7 +303,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
       await proposalProvider.addProposal(proposal);
       print(' Proposal submitted successfully!');
 
-      // Show success message
+      
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Proposal submitted successfully!"),

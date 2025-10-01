@@ -18,9 +18,9 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   int _selectedIndex = 0;
 
-  // Remove UserProfileScreen from pages since we're removing the Account tab
+  
   final List<Widget> _pages = const [
-    SizedBox(), // Home page is built separately
+    SizedBox(), 
     TaskPage(),
     PaymentSummaryPage(),
     ProposalsScreen(),
@@ -30,7 +30,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    // Load dashboard data after build
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<DashboardProvider>(context, listen: false).loadData();
     });
@@ -84,7 +84,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildUserHeader(DashboardProvider dashboard) {
     return Row(
       children: [
-        // Clickable Profile Picture
+        
         GestureDetector(
           onTap: () {
             // Navigate to UserProfileScreen when profile icon is tapped
