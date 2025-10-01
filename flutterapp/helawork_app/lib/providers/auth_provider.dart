@@ -60,7 +60,7 @@ class AuthProvider with ChangeNotifier {
         _userData = null;
         _token = null;
         await _secureStorage.delete(key: "auth_token");
-        await _secureStorage.delete(key: "user_id"); // Also clear user_id
+        await _secureStorage.delete(key: "user_id"); 
       }
 
       return response;

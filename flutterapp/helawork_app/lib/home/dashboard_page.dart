@@ -18,12 +18,13 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   int _selectedIndex = 0;
 
+  // Remove UserProfileScreen from pages since we're removing the Account tab
   final List<Widget> _pages = const [
     SizedBox(), // Home page is built separately
     TaskPage(),
     PaymentSummaryPage(),
     ProposalsScreen(),
-    UserProfileScreen(),
+    // UserProfileScreen removed from navigation
   ];
 
   @override
@@ -83,19 +84,28 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildUserHeader(DashboardProvider dashboard) {
     return Row(
       children: [
-        // Profile Picture
-        CircleAvatar(
-          radius: 25,
-          backgroundImage: dashboard.profilePictureUrl != null && 
-                          dashboard.profilePictureUrl!.isNotEmpty
-              ? NetworkImage(dashboard.profilePictureUrl!)
-              : null,
-          backgroundColor: dashboard.profilePictureUrl != null ? 
-                          Colors.transparent : Colors.grey[700],
-          child: dashboard.profilePictureUrl == null || 
-                 dashboard.profilePictureUrl!.isEmpty
-              ? const Icon(Icons.person, color: Colors.white, size: 24)
-              : null,
+        // Clickable Profile Picture
+        GestureDetector(
+          onTap: () {
+            // Navigate to UserProfileScreen when profile icon is tapped
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const UserProfileScreen()),
+            );
+          },
+          child: CircleAvatar(
+            radius: 25,
+            backgroundImage: dashboard.profilePictureUrl != null && 
+                            dashboard.profilePictureUrl!.isNotEmpty
+                ? NetworkImage(dashboard.profilePictureUrl!)
+                : null,
+            backgroundColor: dashboard.profilePictureUrl != null ? 
+                            Colors.transparent : Colors.grey[700],
+            child: dashboard.profilePictureUrl == null || 
+                   dashboard.profilePictureUrl!.isEmpty
+                ? const Icon(Icons.person, color: Colors.white, size: 24)
+                : null,
+          ),
         ),
         const SizedBox(width: 12),
         // User Name
@@ -107,6 +117,9 @@ class _DashboardPageState extends State<DashboardPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        const Spacer(),
+        
+       
       ],
     );
   }
@@ -156,7 +169,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
             TextButton(
-              onPressed: () => _onItemTapped(1), // Navigate to Tasks
+              onPressed: () => _onItemTapped(1), 
               child: const Text(
                 "View All",
                 style: TextStyle(color: Colors.green),
@@ -331,10 +344,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 icon: Icon(Icons.article),
                 label: "Proposals",
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: "Account",
-              ),
+              // Account BottomNavigationBarItem removed
             ],
           ),
         );
