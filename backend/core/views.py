@@ -295,7 +295,7 @@ def apiforgot_password(request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        
     
 
-@api_view(['POST'])
+@authentication_classes([CustomTokenAuthentication])
 @permission_classes([IsAuthenticated])
 def apisubmit_proposal(request):
     task_id = request.data.get("task")
@@ -324,12 +324,12 @@ def apisubmit_proposal(request):
 def apitask_list(request):
     """Get all tasks with employer details"""
     try:
-        # Use prefetch_related to get employer profiles efficiently
+        
         tasks = Task.objects.select_related('employer').prefetch_related('employer__profile').all()
         
         data = []
         for task in tasks:
-            # Get employer profile using the correct relationship name
+            
             employer_profile = getattr(task.employer, 'profile', None)
             
             task_data = {
@@ -339,7 +339,7 @@ def apitask_list(request):
                 'is_approved': task.is_approved,
                 'created_at': task.created_at.isoformat() if task.created_at else None,
                 'assigned_user': task.assigned_user.user_id if task.assigned_user else None,
-                'completed': False,  # Add this field if missing
+                'completed': False,  
                 'employer': {
                     'id': task.employer.employer_id,
                     'username': task.employer.username,
