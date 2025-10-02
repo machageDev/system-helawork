@@ -423,7 +423,7 @@ static Future<String?> getUserProfilePicture() async {
       
       var request = http.MultipartRequest('POST', Uri.parse(ProposalUrl));
       
-      // Add authorization header
+      
       request.headers['Authorization'] = 'Bearer $token';
       request.headers['Accept'] = 'application/json';
       
@@ -437,7 +437,7 @@ static Future<String?> getUserProfilePicture() async {
         request.fields['title'] = proposal.title!;
       }
       
-      // Add PDF file
+      
       request.files.add(http.MultipartFile.fromBytes(
         'proposal_file',
         pdfFile.bytes!,
@@ -458,12 +458,12 @@ static Future<String?> getUserProfilePicture() async {
         throw Exception("Failed to submit proposal: ${response.statusCode} - $responseBody");
       }
     } else {
-      // Original JSON request if no file - WITH AUTH HEADER
+      
       final response = await http.post(
         Uri.parse(ProposalUrl),
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer $token", // ← This was missing
+          "Authorization": "Bearer $token", 
         },
         body: json.encode(proposal.toJson()),
       );
@@ -492,7 +492,7 @@ static Future<List<Proposal>> fetchProposals() async {
     final response = await http.get(
       url,
       headers: {
-        'Authorization': 'Bearer $token', // Add this line
+        'Authorization': 'Bearer $token', 
         'Accept': 'application/json',
       },
     );
@@ -515,7 +515,7 @@ Future<List<Contract>> fetchContracts() async {
   final response = await http.get(
     url,
     headers: {
-      'Authorization': 'Bearer $token', // Add this line
+      'Authorization': 'Bearer $token', 
     },
   );
 
