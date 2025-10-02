@@ -21,7 +21,7 @@ class ApiService{
   static const String  withdraw_mpesaUrl = '$baseUrl/mpesa';
   static const String  updateUserProfileUrl = '$baseUrl/apiuserprofile';
   static const String ProposalUrl = '$baseUrl/apiproposal';
-  
+  static const String proposalsUrl = '$baseUrl/apiproposal';
 
 Future<Map<String, dynamic>> register(String name, String email,String phoneNO, String password,  String confirmPassword) async {
   final url = Uri.parse(registerUrl);
@@ -305,7 +305,6 @@ static Future<Map<String, dynamic>?> getUserProfile() async {
     return null;
   }
 }
-// Alternative: Direct method for profile picture only
 static Future<String?> getUserProfilePicture() async {
   try {
     final response = await http.get(
@@ -319,7 +318,7 @@ static Future<String?> getUserProfilePicture() async {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final profilePic = data['profile_picture'];
-      return profilePic != null ? profilePic.toString() : null;
+      return profilePic?.toString();
     }
     return null;
   } catch (e) {
@@ -413,9 +412,20 @@ static Future<String?> getUserProfilePicture() async {
 
  static Future<Proposal> submitProposal(Proposal proposal, {PlatformFile? pdfFile}) async {
   try {
+    
+    final String? token = await _getUserToken();
+    
+    if (token == null) {
+      throw Exception("User not authenticated. Please log in again.");
+    }
+
     if (pdfFile != null) {
-      // Use multipart request for file upload
+      
       var request = http.MultipartRequest('POST', Uri.parse(ProposalUrl));
+      
+      // Add authorization header
+      request.headers['Authorization'] = 'Bearer $token';
+      request.headers['Accept'] = 'application/json';
       
       // Add proposal data as fields
       request.fields['task_id'] = proposal.taskId.toString();
@@ -448,11 +458,12 @@ static Future<String?> getUserProfilePicture() async {
         throw Exception("Failed to submit proposal: ${response.statusCode} - $responseBody");
       }
     } else {
-      // Original JSON request if no file
+      // Original JSON request if no file - WITH AUTH HEADER
       final response = await http.post(
         Uri.parse(ProposalUrl),
         headers: {
           "Content-Type": "application/json",
+          "Authorization": "Bearer $token", // ← This was missing
         },
         body: json.encode(proposal.toJson()),
       );
@@ -472,36 +483,49 @@ static Future<String?> getUserProfilePicture() async {
   }
 }
   
-  
-  static Future<List<Proposal>> fetchProposals() async {
-    final url = Uri.parse('$baseUrl/proposals/');
+ 
+  // In fetchProposals method
+static Future<List<Proposal>> fetchProposals() async {
+  final String? token = await _getUserToken();
+  final url = Uri.parse(proposalsUrl);  
+  try {
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token', // Add this line
+        'Accept': 'application/json',
+      },
+    );
     
-    try {
-      final response = await http.get(url);
-      
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => Proposal.fromJson(json)).toList();
-      } else {
-        throw Exception("Failed to load proposals: ${response.statusCode}");
-      }
-    } catch (e) {
-      throw Exception("Error loading proposals: $e");
-    }
-  }
-
-   Future<List<Contract>> fetchContracts() async {
-    final url = Uri.parse("$baseUrl/contracts/");
-    final response = await http.get(url);
-
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => Contract.fromJson(json)).toList();
+      return data.map((json) => Proposal.fromJson(json)).toList();
     } else {
-      throw Exception("Failed to load contracts: ${response.body}");
+      throw Exception("Failed to load proposals: ${response.statusCode}");
     }
+  } catch (e) {
+    throw Exception("Error loading proposals: $e");
   }
+}
 
+// In fetchContracts method  
+Future<List<Contract>> fetchContracts() async {
+  final String? token = await _getUserToken();
+  final url = Uri.parse("$baseUrl/contracts/");
+  final response = await http.get(
+    url,
+    headers: {
+      'Authorization': 'Bearer $token', // Add this line
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final List<dynamic> data = json.decode(response.body);
+    return data.map((json) => Contract.fromJson(json)).toList();
+  } else {
+    throw Exception("Failed to load contracts: ${response.body}");
+  }
+}
   
   Future<void> acceptContract(int contractId) async {
     final url = Uri.parse("$baseUrl/contracts/$contractId/accept/");
