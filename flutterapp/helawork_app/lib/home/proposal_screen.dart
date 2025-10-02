@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
 import '../models/proposal.dart';
 import '../providers/proposal_provider.dart';
 import '../providers/task_provider.dart';
@@ -17,6 +18,11 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
   final _coverLetterController = TextEditingController();
   final _bidAmountController = TextEditingController();
   int? selectedTaskId;
+  
+  
+  PlatformFile? _selectedPdfFile;
+  bool _isPdfPicked = false;
+  bool _isPdfUploading = false;
 
   @override
   void initState() {
@@ -46,6 +52,52 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
     } catch (e) {
       print(' Error loading initial data: $e');
     }
+  }
+
+  // PDF file picker method
+  Future<void> _pickPdfFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        setState(() {
+          _selectedPdfFile = result.files.single;
+          _isPdfPicked = true;
+        });
+        print('PDF file selected: ${_selectedPdfFile!.name}');
+        print('File size: ${_selectedPdfFile!.size} bytes');
+        print('File path: ${_selectedPdfFile!.path}');
+      } else {
+        print('No PDF file selected');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("No PDF file selected"),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error picking PDF file: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error selecting PDF file: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  // Clear selected PDF
+  void _clearPdfFile() {
+    setState(() {
+      _selectedPdfFile = null;
+      _isPdfPicked = false;
+    });
+    print('PDF file cleared');
   }
 
   @override
@@ -118,7 +170,6 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
     }
 
     return SingleChildScrollView(
-      
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -207,11 +258,94 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
               ),
               const SizedBox(height: 20),
 
-              
+              // PDF Upload Section
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Proposal File (PDF)",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _isPdfPicked
+                        ? Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade50,
+                              border: Border.all(color: Colors.green.shade200),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.picture_as_pdf, color: Colors.red.shade700),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _selectedPdfFile!.name,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        '${(_selectedPdfFile!.size / 1024).toStringAsFixed(2)} KB',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.close, color: Colors.grey.shade600),
+                                  onPressed: _clearPdfFile,
+                                ),
+                              ],
+                            ),
+                          )
+                        : ElevatedButton.icon(
+                            onPressed: _pickPdfFile,
+                            icon: const Icon(Icons.attach_file),
+                            label: const Text("Select PDF File"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey.shade100,
+                              foregroundColor: Colors.grey.shade800,
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                            ),
+                          ),
+                    if (!_isPdfPicked)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Text(
+                          "Attach your proposal document (PDF only)",
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Submit Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: proposalProvider.isLoading 
+                  onPressed: (proposalProvider.isLoading || _isPdfUploading) 
                       ? null 
                       : () {
                           print(' SUBMIT BUTTON PRESSED!');
@@ -219,7 +353,10 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
                           print('   - selectedTaskId: $selectedTaskId');
                           print('   - coverLetter length: ${_coverLetterController.text.length}');
                           print('   - bidAmount: ${_bidAmountController.text}');
+                          print('   - pdfSelected: $_isPdfPicked');
+                          print('   - pdfFileName: ${_selectedPdfFile?.name}');
                           print('   - proposalProvider.isLoading: ${proposalProvider.isLoading}');
+                          print('   - _isPdfUploading: $_isPdfUploading');
                           
                           _submitProposal(proposalProvider, taskProvider);
                         },
@@ -228,7 +365,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: proposalProvider.isLoading
+                  child: (proposalProvider.isLoading || _isPdfUploading)
                       ? const SizedBox(
                           height: 20,
                           width: 20,
@@ -247,7 +384,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
     );
   }
 
-  
+  // Updated submit proposal method
   Future<void> _submitProposal(ProposalProvider proposalProvider, TaskProvider taskProvider) async {
     print(' _submitProposal method started');
     
@@ -276,17 +413,33 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
     }
     print(' Task selected: $selectedTaskId');
 
+    if (!_isPdfPicked) {
+      print(' No PDF file selected');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please attach a PDF proposal file"),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    print(' PDF file selected: ${_selectedPdfFile!.name}');
+
     try {
+      setState(() {
+        _isPdfUploading = true;
+      });
+
       print(' Getting task title...');
       // Get task title safely
-      final task = taskProvider.tasks.firstWhere(
-        (task) => (task['task_id'] ?? task['id']) == selectedTaskId,
+      final task = taskProvider.availableTasks.firstWhere(
+        (task) => task['id'] == selectedTaskId,
         orElse: () => {'title': 'Selected Task'}
       );
       final taskTitle = task['title'] ?? 'Selected Task';
       print(' Task title: $taskTitle');
 
-      // Create proposal
+      // Create proposal with PDF file information
       print(' Creating proposal object...');
       final proposal = Proposal(
         taskId: selectedTaskId!,
@@ -295,15 +448,17 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
         bidAmount: double.parse(_bidAmountController.text),
         status: "Pending",
         title: taskTitle,
+        pdfFileName: _selectedPdfFile!.name,
+        pdfFilePath: _selectedPdfFile!.path,
       );
       print(' Proposal object created: ${proposal.toJson()}');
 
-      // Submit proposal
-      print(' Calling proposalProvider.addProposal...');
-      await proposalProvider.addProposal(proposal);
+      // Submit proposal with PDF file
+      print(' Calling proposalProvider.addProposal with PDF...');
+      await proposalProvider.addProposal(proposal, pdfFile: _selectedPdfFile);
       print(' Proposal submitted successfully!');
 
-      
+      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Proposal submitted successfully!"),
@@ -324,14 +479,17 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
       print(' Stack trace: $stackTrace');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error: ${e.toString()}"),
+          content: Text("Error submitting proposal: ${e.toString()}"),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 5),
         ),
       );
+    } finally {
+      setState(() {
+        _isPdfUploading = false;
+      });
     }
   }
-
 
   void _resetForm() {
     print(' Resetting form...');
@@ -340,6 +498,9 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
     _bidAmountController.clear();
     setState(() {
       selectedTaskId = null;
+      _selectedPdfFile = null;
+      _isPdfPicked = false;
+      _isPdfUploading = false;
     });
     print(' Form reset complete');
   }
@@ -398,6 +559,22 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  // Show PDF file name if available
+                  if (proposal.pdfFileName != null)
+                    Row(
+                      children: [
+                        Icon(Icons.picture_as_pdf, color: Colors.red, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          "Attachment: ${proposal.pdfFileName}",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
                   const SizedBox(height: 8),
                   Text(
                     "Status: ${proposal.status}",

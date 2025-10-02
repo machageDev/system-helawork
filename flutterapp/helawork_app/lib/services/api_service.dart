@@ -1,7 +1,8 @@
-
+import 'package:http_parser/http_parser.dart';
 
 import 'dart:convert';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:helawork_app/models/contract_model.dart';
 import 'package:helawork_app/models/proposal.dart';
 import 'package:http/http.dart' as http;
@@ -410,12 +411,46 @@ static Future<String?> getUserProfilePicture() async {
     return await postData("ratings/", body);
   }
 
- static Future<Proposal> submitProposal(Proposal proposal) async {
-    final url = Uri.parse(ProposalUrl);
-    
-    try {
+ static Future<Proposal> submitProposal(Proposal proposal, {PlatformFile? pdfFile}) async {
+  try {
+    if (pdfFile != null) {
+      // Use multipart request for file upload
+      var request = http.MultipartRequest('POST', Uri.parse(ProposalUrl));
+      
+      // Add proposal data as fields
+      request.fields['task_id'] = proposal.taskId.toString();
+      request.fields['freelancer_id'] = proposal.freelancerId.toString();
+      request.fields['cover_letter'] = proposal.coverLetter;
+      request.fields['bid_amount'] = proposal.bidAmount.toString();
+      request.fields['status'] = proposal.status;
+      if (proposal.title != null) {
+        request.fields['title'] = proposal.title!;
+      }
+      
+      // Add PDF file
+      request.files.add(http.MultipartFile.fromBytes(
+        'proposal_file',
+        pdfFile.bytes!,
+        filename: pdfFile.name,
+        contentType: MediaType('application', 'pdf'),
+      ));
+      
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      
+      print('Proposal API Response: ${response.statusCode}');
+      print('Proposal API Body: $responseBody');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final responseData = json.decode(responseBody);
+        return Proposal.fromJson(responseData);
+      } else {
+        throw Exception("Failed to submit proposal: ${response.statusCode} - $responseBody");
+      }
+    } else {
+      // Original JSON request if no file
       final response = await http.post(
-        url,
+        Uri.parse(ProposalUrl),
         headers: {
           "Content-Type": "application/json",
         },
@@ -431,10 +466,11 @@ static Future<String?> getUserProfilePicture() async {
       } else {
         throw Exception("Failed to submit proposal: ${response.statusCode} - ${response.body}");
       }
-    } catch (e) {
-      throw Exception("Network error submitting proposal: $e");
     }
+  } catch (e) {
+    throw Exception("Network error submitting proposal: $e");
   }
+}
   
   
   static Future<List<Proposal>> fetchProposals() async {

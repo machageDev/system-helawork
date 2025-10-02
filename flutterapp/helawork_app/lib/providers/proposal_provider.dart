@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../models/proposal.dart';
 import '../services/api_service.dart';
@@ -29,7 +30,7 @@ class ProposalProvider with ChangeNotifier {
     }
   }
 
-Future<void> addProposal(Proposal proposal) async {
+Future<void> addProposal(Proposal proposal, {PlatformFile? pdfFile}) async {
   _isLoading = true;
   error = null;
   notifyListeners(); 
@@ -37,8 +38,11 @@ Future<void> addProposal(Proposal proposal) async {
   try {
     print(' Sending proposal to API...');
     
-    
-    final submittedProposal = await ApiService.submitProposal(proposal);
+    // Pass the PDF file to API service if it exists
+    final submittedProposal = await ApiService.submitProposal(
+      proposal, 
+      pdfFile: pdfFile
+    );
     
     print(' API call successful, adding to local list');
     _proposals.insert(0, submittedProposal);
@@ -47,7 +51,7 @@ Future<void> addProposal(Proposal proposal) async {
   } catch (e) {
     print(' Error in addProposal: $e');
     error = "Failed to add proposal: $e";
-    rethrow; // Important for UI error handling
+    rethrow;
   } finally {
     _isLoading = false;
     notifyListeners(); 
