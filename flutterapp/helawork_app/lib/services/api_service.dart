@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:http_parser/http_parser.dart';
 
 import 'dart:convert';
@@ -305,27 +307,7 @@ static Future<Map<String, dynamic>?> getUserProfile() async {
     return null;
   }
 }
-static Future<String?> getUserProfilePicture() async {
-  try {
-    final response = await http.get(
-      Uri.parse('$baseUrl/apiuserprofile'),
-      headers: {
-        'Authorization': 'Bearer your_token_here',
-        'Accept': 'application/json',
-      },
-    );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final profilePic = data['profile_picture'];
-      return profilePic?.toString();
-    }
-    return null;
-  } catch (e) {
-    print(' Error loading profile picture: $e');
-    return null;
-  }
-}  
    
   static Future<Map<String, dynamic>> getPaymentSummary() async {
     final response = await http.get(Uri.parse(paymentsummaryUrl));
@@ -388,10 +370,6 @@ static Future<String?> getUserProfilePicture() async {
       throw Exception("Error posting data: $e");
     }
   }
-
-  
-
-
     static Future<Map<String, dynamic>> submitRating({
     required int taskId,
     required int raterId,
@@ -409,81 +387,94 @@ static Future<String?> getUserProfilePicture() async {
 
     return await postData("ratings/", body);
   }
-
- static Future<Proposal> submitProposal(Proposal proposal, {PlatformFile? pdfFile}) async {
+  static Future<Proposal> submitProposal(Proposal proposal, {PlatformFile? pdfFile}) async {
   try {
-    
+    // Get authentication token
     final String? token = await _getUserToken();
     
     if (token == null) {
       throw Exception("User not authenticated. Please log in again.");
     }
 
-    if (pdfFile != null) {
-      
-      var request = http.MultipartRequest('POST', Uri.parse(ProposalUrl));
-      
-      
-      request.headers['Authorization'] = 'Bearer $token';
-      request.headers['Accept'] = 'application/json';
-      
-      // Add proposal data as fields
-      request.fields['task_id'] = proposal.taskId.toString();
-      request.fields['freelancer_id'] = proposal.freelancerId.toString();
-      request.fields['cover_letter'] = proposal.coverLetter;
-      request.fields['bid_amount'] = proposal.bidAmount.toString();
-      request.fields['status'] = proposal.status;
-      if (proposal.title != null) {
-        request.fields['title'] = proposal.title!;
-      }
-      
-      
-      request.files.add(http.MultipartFile.fromBytes(
-        'proposal_file',
-        pdfFile.bytes!,
-        filename: pdfFile.name,
-        contentType: MediaType('application', 'pdf'),
-      ));
-      
-      final response = await request.send();
-      final responseBody = await response.stream.bytesToString();
-      
-      print('Proposal API Response: ${response.statusCode}');
-      print('Proposal API Body: $responseBody');
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        final responseData = json.decode(responseBody);
-        return Proposal.fromJson(responseData);
-      } else {
-        throw Exception("Failed to submit proposal: ${response.statusCode} - $responseBody");
-      }
-    } else {
-      
-      final response = await http.post(
-        Uri.parse(ProposalUrl),
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token", 
-        },
-        body: json.encode(proposal.toJson()),
-      );
-
-      print('Proposal API Response: ${response.statusCode}');
-      print('Proposal API Body: ${response.body}');
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        return Proposal.fromJson(responseData);
-      } else {
-        throw Exception("Failed to submit proposal: ${response.statusCode} - ${response.body}");
-      }
+    // PDF file is now REQUIRED for cover letter
+    if (pdfFile == null) {
+      throw Exception("Cover letter PDF file is required");
     }
-  } catch (e) {
+
+    print('📤 Starting proposal submission with PDF cover letter...');
+    
+    
+    print('📄 PDF File: ${pdfFile.name} (${pdfFile.size} bytes)');
+    print('🎯 Proposal URL: $ProposalUrl');
+
+    // Create multipart request for PDF upload
+    var request = http.MultipartRequest('POST', Uri.parse(ProposalUrl));
+    
+    // Add authorization headers
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['Accept'] = 'application/json';
+    
+    // Add proposal data as fields - REMOVED cover_letter text field
+    request.fields['task_id'] = proposal.taskId.toString();
+    request.fields['freelancer_id'] = proposal.freelancerId.toString();
+    // request.fields['cover_letter'] = proposal.coverLetter; // REMOVED - using PDF instead
+    request.fields['bid_amount'] = proposal.bidAmount.toString();
+    request.fields['status'] = proposal.status;
+    if (proposal.title != null) {
+      request.fields['title'] = proposal.title!;
+    }
+
+    // Add PDF file as the cover letter - UPDATED field name
+    request.files.add(http.MultipartFile.fromBytes(
+      'cover_letter_file', // Changed from 'proposal_file' to 'cover_letter_file'
+      pdfFile.bytes!,
+      filename: pdfFile.name,
+      contentType: MediaType('application', 'pdf'),
+    ));
+
+    print(' Request prepared with fields:');
+    print('   - task_id: ${proposal.taskId}');
+    print('   - freelancer_id: ${proposal.freelancerId}');
+    print('   - bid_amount: ${proposal.bidAmount}');
+    print('   - status: ${proposal.status}');
+    print('   - title: ${proposal.title}');
+    print('   - file_field: cover_letter_file');
+    print('   - file_name: ${pdfFile.name}');
+
+    // Send request
+    final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+    
+    print('📡 Proposal API Response:');
+    print('   - Status: ${response.statusCode}');
+    print('   - Headers: ${response.headers}');
+    print('   - Body: $responseBody');
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      print('✅ Proposal submitted successfully!');
+      final responseData = json.decode(responseBody);
+      return Proposal.fromJson(responseData);
+    } else if (response.statusCode == 401) {
+      print('❌ 401 Unauthorized - Token invalid or expired');
+      throw Exception("Authentication failed. Please log in again.");
+    } else if (response.statusCode == 400) {
+      print('❌ 400 Bad Request - Check field names and data');
+      throw Exception("Invalid data submitted: $responseBody");
+    } else {
+      print('❌ Server error: ${response.statusCode}');
+      throw Exception("Failed to submit proposal: ${response.statusCode} - $responseBody");
+    }
+
+  } catch (e, stackTrace) {
+    print('===================================');
+    print('❌ ACTUAL SUBMIT PROPOSAL ERROR:');
+    print('❌ Error: $e');
+    print('❌ Stack trace: $stackTrace');
+    print('❌ Error type: ${e.runtimeType}');
+    print('===================================');
     throw Exception("Network error submitting proposal: $e");
   }
-}
-  
- 
+}   
   // In fetchProposals method
 static Future<List<Proposal>> fetchProposals() async {
   final String? token = await _getUserToken();
