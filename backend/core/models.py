@@ -138,7 +138,7 @@ class Proposal(models.Model):
     proposal_id = models.AutoField(primary_key=True)
     task = models.ForeignKey(Task, related_name="proposals", on_delete=models.CASCADE)
     freelancer = models.ForeignKey(User, related_name="proposals", on_delete=models.CASCADE)
-    cover_letter = models.TextField()
+    cover_letter_file = models.FileField(upload_to='cover_letters/', blank=True, null=True)
     bid_amount = models.DecimalField(max_digits=10, decimal_places=2)
     submitted_at = models.DateTimeField(default=timezone.now)
 

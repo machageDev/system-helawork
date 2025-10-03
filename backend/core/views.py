@@ -490,7 +490,7 @@ def withdraw_mpesa(request, pk):
 
     # Here you would call Daraja API and update receipt
     payment.is_paid = True
-    payment.mpesa_receipt = "MPESA12345"  # mock receipt
+    payment.mpesa_receipt = "MPESA12345"  
     payment.save()
 
     return Response({
@@ -499,12 +499,10 @@ def withdraw_mpesa(request, pk):
     }, status=status.HTTP_200_OK)
 
 
-
-
 def employer_dashboard(request):
     
-    if not request.session.get('employer_id'):
-        return redirect('login')
+    #if not request.session.get('employer_id'):
+        #return redirect('login')
 
     total_employees = User.objects.count()
     active_projects = Task.objects.filter(is_approved=True).count()  
@@ -583,7 +581,7 @@ def logout_view(request):
 
 
 def task_list(request):
-    tasks = Task.objects.select_related("employer", "assigned_user").all()
+    tasks = Task.objects.select_related("employer").all()
     return render(request, "task.html", {"tasks": tasks})
 
 def create_task(request):
