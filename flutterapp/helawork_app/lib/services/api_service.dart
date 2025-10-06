@@ -24,6 +24,7 @@ class ApiService{
   static const String  updateUserProfileUrl = '$baseUrl/apiuserprofile';
   static const String ProposalUrl = '$baseUrl/apiproposal';
   static const String proposalsUrl = '$baseUrl/apiproposal';
+  static const String ratingsUrl = '$baseUrl/ratings';
 
 Future<Map<String, dynamic>> register(String name, String email,String phoneNO, String password,  String confirmPassword) async {
   final url = Uri.parse(registerUrl);
@@ -98,12 +99,12 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     }
 
     if (response.statusCode == 200) {
-      // ✅ ✅ ✅ SAVE THE TOKEN TO SHARED PREFERENCES ✅ ✅ ✅
+      
       final String? token = responseData["token"];
       if (token != null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_token', token); // Save with consistent key
-        print('✅ TOKEN SAVED TO SHARED PREFERENCES: ${token.substring(0, 10)}...');
+        print(' TOKEN SAVED TO SHARED PREFERENCES: ${token.substring(0, 10)}...');
       }
 
       return {
@@ -169,7 +170,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
         return data.map((task) {
           final mappedTask = Map<String, dynamic>.from(task);
           
-          // Ensure all required fields exist
+          
           mappedTask['completed'] = mappedTask['completed'] ?? false;
           mappedTask['employer'] = mappedTask['employer'] ?? {
             'username': 'Unknown Client',
@@ -256,31 +257,31 @@ static Future<String?> _getUserToken() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     
-    // Check what keys actually exist
-    final allKeys = prefs.getKeys();
-    print('🔐 ALL SHARED PREFERENCES KEYS: $allKeys');
     
-    // Try different possible keys
+    final allKeys = prefs.getKeys();
+    print(' ALL SHARED PREFERENCES KEYS: $allKeys');
+    
+    
     String? token = prefs.getString('user_token');
     
     if (token == null) {
-      // Try other common key names
+      
       token = prefs.getString('token');
-      print('🔐 Trying "token" key: ${token != null}');
+      print(' Trying "token" key: ${token != null}');
     }
     
     if (token == null) {
       token = prefs.getString('auth_token');
-      print('🔐 Trying "auth_token" key: ${token != null}');
+      print(' Trying "auth_token" key: ${token != null}');
     }
     
     if (token == null) {
       token = prefs.getString('access_token');
-      print('🔐 Trying "access_token" key: ${token != null}');
+      print(' Trying "access_token" key: ${token != null}');
     }
 
     if (token == null) {
-      print('❌ NO TOKEN FOUND IN ANY KEY');
+      print(' NO TOKEN FOUND IN ANY KEY');
       print('   Available keys: $allKeys');
       print('   All key-value pairs:');
       for (String key in allKeys) {
@@ -290,10 +291,10 @@ static Future<String?> _getUserToken() async {
       return null;
     }
     
-    print('✅ TOKEN FOUND: ${token.substring(0, 10)}...');
+    print(' TOKEN FOUND: ${token.substring(0, 10)}...');
     return token;
   } catch (e) {
-    print('❌ ERROR RETRIEVING TOKEN: $e');
+    print(' ERROR RETRIEVING TOKEN: $e');
     return null;
   }
 }
@@ -318,7 +319,7 @@ static Future<Map<String, dynamic>?> getUserProfile() async {
       },
     );
 
-    print('📡 Profile API Response Status: ${response.statusCode}');
+    print(' Profile API Response Status: ${response.statusCode}');
     
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -417,7 +418,7 @@ static Future<Map<String, dynamic>?> getUserProfile() async {
       "comment": comment ?? "",
     };
 
-    return await postData("ratings/", body);
+    return await postData('ratingsUrl', body);
   }
   static Future<Proposal> submitProposal(Proposal proposal, {PlatformFile? pdfFile}) async {
   try {
