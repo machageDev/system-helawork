@@ -26,27 +26,27 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
   @override
   void initState() {
     super.initState();
-    print('📋 ProposalsScreen initState called');
+    print(' ProposalsScreen initState called');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadInitialData();
     });
   }
 
   Future<void> _loadInitialData() async {
-    print('🔄 _loadInitialData started');
+    print(' _loadInitialData started');
     if (!mounted) return;
     
     final proposalProvider = Provider.of<ProposalProvider>(context, listen: false);
     final taskProvider = Provider.of<TaskProvider>(context, listen: false);
     
     try {
-      print('📥 Fetching proposals...');
+      print(' Fetching proposals...');
       await proposalProvider.fetchProposals();
-      print('📥 Fetching tasks...');
+      print(' Fetching tasks...');
       await taskProvider.fetchTasksForProposals();
-      print('✅ Initial data loaded successfully');
+      print(' Initial data loaded successfully');
     } catch (e) {
-      print('❌ Error loading initial data: $e');
+      print(' Error loading initial data: $e');
     }
   }
 
@@ -57,6 +57,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
         type: FileType.custom,
         allowedExtensions: ['pdf'],
         allowMultiple: false,
+        withData: true, 
       );
 
       if (result != null && result.files.single.path != null) {
@@ -64,10 +65,10 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
           _selectedCoverLetterPdf = result.files.single;
           _isPdfPicked = true;
         });
-        print('📄 Cover letter PDF selected: ${_selectedCoverLetterPdf!.name}');
-        print('📊 File size: ${_selectedCoverLetterPdf!.size} bytes');
+        print(' Cover letter PDF selected: ${_selectedCoverLetterPdf!.name}');
+        print(' File size: ${_selectedCoverLetterPdf!.size} bytes');
       } else {
-        print('📭 No PDF file selected');
+        print(' No PDF file selected');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("No PDF file selected"),
@@ -76,7 +77,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
         );
       }
     } catch (e) {
-      print('❌ Error picking PDF file: $e');
+      print(' Error picking PDF file: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error selecting PDF file: $e"),
@@ -92,7 +93,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
       _selectedCoverLetterPdf = null;
       _isPdfPicked = false;
     });
-    print('🗑️ Cover letter PDF cleared');
+    print(' Cover letter PDF cleared');
   }
 
   @override
@@ -346,11 +347,11 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
     final proposalProvider = Provider.of<ProposalProvider>(context, listen: false);
     final taskProvider = Provider.of<TaskProvider>(context, listen: false);
     
-    print('🔄 _submitProposal method started');
+    print(' _submitProposal method started');
     
     // Validate form
     if (!_formKey.currentState!.validate()) {
-      print('❌ Form validation FAILED');
+      print(' Form validation FAILED');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please fix the form errors"),
@@ -361,7 +362,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
     }
 
     if (selectedTaskId == null) {
-      print('❌ No task selected');
+      print(' No task selected');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please select a task"),
@@ -372,7 +373,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
     }
 
     if (!_isPdfPicked) {
-      print('❌ No cover letter PDF selected');
+      print(' No cover letter PDF selected');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please upload your cover letter PDF"),
@@ -403,13 +404,12 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
         status: "Pending",
         title: taskTitle,
         pdfFileName: _selectedCoverLetterPdf!.name,
-        pdfFilePath: _selectedCoverLetterPdf!.path,
-        pdfFileBytes: _selectedCoverLetterPdf!.bytes,
+        
       );
 
-      print('📤 Submitting proposal with PDF cover letter...');
+      print(' Submitting proposal with PDF cover letter...');
       await proposalProvider.addProposal(proposal, pdfFile: _selectedCoverLetterPdf);
-      print('✅ Proposal submitted successfully!');
+      print(' Proposal submitted successfully!');
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -427,8 +427,8 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
       });
 
     } catch (e, stackTrace) {
-      print('❌ ERROR in _submitProposal: $e');
-      print('📋 Stack trace: $stackTrace');
+      print(' ERROR in _submitProposal: $e');
+      print(' Stack trace: $stackTrace');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error submitting proposal: ${e.toString()}"),

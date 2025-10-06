@@ -38,7 +38,12 @@ Future<void> addProposal(Proposal proposal, {PlatformFile? pdfFile}) async {
   try {
     print(' Sending proposal to API...');
     
-    // Pass the PDF file to API service if it exists
+    
+    if (pdfFile != null && pdfFile.bytes == null) {
+      throw Exception("PDF file bytes are null - file may be corrupted");
+    }
+    
+   
     final submittedProposal = await ApiService.submitProposal(
       proposal, 
       pdfFile: pdfFile

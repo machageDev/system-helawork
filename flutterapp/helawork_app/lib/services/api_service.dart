@@ -1,4 +1,4 @@
-import 'dart:math';
+
 
 import 'package:http_parser/http_parser.dart';
 
@@ -71,7 +71,6 @@ static Future<String> getLoggedInUserName() async {
     return "User";
   }
 }
-
 Future<Map<String, dynamic>> login(String name, String password) async {
   final url = Uri.parse(ApiService.loginUrl);
 
@@ -99,13 +98,21 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     }
 
     if (response.statusCode == 200) {
+      // ✅ ✅ ✅ SAVE THE TOKEN TO SHARED PREFERENCES ✅ ✅ ✅
+      final String? token = responseData["token"];
+      if (token != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_token', token); // Save with consistent key
+        print('✅ TOKEN SAVED TO SHARED PREFERENCES: ${token.substring(0, 10)}...');
+      }
+
       return {
         "success": true,
         "data": {
           "user_id": responseData["user_id"],
           "name": responseData["name"],
           "message": responseData["message"],
-          "token": responseData["token"], 
+          "token": token,
         }
       };
     } else {
@@ -123,6 +130,7 @@ Future<Map<String, dynamic>> login(String name, String password) async {
     };
   }
 }
+
 
   Future<Map<String, dynamic>> getActiveSession() async {
     final response = await http.get(Uri.parse(active_sessionUrl));
@@ -246,22 +254,46 @@ Future<Map<String, dynamic>> login(String name, String password) async {
 
 static Future<String?> _getUserToken() async {
   try {
-    // Method 1: Get from SharedPreferences (most common)
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('user_token'); // Adjust key as needed
     
-    // Method 2: If you have a different storage system, use that instead
-    // final token = YourAuthProvider.token;
+    // Check what keys actually exist
+    final allKeys = prefs.getKeys();
+    print('🔐 ALL SHARED PREFERENCES KEYS: $allKeys');
     
-    if (token == null || token.isEmpty) {
-      print(' No user token found in storage');
+    // Try different possible keys
+    String? token = prefs.getString('user_token');
+    
+    if (token == null) {
+      // Try other common key names
+      token = prefs.getString('token');
+      print('🔐 Trying "token" key: ${token != null}');
+    }
+    
+    if (token == null) {
+      token = prefs.getString('auth_token');
+      print('🔐 Trying "auth_token" key: ${token != null}');
+    }
+    
+    if (token == null) {
+      token = prefs.getString('access_token');
+      print('🔐 Trying "access_token" key: ${token != null}');
+    }
+
+    if (token == null) {
+      print('❌ NO TOKEN FOUND IN ANY KEY');
+      print('   Available keys: $allKeys');
+      print('   All key-value pairs:');
+      for (String key in allKeys) {
+        final value = prefs.get(key);
+        print('     - $key: $value');
+      }
       return null;
     }
     
-    print('Retrieved user token: ${token.substring(0, 10)}...');
+    print('✅ TOKEN FOUND: ${token.substring(0, 10)}...');
     return token;
   } catch (e) {
-    print(' Error retrieving user token: $e');
+    print('❌ ERROR RETRIEVING TOKEN: $e');
     return null;
   }
 }
@@ -396,38 +428,44 @@ static Future<Map<String, dynamic>?> getUserProfile() async {
       throw Exception("User not authenticated. Please log in again.");
     }
 
-    // PDF file is now REQUIRED for cover letter
+    
     if (pdfFile == null) {
       throw Exception("Cover letter PDF file is required");
     }
 
-    print('📤 Starting proposal submission with PDF cover letter...');
-    
-    
-    print('📄 PDF File: ${pdfFile.name} (${pdfFile.size} bytes)');
-    print('🎯 Proposal URL: $ProposalUrl');
-
-    // Create multipart request for PDF upload
-    var request = http.MultipartRequest('POST', Uri.parse(ProposalUrl));
-    
-    // Add authorization headers
-    request.headers['Authorization'] = 'Bearer $token';
-    request.headers['Accept'] = 'application/json';
-    
-    // Add proposal data as fields - REMOVED cover_letter text field
-    request.fields['task_id'] = proposal.taskId.toString();
-    request.fields['freelancer_id'] = proposal.freelancerId.toString();
-    // request.fields['cover_letter'] = proposal.coverLetter; // REMOVED - using PDF instead
-    request.fields['bid_amount'] = proposal.bidAmount.toString();
-    request.fields['status'] = proposal.status;
-    if (proposal.title != null) {
-      request.fields['title'] = proposal.title!;
+   
+    if (pdfFile.bytes == null) {
+      throw Exception("PDF file bytes are null - file may be corrupted");
     }
 
-    // Add PDF file as the cover letter - UPDATED field name
+    print(' Starting proposal submission with PDF cover letter...');
+    print(' PDF File: ${pdfFile.name} (${pdfFile.size} bytes)');
+    print(' Proposal URL: $ProposalUrl');
+
+    
+    var request = http.MultipartRequest('POST', Uri.parse(ProposalUrl));
+    
+   
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['Accept'] = 'application/json';
+   
+    // Add proposal data as fields
+    request.fields['task_id'] = proposal.taskId.toString();
+    request.fields['freelancer_id'] = proposal.freelancerId.toString();
+    request.fields['bid_amount'] = proposal.bidAmount.toString();
+    request.fields['status'] = proposal.status;
+    
+    
+    if (proposal.title != null && proposal.title!.isNotEmpty) {
+      request.fields['title'] = proposal.title!;
+    } else {
+      request.fields['title'] = 'Proposal for Task ${proposal.taskId}';
+    }
+
+    
     request.files.add(http.MultipartFile.fromBytes(
-      'cover_letter_file', // Changed from 'proposal_file' to 'cover_letter_file'
-      pdfFile.bytes!,
+      'cover_letter_file',
+      pdfFile.bytes!, // Now safe because we checked above
       filename: pdfFile.name,
       contentType: MediaType('application', 'pdf'),
     ));
@@ -441,40 +479,35 @@ static Future<Map<String, dynamic>?> getUserProfile() async {
     print('   - file_field: cover_letter_file');
     print('   - file_name: ${pdfFile.name}');
 
-    // Send request
+    
     final response = await request.send();
     final responseBody = await response.stream.bytesToString();
     
-    print('📡 Proposal API Response:');
+    print(' Proposal API Response:');
     print('   - Status: ${response.statusCode}');
-    print('   - Headers: ${response.headers}');
     print('   - Body: $responseBody');
 
     if (response.statusCode == 201 || response.statusCode == 200) {
-      print('✅ Proposal submitted successfully!');
+      print(' Proposal submitted successfully!');
       final responseData = json.decode(responseBody);
       return Proposal.fromJson(responseData);
     } else if (response.statusCode == 401) {
-      print('❌ 401 Unauthorized - Token invalid or expired');
       throw Exception("Authentication failed. Please log in again.");
     } else if (response.statusCode == 400) {
-      print('❌ 400 Bad Request - Check field names and data');
       throw Exception("Invalid data submitted: $responseBody");
     } else {
-      print('❌ Server error: ${response.statusCode}');
       throw Exception("Failed to submit proposal: ${response.statusCode} - $responseBody");
     }
 
   } catch (e, stackTrace) {
     print('===================================');
-    print('❌ ACTUAL SUBMIT PROPOSAL ERROR:');
-    print('❌ Error: $e');
-    print('❌ Stack trace: $stackTrace');
-    print('❌ Error type: ${e.runtimeType}');
+    print(' NULL CHECK ERROR DETAILS:');
+    print(' Error: $e');
+    print(' Stack trace: $stackTrace');
     print('===================================');
-    throw Exception("Network error submitting proposal: $e");
+    throw Exception("Error submitting proposal: $e");
   }
-}   
+}
   // In fetchProposals method
 static Future<List<Proposal>> fetchProposals() async {
   final String? token = await _getUserToken();
