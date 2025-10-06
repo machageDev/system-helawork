@@ -27,4 +27,38 @@ class RatingProvider with ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+
+  // ADD THIS METHOD TO SUBMIT NEW RATINGS
+  Future<void> submitRating({
+    required String taskId,
+    required String clientId,
+    required int rating,
+    required String comment,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+    
+    try {
+      // Prepare rating data
+      final ratingData = {
+        'taskId': taskId,
+        'clientId': clientId, 
+        'rating': rating,
+        'comment': comment,
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+      
+      // Submit to backend - you might need a different endpoint
+      await ApiService.postData('/ratings/submit', ratingData);
+      print("✅ Rating submitted successfully");
+      
+    } catch (e) {
+      _error = "Failed to submit rating: $e";
+      print("❌ Error submitting rating: $e");
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
