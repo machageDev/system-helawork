@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from django.db import IntegrityError, transaction
 from rest_framework import status
 from core.authentication import CustomTokenAuthentication
-from core.serializer import ContractSerializer, FreelancerRatingSerializer, LoginSerializer, PaymentSerializer, ProposalSerializer,   RegisterSerializer, TaskSerializer, UserProfileSerializer, UserSerializer
+from core.serializer import ContractSerializer, FreelancerRatingSerializer, LoginSerializer, PaymentSerializer, ProposalSerializer,   RegisterSerializer, TaskSerializer, UserProfileSerializer, UserSerializer,EmployerRatingSerializer
 from django.core.mail import send_mail
 from django.contrib import messages
 from payments.models import Payment
@@ -32,6 +32,7 @@ from rest_framework.decorators import authentication_classes, permission_classes
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+
 def send_otp(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -197,38 +198,112 @@ def apiregister(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["GET", "POST"])
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+@authentication_classes([CustomTokenAuthentication])
 @permission_classes([IsAuthenticated])
-def freelancer_rating_list_create(request):
-    if request.method == "GET":
-        """List all freelancer ratings"""
-        ratings = FreelancerRating.objects.all()
-        serializer = FreelancerRatingSerializer(ratings, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+def employer_ratings_list(request):
+    """
+    GET: List all employer ratings
+    POST: Create a new employer rating
+    """
+    try:
+        if request.method == 'GET':
+            ratings = EmployerRating.objects.all()
+            serializer = EmployerRatingSerializer(ratings, many=True)
+            return JsonResponse(serializer.data, safe=False)
+            
+        elif request.method == 'POST':
+            # For POST requests with JSON data
+            import json
+            data = json.loads(request.body)
+            
+            # Add the employer from the authenticated user
+            data['employer'] = request.user
+            
+            serializer = EmployerRatingSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse(serializer.data, status=201)
+            return JsonResponse(serializer.errors, status=400)
+            
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
-    elif request.method == "POST":
-        """Create a new freelancer rating"""
-        serializer = FreelancerRatingSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(["GET", "DELETE"])
+@csrf_exempt
+@require_http_methods(["GET", "PUT", "DELETE"])
+@authentication_classes([CustomTokenAuthentication])
 @permission_classes([IsAuthenticated])
-def freelancer_rating_detail(request, pk):
-    rating = get_object_or_404(FreelancerRating, pk=pk)
-
-    if request.method == "GET":
+def employer_rating_detail(request):
+    """
+    GET: Get specific employer rating
+    PUT: Update employer rating
+    DELETE: Delete employer rating
+    """
+    try:
+        rating = EmployerRating.objects.get()
         
-        serializer = FreelancerRatingSerializer(rating)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.method == 'GET':
+            serializer = EmployerRatingSerializer(rating)
+            return JsonResponse(serializer.data)
+            
+        elif request.method == 'PUT':
+            # Check if user owns this rating
+            if rating.employer != request.user:
+                return JsonResponse({"error": "Not authorized"}, status=403)
+                
+            import json
+            data = json.loads(request.body)
+            serializer = EmployerRatingSerializer(rating, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse(serializer.data)
+            return JsonResponse(serializer.errors, status=400)
+            
+        elif request.method == 'DELETE':
+            # Check if user owns this rating
+            if rating.employer != request.user:
+                return JsonResponse({"error": "Not authorized"}, status=403)
+                
+            rating.delete()
+            return JsonResponse({"message": "Rating deleted successfully"}, status=204)
+            
+    except EmployerRating.DoesNotExist:
+        return JsonResponse({"error": "Rating not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
-    elif request.method == "DELETE":
-        
-        rating.delete()
-        return Response({"message": "Rating deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+@csrf_exempt
+@require_http_methods(["GET"])
+@authentication_classes([CustomTokenAuthentication])
+@permission_classes([IsAuthenticated])
+def my_employer_ratings(request):
+    """
+    GET: Get all ratings submitted by the current employer
+    """
+    try:
+        ratings = EmployerRating.objects.filter(employer=request.user)
+        serializer = EmployerRatingSerializer(ratings, many=True)
+        return JsonResponse(serializer.data, safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+@require_http_methods(["GET"])
+@authentication_classes([CustomTokenAuthentication])
+@permission_classes([IsAuthenticated])
+def freelancer_ratings(request, freelancer_id):
+    """
+    GET: Get all ratings for a specific freelancer
+    """
+    try:
+        ratings = EmployerRating.objects.filter(freelancer_id=freelancer_id)
+        serializer = EmployerRatingSerializer(ratings, many=True)
+        return JsonResponse(serializer.data, safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
    
 from .models import User, UserToken
 import uuid
