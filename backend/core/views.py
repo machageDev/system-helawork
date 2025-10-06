@@ -29,7 +29,9 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import authentication_classes, permission_classes, api_view
-
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 def send_otp(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -295,31 +297,93 @@ def apiforgot_password(request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        
     
 
-@authentication_classes([CustomTokenAuthentication])
-@permission_classes([IsAuthenticated])
+
+@csrf_exempt
+@require_http_methods(["POST"])
 def apisubmit_proposal(request):
-    task_id = request.data.get("task")
-    cover_letter = request.data.get("cover_letter")
-    bid_amount = request.data.get("bid_amount")
-
-
     try:
-        task = Task.objects.get(pk=task_id)
-    except Task.DoesNotExist:
-        return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
+        print("📥 PROPOSAL SUBMISSION STARTED")
+        
+        # MANUALLY AUTHENTICATE THE USER
+        auth = CustomTokenAuthentication()
+        auth_result = auth.authenticate(request)
+        
+        if auth_result is None:
+            print("❌ AUTHENTICATION FAILED - No valid token")
+            return JsonResponse({"error": "Authentication failed"}, status=401)
+            
+        request.user, request.auth = auth_result
+        
+        # SAFELY GET USER IDENTIFIER (handle missing username field)
+        user_identifier = getattr(request.user, 'username', 
+                                getattr(request.user, 'email', 
+                                        getattr(request.user, 'name', 
+                                                f"User_{request.user}")))
+        print(f"🔐 USER AUTHENTICATED: {user_identifier}")
+        print(f"🔐 USER ID: {request.user}")
 
-    
-    if Proposal.objects.filter(task=task, freelancer=request.user).exists():
-        return Response({"error": "You have already submitted a proposal for this task"},
-                        status=status.HTTP_400_BAD_REQUEST)
+        # Get form data - use request.POST for multipart forms
+        task_id = request.POST.get("task_id")
+        bid_amount = request.POST.get("bid_amount")
+        title = request.POST.get("title", "")
+        cover_letter_file = request.FILES.get('cover_letter_file')
 
-    serializer = ProposalSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save(freelancer=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        print(f"🔍 RECEIVED FORM DATA:")
+        print(f"   - task_id: {task_id}")
+        print(f"   - bid_amount: {bid_amount}")
+        print(f"   - title: {title}")
+        print(f"   - file_received: {cover_letter_file is not None}")
 
+        # Validate required fields
+        if not task_id:
+            return JsonResponse({"error": "Task ID is required"}, status=400)
+        if not cover_letter_file:
+            return JsonResponse({"error": "Cover letter PDF file is required"}, status=400)
 
+        # Get task
+        try:
+            task = Task.objects.get(pk=task_id)
+            print(f"✅ Task found: {task.title}")
+        except Task.DoesNotExist:
+            return JsonResponse({"error": "Task not found"}, status=404)
+
+        # Check for existing proposal
+        if Proposal.objects.filter(task=task, freelancer=request.user).exists():
+            return JsonResponse({"error": "You have already submitted a proposal for this task"}, status=400)
+
+        # Create proposal
+        proposal = Proposal(
+            task=task,
+            freelancer=request.user,
+            bid_amount=float(bid_amount) if bid_amount else 0.0,      
+            
+            #cover_letter='Cover letter provided as PDF file',
+        )
+        proposal.save()
+        print(f"✅ Proposal saved with ID: {proposal}")
+
+        # Save file
+        if cover_letter_file and hasattr(proposal, 'cover_letter_file'):
+            proposal.cover_letter_file.save(cover_letter_file.name, cover_letter_file)
+            proposal.save()
+            print(f"✅ PDF file saved: {cover_letter_file.name}")
+
+        return JsonResponse({
+            "id": proposal,
+            "task_id": proposal.task.id,
+            "freelancer_id": proposal.freelancer.id,
+            "cover_letter": proposal.cover_letter,
+            "bid_amount": float(proposal.bid_amount),
+            "status": proposal.status,
+            "title": proposal.title,
+            "message": "Proposal submitted successfully"
+        }, status=201)
+
+    except Exception as e:
+        print(f"❌ ERROR: {str(e)}")
+        import traceback
+        print(f"📋 TRACEBACK: {traceback.format_exc()}")
+        return JsonResponse({"error": f"Server error: {str(e)}"}, status=500)
 @api_view(['GET'])
 def apitask_list(request):
     """Get all tasks with employer details"""
