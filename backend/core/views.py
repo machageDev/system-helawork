@@ -302,25 +302,25 @@ def apiforgot_password(request):
 @require_http_methods(["POST"])
 def apisubmit_proposal(request):
     try:
-        print("📥 PROPOSAL SUBMISSION STARTED")
+        print(" PROPOSAL SUBMISSION STARTED")
         
-        # MANUALLY AUTHENTICATE THE USER
+        
         auth = CustomTokenAuthentication()
         auth_result = auth.authenticate(request)
         
         if auth_result is None:
-            print("❌ AUTHENTICATION FAILED - No valid token")
+            print(" AUTHENTICATION FAILED - No valid token")
             return JsonResponse({"error": "Authentication failed"}, status=401)
             
         request.user, request.auth = auth_result
         
-        # SAFELY GET USER IDENTIFIER (handle missing username field)
+        
         user_identifier = getattr(request.user, 'username', 
                                 getattr(request.user, 'email', 
                                         getattr(request.user, 'name', 
                                                 f"User_{request.user}")))
-        print(f"🔐 USER AUTHENTICATED: {user_identifier}")
-        print(f"🔐 USER ID: {request.user}")
+        print(f" USER AUTHENTICATED: {user_identifier}")
+        print(f" USER ID: {request.user}")
 
         # Get form data - use request.POST for multipart forms
         task_id = request.POST.get("task_id")
@@ -334,24 +334,24 @@ def apisubmit_proposal(request):
         print(f"   - title: {title}")
         print(f"   - file_received: {cover_letter_file is not None}")
 
-        # Validate required fields
+        
         if not task_id:
             return JsonResponse({"error": "Task ID is required"}, status=400)
         if not cover_letter_file:
             return JsonResponse({"error": "Cover letter PDF file is required"}, status=400)
 
-        # Get task
+        
         try:
             task = Task.objects.get(pk=task_id)
             print(f"✅ Task found: {task.title}")
         except Task.DoesNotExist:
             return JsonResponse({"error": "Task not found"}, status=404)
 
-        # Check for existing proposal
+       
         if Proposal.objects.filter(task=task, freelancer=request.user).exists():
             return JsonResponse({"error": "You have already submitted a proposal for this task"}, status=400)
 
-        # Create proposal
+        
         proposal = Proposal(
             task=task,
             freelancer=request.user,
@@ -360,13 +360,13 @@ def apisubmit_proposal(request):
             #cover_letter='Cover letter provided as PDF file',
         )
         proposal.save()
-        print(f"✅ Proposal saved with ID: {proposal}")
+        print(f"Proposal saved with ID: {proposal}")
 
         # Save file
         if cover_letter_file and hasattr(proposal, 'cover_letter_file'):
             proposal.cover_letter_file.save(cover_letter_file.name, cover_letter_file)
             proposal.save()
-            print(f"✅ PDF file saved: {cover_letter_file.name}")
+            print(f" PDF file saved: {cover_letter_file.name}")
 
         return JsonResponse({
             "id": proposal,
@@ -380,13 +380,13 @@ def apisubmit_proposal(request):
         }, status=201)
 
     except Exception as e:
-        print(f"❌ ERROR: {str(e)}")
+        print(f" ERROR: {str(e)}")
         import traceback
-        print(f"📋 TRACEBACK: {traceback.format_exc()}")
+        print(f" TRACEBACK: {traceback.format_exc()}")
         return JsonResponse({"error": f"Server error: {str(e)}"}, status=500)
 @api_view(['GET'])
 def apitask_list(request):
-    """Get all tasks with employer details"""
+    
     try:
         
         tasks = Task.objects.select_related('employer').prefetch_related('employer__profile').all()
