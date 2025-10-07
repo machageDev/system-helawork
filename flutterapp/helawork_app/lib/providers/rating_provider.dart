@@ -18,10 +18,10 @@ class RatingProvider with ChangeNotifier {
     try {
       final data = await ApiService.getData('/my_employer_ratings/');
       _ratings = data;
-      print("✅ Loaded ${_ratings.length} ratings");
+      print(" Loaded ${_ratings.length} ratings");
     } catch (e) {
       _error = "Failed to load ratings: $e";
-      print("❌ Error fetching ratings: $e");
+      print(" Error fetching ratings: $e");
     }
     
     _isLoading = false;
@@ -46,11 +46,11 @@ class RatingProvider with ChangeNotifier {
         score: score,
         review: review,
       );
-      print("✅ Rating submitted successfully");
+      print(" Rating submitted successfully");
       
     } catch (e) {
       _error = "Failed to submit rating: $e";
-      print("❌ Error submitting rating: $e");
+      print(" Error submitting rating: $e");
       rethrow;
     } finally {
       _isLoading = false;
