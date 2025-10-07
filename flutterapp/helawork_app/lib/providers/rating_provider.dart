@@ -10,13 +10,13 @@ class RatingProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> fetchRatings() async {
+  Future<void> fetchMyRatings() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     
     try {
-      final data = await ApiService.getData('/ratings/');
+      final data = await ApiService.getData('/my_employer_ratings/');
       _ratings = data;
       print("✅ Loaded ${_ratings.length} ratings");
     } catch (e) {
@@ -28,28 +28,24 @@ class RatingProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // ADD THIS METHOD TO SUBMIT NEW RATINGS
   Future<void> submitRating({
-    required String taskId,
-    required String clientId,
-    required int rating,
-    required String comment,
+    required int taskId,
+    required int freelancerId,
+    required int employerId,
+    required int score,
+    required String review,
   }) async {
     _isLoading = true;
     notifyListeners();
     
     try {
-      // Prepare rating data
-      final ratingData = {
-        'taskId': taskId,
-        'clientId': clientId, 
-        'rating': rating,
-        'comment': comment,
-        'timestamp': DateTime.now().toIso8601String(),
-      };
-      
-      // Submit to backend - you might need a different endpoint
-      await ApiService.postData('/ratings/submit', ratingData);
+      await ApiService.submitRating(
+        taskId: taskId,
+        freelancerId: freelancerId,
+        employerId: employerId,
+        score: score,
+        review: review,
+      );
       print("✅ Rating submitted successfully");
       
     } catch (e) {

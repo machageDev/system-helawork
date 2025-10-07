@@ -20,34 +20,57 @@ class _RatingsScreenState extends State<RatingsScreen> {
     _hasFetched = false;
   }
 
+  void _navigateToSubmitRating() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SubmitRatingScreen(
+          taskId: 'task-123', // Replace with actual task ID
+          employerId: 'employer-456', // Replace with actual employer ID
+          clientName: 'Client Name', // Replace with actual client name
+          freelancerId: 123, // You need to get this from somewhere
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<RatingProvider>(context);
 
-    // Fetch only once
     if (!_hasFetched && !provider.isLoading && provider.ratings.isEmpty) {
       _hasFetched = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        provider.fetchRatings();
+        provider.fetchMyRatings();
       });
     }
-    Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => SubmitRatingScreen(
-      taskId: 'task-123',
-      clientId: 'client-456', 
-      clientName: 'Client Name',
-    ),
-  ),
-);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("My Ratings")),
+      appBar: AppBar(
+        title: const Text("My Ratings"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: _navigateToSubmitRating,
+          ),
+        ],
+      ),
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : provider.ratings.isEmpty
-              ? const Center(child: Text("No ratings yet"))
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("No ratings yet"),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: _navigateToSubmitRating,
+                        child: const Text("Submit Your First Rating"),
+                      ),
+                    ],
+                  ),
+                )
               : ListView.builder(
                   itemCount: provider.ratings.length,
                   itemBuilder: (context, index) {

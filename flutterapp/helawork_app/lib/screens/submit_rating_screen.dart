@@ -4,14 +4,16 @@ import 'package:provider/provider.dart';
 
 class SubmitRatingScreen extends StatefulWidget {
   final String taskId;
-  final String clientId;
+  final String employerId;
   final String clientName;
+  final int freelancerId;
 
   const SubmitRatingScreen({
     super.key,
     required this.taskId,
-    required this.clientId,
+    required this.employerId,
     required this.clientName,
+    required this.freelancerId,
   });
 
   @override
@@ -19,9 +21,54 @@ class SubmitRatingScreen extends StatefulWidget {
 }
 
 class _SubmitRatingScreenState extends State<SubmitRatingScreen> {
-  final _commentController = TextEditingController();
+  final _reviewController = TextEditingController();
   int _selectedRating = 0;
   bool _isSubmitting = false;
+
+  Future<void> _submitRating() async {
+    if (_selectedRating == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a rating')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      final provider = Provider.of<RatingProvider>(context, listen: false);
+      await provider.submitRating(
+        taskId: int.parse(widget.taskId),
+        freelancerId: widget.freelancerId,
+        employerId: int.parse(widget.employerId),
+        score: _selectedRating,
+        review: _reviewController.text,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Rating submitted successfully!')),
+      );
+      
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to submit rating: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,11 +80,10 @@ class _SubmitRatingScreenState extends State<SubmitRatingScreen> {
           children: [
             Text(
               "How was your experience with ${widget.clientName}?",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             
-            // Star Rating
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (index) {
@@ -55,29 +101,27 @@ class _SubmitRatingScreenState extends State<SubmitRatingScreen> {
                 );
               }),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text("$_selectedRating / 5"),
             
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             
-            // Comment
             TextField(
-              controller: _commentController,
-              decoration: InputDecoration(
-                labelText: 'Comments (optional)',
+              controller: _reviewController,
+              decoration: const InputDecoration(
+                labelText: 'Review (optional)',
                 border: OutlineInputBorder(),
               ),
               maxLines: 4,
             ),
             
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             
-            // Submit Button
             ElevatedButton(
               onPressed: _isSubmitting ? null : _submitRating,
               child: _isSubmitting 
-                  ? CircularProgressIndicator()
-                  : Text('Submit Rating'),
+                  ? const CircularProgressIndicator()
+                  : const Text('Submit Rating'),
             ),
           ],
         ),
@@ -85,47 +129,9 @@ class _SubmitRatingScreenState extends State<SubmitRatingScreen> {
     );
   }
 
-  Future<void> _submitRating() async {
-    if (_selectedRating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select a rating')),
-      );
-      return;
-    }
-
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    try {
-      final provider = Provider.of<RatingProvider>(context, listen: false);
-      await provider.submitRating(
-        taskId: widget.taskId,
-        clientId: widget.clientId,
-        rating: _selectedRating,
-        comment: _commentController.text,
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Rating submitted successfully!')),
-      );
-      
-      Navigator.pop(context); // Go back after submission
-      
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to submit rating: $e')),
-      );
-    } finally {
-      setState(() {
-        _isSubmitting = false;
-      });
-    }
-  }
-
   @override
   void dispose() {
-    _commentController.dispose();
+    _reviewController.dispose();
     super.dispose();
   }
 }

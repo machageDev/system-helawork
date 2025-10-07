@@ -403,23 +403,24 @@ static Future<Map<String, dynamic>?> getUserProfile() async {
       throw Exception("Error posting data: $e");
     }
   }
-    static Future<Map<String, dynamic>> submitRating({
-    required int taskId,
-    required int raterId,
-    required int ratedUserId,
-    required int score,
-    String? comment,
-  }) async {
-    final body = {
-      "task": taskId,
-      "rater": raterId,
-      "rated_user": ratedUserId,
-      "score": score,
-      "comment": comment ?? "",
-    };
+  static Future<Map<String, dynamic>> submitRating({
+  required int taskId,
+  required int freelancerId, 
+  required int employerId,    
+  required int score,
+  String? review,             
+}) async {
+  final body = {
+    "task": taskId,
+    "freelancer": freelancerId,  
+    "employer": employerId,      
+    "score": score,
+    "review": review ?? "",      
+  };
 
-    return await postData('ratingsUrl', body);
-  }
+  return await postData('/employer_ratings/', body);
+}
+
   static Future<Proposal> submitProposal(Proposal proposal, {PlatformFile? pdfFile}) async {
   try {
     // Get authentication token
@@ -553,7 +554,7 @@ Future<List<Contract>> fetchContracts() async {
 }
   
   Future<void> acceptContract(int contractId) async {
-    final url = Uri.parse("$baseUrl/contracts/$contractId/accept/");
+    final url = Uri.parse('contractUrl');
     final response = await http.post(url);
 
     if (response.statusCode != 200) {
