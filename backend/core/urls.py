@@ -8,6 +8,10 @@ urlpatterns = [
     path('apilogin',views.apilogin, name = 'apilogin'),
     path('apiregister',views.apiregister,name='apiregister'),
     path('apiforgot_password',views.apiforgot_password, name = 'apiforgotpassword'),
+    path('employer_ratings/', views.employer_ratings_list, name='employer_ratings-list'),
+    path('employer_ratings', views.employer_rating_detail, name='employer_rating_detail'),
+    path('my_employer_ratings/', views.my_employer_ratings, name='my_employer_ratings'),
+    path('freelancer_ratings/', views.freelancer_ratings, name='freelancer_ratings'),
       
     path('apilistpayments',views.list_payments,name='list_payments'),
     path('apiupdatepayments',views.update_payment,name='update_payments'),

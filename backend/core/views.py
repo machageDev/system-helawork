@@ -403,7 +403,7 @@ def apisubmit_proposal(request):
         title = request.POST.get("title", "")
         cover_letter_file = request.FILES.get('cover_letter_file')
 
-        print(f"🔍 RECEIVED FORM DATA:")
+        print(f" RECEIVED FORM DATA:")
         print(f"   - task_id: {task_id}")
         print(f"   - bid_amount: {bid_amount}")
         print(f"   - title: {title}")
@@ -418,7 +418,7 @@ def apisubmit_proposal(request):
         
         try:
             task = Task.objects.get(pk=task_id)
-            print(f"✅ Task found: {task.title}")
+            print(f" Task found: {task.title}")
         except Task.DoesNotExist:
             return JsonResponse({"error": "Task not found"}, status=404)
 
@@ -640,8 +640,8 @@ def withdraw_mpesa(request, pk):
 
 def employer_dashboard(request):
     
-    #if not request.session.get('employer_id'):
-        #return redirect('login')
+    if not request.session.get('employer'):
+        return redirect('login')
 
     total_employees = User.objects.count()
     active_projects = Task.objects.filter(is_approved=True).count()  
@@ -651,7 +651,7 @@ def employer_dashboard(request):
     completed_tasks = Task.objects.filter(is_approved=True).count()
 
     
-    employer_id = request.session.get("employer_id")
+    employer_id = request.session.get("employer")
     profile = EmployerProfile.objects.filter(pk=employer_id).first()
 
     context = {
@@ -665,49 +665,67 @@ def employer_dashboard(request):
     }
 
     return render(request, "dashboard.html", context)
-
 def register(request):
     if request.method == "POST":
         username = request.POST.get("username")
-        email = request.POST.get("email")
-        company_name = request.POST.get("company_name")
+        contact_email = request.POST.get("contact_email")
         phone_number = request.POST.get("phone_number")
         password = request.POST.get("password")
         
-        if Employer.objects.filter(email=email).exists():
-                                    
-           messages.error(request,"Email already Exist!")
-           return redirect("register")        
+        # Check if email already exists
+        if Employer.objects.filter(contact_email=contact_email).exists():
+            messages.error(request, "Email already exists!")
+            return redirect("register")
+        
+        # Check if username exists
+        if Employer.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists!")
+            return redirect("register")
+        
+        # Check if phone number already exists (since it's unique in your model)
+        if phone_number and Employer.objects.filter(phone_number=phone_number).exists():
+            messages.error(request, "Phone number already registered!")
+            return redirect("register")
+        
         employer = Employer(
             username=username,
-            email=email,
-            company_name=company_name,
+            contact_email=contact_email,
             phone_number=phone_number,
             password=make_password(password)          
         )
         employer.save()
         messages.success(request, "Registration successful. Please login.")
         return redirect("login")
-    return render(request,'login.html')
+    
+    return render(request, 'register.html')
 
 def login_view(request):
-    if request.session.get('employer_id'):
-        return redirect(request.GET.get('next', 'employer_dashboard'))
+    # If user is already logged in, redirect to dashboard
+    if request.session.get('employer'):
+        return redirect('employer_dashboard')
 
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
 
         try:
-            employer = Employer.objects.get(username=username, password=password)
+            # Get employer by username only
+            employer = Employer.objects.get(username=username)
             
-            request.session['employer_id'] = employer.id
-            request.session['employer_name'] = employer.username
+            # Use check_password to verify the hashed password
+            if check_password(password, employer.password):
+                # Login successful - use employer_id, not id
+                request.session['employer'] = employer.employer_id
+                request.session['employer_name'] = employer.username
 
-            return redirect(request.GET.get('next', 'employer_dashboard'))
+                # Redirect to dashboard
+                return redirect('employer_dashboard')
+            else:
+                messages.error(request, "Invalid password")
+                return render(request, 'login.html')
 
         except Employer.DoesNotExist:
-            messages.error(request, "Invalid credentials")
+            messages.error(request, "Username not found")
             return render(request, 'login.html')
 
     return render(request, 'login.html')
