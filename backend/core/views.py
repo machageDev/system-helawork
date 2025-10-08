@@ -640,31 +640,75 @@ def withdraw_mpesa(request, pk):
 
 def employer_dashboard(request):
     
-    if not request.session.get('employer'):
+    employer = request.session.get('employer')
+    if not employer:
         return redirect('login')
-
-    total_employees = User.objects.count()
-    active_projects = Task.objects.filter(is_approved=True).count()  
-    pending_payments = Payment.objects.filter(status="Pending").aggregate(total=Sum("amount"))["total"] or 0
-
-    active_tasks = Task.objects.filter(is_approved=False).count()
-    completed_tasks = Task.objects.filter(is_approved=True).count()
-
     
-    employer_id = request.session.get("employer")
-    profile = EmployerProfile.objects.filter(pk=employer_id).first()
-
-    context = {
-        "total_workers": total_employees,
-        "active_projects": active_projects,
-        "pending_payments": pending_payments,
-        "active_tasks": active_tasks,
-        "completed_tasks": completed_tasks,
-        "employer_name": request.session.get("employer_name"),
-        "profile": profile,   
-    }
-
-    return render(request, "dashboard.html", context)
+    try:
+        
+        employer = Employer.objects.get(employer=employer)
+        
+        
+        active_jobs = Task.objects.filter(
+            employer=employer,
+            is_active=True
+        ).count()
+        
+        pending_proposals = Proposal.objects.filter(
+            task__employer=employer,
+            status='pending'
+        ).count()
+        
+        ongoing_tasks = Task.objects.filter(
+            employer=employer,
+            status='In Progress'
+        ).count()
+        
+        
+        total_spent_result = Payment.objects.filter(
+            employer=employer,
+            status='completed'
+        ).aggregate(total=Sum('amount'))
+        total_spent = total_spent_result['total'] or 0
+        
+        
+        jobs = Task.objects.filter(employer=employer).order_by('-created_at')[:5]
+        proposals = Proposal.objects.filter(task__employer=employer).select_related('freelancer', 'task').order_by('-submitted_at')[:5]
+        payments = Payment.objects.filter(employer=employer).select_related('task', 'worker').order_by('-date')[:5]
+        ratings = EmployerRating.objects.filter(employer=employer).select_related('task', 'rater').order_by('-created_at')[:5]
+        
+        context = {
+            'active_jobs': active_jobs,
+            'pending_proposals': pending_proposals,
+            'ongoing_tasks': ongoing_tasks,
+            'total_spent': total_spent,
+            'jobs': jobs,
+            'proposals': proposals,
+            'payments': payments,
+            'ratings': ratings,
+            'employer': employer,
+        }
+        
+        return render(request, 'dashboard.html', context)
+        
+    except Employer.DoesNotExist:
+        
+        request.session.flush()
+        return redirect('login')
+    except Exception as e:
+        
+        print(f"Dashboard error: {e}")
+        return render(request, 'dashboard.html', {
+            'active_jobs': 0,
+            'pending_proposals': 0,
+            'ongoing_tasks': 0,
+            'total_spent': 0,
+            'jobs': [],
+            'proposals': [],
+            'payments': [],
+            'ratings': [],
+        })
+        
 def register(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -672,17 +716,17 @@ def register(request):
         phone_number = request.POST.get("phone_number")
         password = request.POST.get("password")
         
-        # Check if email already exists
+        
         if Employer.objects.filter(contact_email=contact_email).exists():
             messages.error(request, "Email already exists!")
             return redirect("register")
         
-        # Check if username exists
+        
         if Employer.objects.filter(username=username).exists():
             messages.error(request, "Username already exists!")
             return redirect("register")
         
-        # Check if phone number already exists (since it's unique in your model)
+        
         if phone_number and Employer.objects.filter(phone_number=phone_number).exists():
             messages.error(request, "Phone number already registered!")
             return redirect("register")
@@ -700,7 +744,7 @@ def register(request):
     return render(request, 'register.html')
 
 def login_view(request):
-    # If user is already logged in, redirect to dashboard
+    
     if request.session.get('employer'):
         return redirect('employer_dashboard')
 
@@ -709,16 +753,16 @@ def login_view(request):
         password = request.POST.get('password')
 
         try:
-            # Get employer by username only
+            
             employer = Employer.objects.get(username=username)
             
-            # Use check_password to verify the hashed password
+            
             if check_password(password, employer.password):
-                # Login successful - use employer_id, not id
+                
                 request.session['employer'] = employer.employer_id
                 request.session['employer_name'] = employer.username
 
-                # Redirect to dashboard
+                
                 return redirect('employer_dashboard')
             else:
                 messages.error(request, "Invalid password")
