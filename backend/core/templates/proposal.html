@@ -4,48 +4,373 @@
 {% block title %}Proposals{% endblock %}
 {% block page_title %}Proposals List{% endblock %}
 
+{% block extra_head %}
+<style>
+    .proposals-list {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .proposal-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 24px;
+        border: 1px solid #e8ecef;
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .proposal-card:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+    }
+
+    .proposal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 24px;
+        border-bottom: 1px solid #f0f0f0;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+
+    .task-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 8px 0;
+    }
+
+    .submission-time {
+        color: #64748b;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #d97706;
+        border: 1px solid #fcd34d;
+    }
+
+    .status-accepted {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+
+    .status-rejected {
+        background: #fee2e2;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+    }
+
+    .proposal-content {
+        padding: 24px;
+    }
+
+    .freelancer-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .freelancer-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+
+    .freelancer-details h6 {
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 4px 0;
+    }
+
+    .rating {
+        color: #f59e0b;
+        font-size: 0.875rem;
+    }
+
+    .proposal-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .meta-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .meta-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .proposal-text {
+        margin-top: 20px;
+    }
+
+    .cover-letter {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 12px;
+        line-height: 1.6;
+        color: #475569;
+    }
+
+    .cover-letter p {
+        margin: 0;
+    }
+
+    .proposal-actions {
+        display: flex;
+        gap: 12px;
+        padding: 20px 24px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-accept {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-accept:hover {
+        background: #059669;
+        transform: translateY(-1px);
+    }
+
+    .btn-reject {
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-reject:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+    }
+
+    .btn-message {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-message:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #64748b;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #475569;
+        transform: translateY(-1px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #64748b;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #cbd5e1;
+        margin-bottom: 20px;
+    }
+
+    .empty-state h4 {
+        color: #475569;
+        margin-bottom: 12px;
+        font-weight: 600;
+    }
+
+    .empty-state p {
+        font-size: 1.125rem;
+        margin-bottom: 0;
+    }
+
+    .proposal-count {
+        color: #64748b;
+        font-size: 0.875rem;
+        margin-bottom: 24px;
+        padding: 12px 16px;
+        background: #f1f5f9;
+        border-radius: 8px;
+        border-left: 4px solid #3b82f6;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .proposals-list {
+            padding: 16px;
+        }
+
+        .proposal-header {
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .proposal-meta {
+            grid-template-columns: 1fr;
+        }
+
+        .proposal-actions {
+            flex-direction: column;
+        }
+
+        .btn-action {
+            justify-content: center;
+        }
+
+        .freelancer-info {
+            flex-direction: column;
+            text-align: center;
+            gap: 12px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="proposals-list">
     {% if proposals %}
+        <div class="proposal-count">
+            <strong>{{ proposals|length }}</strong> proposal{{ proposals|length|pluralize }} received
+        </div>
+
         {% for proposal in proposals %}
-            <div class="proposal-container">
+            <div class="proposal-card">
                 <div class="proposal-header">
                     <div>
                         <h5 class="task-title">{{ proposal.task.title }}</h5>
-                        <span class="text-muted">Submitted {{ proposal.submitted_at|timesince }} ago</span>
+                        <div class="submission-time">
+                            <i class="fas fa-clock"></i>
+                            Submitted {{ proposal.submitted_at|timesince }} ago
+                        </div>
                     </div>
-                    <span class="status-badge status-pending">Pending Review</span>
+                    <span class="status-badge status-{{ proposal.status|lower }}">
+                        {{ proposal.status }}
+                    </span>
                 </div>
                 
                 <div class="proposal-content">
                     <div class="freelancer-info">
-                        <div>
-                            <h6 class="mb-1">{{ proposal.freelancer.name }}</h6>
-                            <span class="text-muted">⭐ (reviews TBD)</span>
+                        <div class="freelancer-avatar">
+                            {{ proposal.freelancer.name|make_list|first|upper }}
+                        </div>
+                        <div class="freelancer-details">
+                            <h6>{{ proposal.freelancer.name }}</h6>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                                <span class="ms-1">(4.5)</span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="proposal-meta">
                         <div class="meta-item">
                             <span class="meta-label">Proposed Amount</span>
-                            <span class="meta-value">Ksh {{ proposal.bid_amount }}</span>
+                            <span class="meta-value">Ksh {{ proposal.bid_amount|floatformat:2 }}</span>
                         </div>
                         <div class="meta-item">
-                            <span class="meta-label">Submitted</span>
+                            <span class="meta-label">Timeline</span>
+                            <span class="meta-value">{{ proposal.estimated_days }} days</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Submitted Date</span>
                             <span class="meta-value">{{ proposal.submitted_at|date:"M d, Y" }}</span>
                         </div>
                     </div>
 
                     <div class="proposal-text">
-                        <p class="mb-2"><strong>Cover Letter:</strong></p>
-                        <p>{{ proposal.cover_letter }}</p>
+                        <p><strong>Cover Letter:</strong></p>
+                        <div class="cover-letter">
+                            <p>{{ proposal.cover_letter|linebreaks }}</p>
+                        </div>
                     </div>
                 </div>
 
                 <div class="proposal-actions">
-                    <button class="btn-action btn-accept">Accept Proposal</button>
-                    <button class="btn-action btn-reject">Reject</button>
-                    <button class="btn-action btn-message">Message</button>
+                    <button class="btn-action btn-accept">
+                        <i class="fas fa-check"></i>
+                        Accept Proposal
+                    </button>
+                    <button class="btn-action btn-reject">
+                        <i class="fas fa-times"></i>
+                        Reject
+                    </button>
+                    <button class="btn-action btn-message">
+                        <i class="fas fa-comment"></i>
+                        Message
+                    </button>
+                    <button class="btn-action btn-secondary">
+                        <i class="fas fa-eye"></i>
+                        View Profile
+                    </button>
                 </div>
             </div>
         {% endfor %}
@@ -53,7 +378,8 @@
         <div class="empty-state">
             <i class="fas fa-inbox"></i>
             <h4>No Proposals Yet</h4>
-            <p>You haven’t received any proposals for this task.</p>
+            <p>You haven't received any proposals for your tasks yet.</p>
+            <p class="mt-3">When freelancers submit proposals, they'll appear here for your review.</p>
         </div>
     {% endif %}
 </div>

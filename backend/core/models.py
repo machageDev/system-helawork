@@ -57,17 +57,52 @@ class EmployerProfile(models.Model):
         return self.company_name if self.company_name else self.contact_email
     
 class Task(models.Model):
+    TASK_CATEGORIES = [
+        ('web', 'Web Development'),
+        ('mobile', 'Mobile Development'),
+        ('design', 'Design'),
+        ('writing', 'Content Writing'),
+        ('marketing', 'Digital Marketing'),
+        ('other', 'Other'),
+    ]
+    
+    TASK_STATUS = [
+        ('open', 'Open'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
     task_id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=255)
     description = models.TextField()
+    
+    
+    category = models.CharField(max_length=50, choices=TASK_CATEGORIES, default='other')
+    budget = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    deadline = models.DateField(null=True, blank=True)
+    required_skills = models.CharField(max_length=255, blank=True)
+    is_urgent = models.BooleanField(default=False)
+    
+    
     is_approved = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)  # To control visibility to freelancers
+    status = models.CharField(max_length=20, choices=TASK_STATUS, default='open')
     created_at = models.DateTimeField(auto_now_add=True)
 
     employer = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name="tasks")
-    assigned_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="assigned_tasks", null=True, blank=True)
+    assigned_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.title
+    
+    @property
+    def is_open(self):
+        return self.status == 'open' and self.is_active
+    
+    @property
+    def has_assigned_freelancer(self):
+        return self.assigned_user is not None
 
 
 # Task completion / payout

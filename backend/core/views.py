@@ -639,39 +639,39 @@ def withdraw_mpesa(request, pk):
 
 
 def employer_dashboard(request):
+    # Get employer ID from session
+    employer_id = request.session.get('employer_id')  # Make sure you're storing 'employer_id' in session
     
-    employer = request.session.get('employer')
-    if not employer:
+    if not employer_id:
         return redirect('login')
     
     try:
+        # Get the employer object using the ID
+        employer = Employer.objects.get(employer_id=employer_id)  # Use employer_id to get the object
         
-        employer = Employer.objects.get(employer=employer)
-        
-        
+        # Now filter all queries by this specific employer
         active_jobs = Task.objects.filter(
-            employer=employer,
+            employer=employer,  # This will only show this employer's tasks
             is_active=True
         ).count()
         
         pending_proposals = Proposal.objects.filter(
-            task__employer=employer,
+            task__employer=employer,  # Only proposals for this employer's tasks
             status='pending'
         ).count()
         
         ongoing_tasks = Task.objects.filter(
-            employer=employer,
+            employer=employer,  # Only this employer's tasks
             status='In Progress'
         ).count()
         
-        
         total_spent_result = Payment.objects.filter(
-            employer=employer,
+            employer=employer,  # Only this employer's payments
             status='completed'
         ).aggregate(total=Sum('amount'))
         total_spent = total_spent_result['total'] or 0
         
-        
+        # Get recent data only for this employer
         jobs = Task.objects.filter(employer=employer).order_by('-created_at')[:5]
         proposals = Proposal.objects.filter(task__employer=employer).select_related('freelancer', 'task').order_by('-submitted_at')[:5]
         payments = Payment.objects.filter(employer=employer).select_related('task', 'worker').order_by('-date')[:5]
@@ -692,11 +692,9 @@ def employer_dashboard(request):
         return render(request, 'dashboard.html', context)
         
     except Employer.DoesNotExist:
-        
         request.session.flush()
         return redirect('login')
     except Exception as e:
-        
         print(f"Dashboard error: {e}")
         return render(request, 'dashboard.html', {
             'active_jobs': 0,
@@ -744,34 +742,22 @@ def register(request):
     return render(request, 'register.html')
 
 def login_view(request):
-    
-    if request.session.get('employer'):
-        return redirect('employer_dashboard')
-
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-
+        
         try:
-            
             employer = Employer.objects.get(username=username)
-            
-            
             if check_password(password, employer.password):
-                
-                request.session['employer'] = employer.employer_id
+                # Store employer_id in session, not the object
+                request.session['employer_id'] = employer.employer_id
                 request.session['employer_name'] = employer.username
-
-                
                 return redirect('employer_dashboard')
             else:
                 messages.error(request, "Invalid password")
-                return render(request, 'login.html')
-
         except Employer.DoesNotExist:
             messages.error(request, "Username not found")
-            return render(request, 'login.html')
-
+    
     return render(request, 'login.html')
 
 def logout_view(request):
@@ -782,34 +768,65 @@ def logout_view(request):
 
 
 def task_list(request):
-    tasks = Task.objects.select_related("employer").all()
-    return render(request, "task.html", {"tasks": tasks})
-
+    # Get the logged-in employer's ID from session
+    employer_id = request.session.get('employer_id')
+    
+    if not employer_id:
+        return redirect('login')
+    
+    try:
+        # Get the employer object
+        employer = Employer.objects.get(employer_id=employer_id)
+        
+        # Only show tasks that belong to this specific employer
+        tasks = Task.objects.filter(employer=employer).select_related("employer")
+        
+        return render(request, "task.html", {
+            "tasks": tasks,
+            "employer": employer
+        })
+        
+    except Employer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
 def create_task(request):
-    if request.method == "POST":
-        title = request.POST.get("title")
-        description = request.POST.get("description")
-        user_id = request.POST.get("user")
-        is_approved = True if request.POST.get("is_approved") else False
-
-        user = None
-        if user_id:
-            user = User.objects.filter(user_id=user_id).first()
-
-        employer = Employer.objects.get(pk=request.session["employer_id"])
-
-        Task.objects.create(
-            title=title,
-            description=description,
-            employer=employer,
-            user=User.user if user else None,
-            is_approved=is_approved,
-        )
-        return redirect("task_list")
-
-    user = User.objects.select_related("user").all()
-    return render(request, "create_task.html", {"users": user})
-
+    # Get the logged-in employer's ID from session
+    employer_id = request.session.get('employer_id')
+    
+    if not employer_id:
+        return redirect('login')
+    
+    try:
+        # Get the employer object
+        employer = Employer.objects.get(employer_id=employer_id)
+        
+        if request.method == 'POST':
+            # Create task and automatically assign it to this employer
+            # BUT the task will be visible to ALL freelancers
+            task = Task(
+                title=request.POST.get('title'),
+                description=request.POST.get('description'),
+                employer=employer,  # This tracks who created the task
+                category=request.POST.get('category'),
+                budget=request.POST.get('budget') or 0,
+                deadline=request.POST.get('deadline'),
+                required_skills=request.POST.get('skills', ''),
+                is_urgent=bool(request.POST.get('is_urgent')),
+                is_active=True,  # Task is active and visible to freelancers
+                status='Open'  # Task is open for proposals
+            )
+            task.save()
+            
+            messages.success(request, "Task created successfully! It's now visible to all freelancers.")
+            return redirect('task_list')
+        
+        return render(request, "create_task.html", {
+            "employer": employer
+        })
+        
+    except Employer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
 
 def worker_list(request):
     
@@ -959,17 +976,30 @@ def employer_ratings_detail(request, employer_id):
     return render(request, "employer_ratings_detail.html", {"employer": employer, "ratings": ratings})
 
 
-def proposal(request):    
+def proposal(request):
+    # Get the logged-in employer's ID from session
+    employer_id = request.session.get('employer_id')
     
-    task = get_object_or_404(Task)
+    if not employer_id:
+        return redirect('login')
     
-    proposals = Proposal.objects.filter(task=task).select_related("freelancer").order_by("-submitted_at")
-
-    context = {
-        "task": task,
-        "proposals": proposals,
-    }
-    return render(request, "proposal.html", context)
+    try:
+        # Get the employer object
+        employer = Employer.objects.get(employer_id=employer_id)
+        
+        # Only show proposals for this employer's tasks
+        proposals = Proposal.objects.filter(
+            task__employer=employer
+        ).select_related('freelancer', 'task')
+        
+        return render(request, "proposal.html", {
+            "proposals": proposals,
+            "employer": employer
+        })
+        
+    except Employer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
 
 
 def create_employer_profile(request):
