@@ -1,81 +1,60 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}HelaWork - Rate Freelancer: {{ task.title }}{% endblock %}
+{% block title %}HelaWork - Rate Freelancer{% endblock %}
 {% block page_title %}Rate Freelancer{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-lg-6 col-md-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-primary text-white py-3">
-                    <h5 class="card-title mb-0 text-center">
-                        <i class="fas fa-star me-2"></i>Rate Freelancer for: {{ task.title }}
-                    </h5>
+        <div class="col-lg-8 col-md-10">
+            
+            {% if not tasks %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle fa-2x mb-3"></i>
+                    <h4>No Tasks Available for Rating</h4>
+                    <p class="mb-0">You don't have any completed tasks with assigned freelancers to rate at the moment.</p>
+                    <a href="{% url 'task_list' %}" class="btn btn-primary mt-3">Back to Tasks</a>
                 </div>
-                <div class="card-body p-4">
-                    <!-- Task Info -->
-                    <div class="task-info mb-4 p-3 bg-light rounded">
-                        <div class="d-flex align-items-center mb-2">
-                            <i class="fas fa-tasks text-primary me-2"></i>
-                            <strong>Task:</strong>
-                            <span class="ms-2">{{ task.title }}</span>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-user text-primary me-2"></i>
-                            <strong>Freelancer:</strong>
-                            <span class="ms-2">{{ task.assigned_user.username }}</span>
+            {% else %}
+                <!-- Task Selection -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h5 class="card-title mb-0 text-center">
+                            <i class="fas fa-tasks me-2"></i>Select Task to Rate
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for task in tasks %}
+                                <div class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">{{ task.title }}</h6>
+                                            <p class="mb-1 text-muted">{{ task.description|truncatewords:20 }}</p>
+                                            <small class="text-muted">
+                                                <i class="fas fa-user me-1"></i>Freelancer: {{ task.assigned_user.username }}
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            <form method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="task_id" value="{{ task.task_id }}">
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    Rate This Task
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
                         </div>
                     </div>
-
-                    <!-- Rating Form -->
-                    <form method="post" class="needs-validation" novalidate>
-                        {% csrf_token %}
-                        
-                        <!-- Rating Score -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Overall Rating</label>
-                            <div class="rating-stars mb-3 text-center">
-                                {% for i in "12345" %}
-                                    <input type="radio" id="star{{ i }}" name="score" value="{{ i }}" 
-                                           class="d-none" {% if forloop.counter == 3 %}checked{% endif %}>
-                                    <label for="star{{ i }}" class="star-label me-1">
-                                        <i class="far fa-star fa-2x"></i>
-                                    </label>
-                                {% endfor %}
-                            </div>
-                            <div class="text-center text-muted">
-                                <small>Select a rating from 1 (Poor) to 5 (Excellent)</small>
-                            </div>
-                        </div>
-
-                        <!-- Review Text -->
-                        <div class="mb-4">
-                            <label for="review" class="form-label fw-bold">Your Review</label>
-                            <textarea name="review" id="review" rows="5" 
-                                      class="form-control" placeholder="Share your experience working with this freelancer. Did they deliver on time? How was the quality of their work?"
-                                      required></textarea>
-                            <div class="form-text">
-                                Your review helps other employers make informed decisions.
-                            </div>
-                        </div>
-
-                        <!-- Form Actions -->
-                        <div class="d-flex justify-content-between align-items-center pt-3">
-                            <a href="{% url 'task_list' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Back to Tasks
-                            </a>
-                            <button type="submit" class="btn btn-primary px-4">
-                                <i class="fas fa-paper-plane me-2"></i>Submit Rating
-                            </button>
-                        </div>
-                    </form>
                 </div>
-            </div>
+            {% endif %}
 
             <!-- Rating Guidelines -->
-            <div class="card mt-4 border-0 bg-light">
+            <div class="card border-0 bg-light">
                 <div class="card-body">
                     <h6 class="card-title">
                         <i class="fas fa-info-circle text-primary me-2"></i>Rating Guidelines
@@ -92,71 +71,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    .rating-stars { cursor: pointer; }
-    .star-label { cursor: pointer; transition: all 0.2s ease; }
-    .star-label:hover i { color: #ffc107 !important; transform: scale(1.1); }
-    input[type="radio"]:checked + .star-label i { color: #ffc107 !important; }
-    .star-label i { color: #dee2e6; transition: all 0.2s ease; }
-    .card { border-radius: 10px; }
-    .task-info { border-left: 4px solid #104EC0; }
-</style>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const starLabels = document.querySelectorAll('.star-label');
-        starLabels.forEach(label => {
-            label.addEventListener('click', function() {
-                const radio = document.getElementById(this.htmlFor);
-                if (radio) {
-                    radio.checked = true;
-                    const stars = document.querySelectorAll('.star-label i');
-                    const selectedIndex = parseInt(radio.value);
-                    stars.forEach((star, index) => {
-                        if (index < selectedIndex) {
-                            star.className = 'fas fa-star fa-2x';
-                            star.style.color = '#ffc107';
-                        } else {
-                            star.className = 'far fa-star fa-2x';
-                            star.style.color = '#dee2e6';
-                        }
-                    });
-                }
-            });
-        });
-
-        const defaultStar = document.querySelector('input[name="score"]:checked');
-        if (defaultStar) {
-            document.getElementById('star' + defaultStar.value).dispatchEvent(new Event('change'));
-        }
-
-        const form = document.querySelector('.needs-validation');
-        form.addEventListener('submit', function(event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            form.classList.add('was-validated');
-        });
-
-        const reviewTextarea = document.getElementById('review');
-        if (reviewTextarea) {
-            const counter = document.createElement('div');
-            counter.className = 'form-text text-end';
-            counter.innerHTML = '<span id="charCount">0</span>/500 characters';
-            reviewTextarea.parentNode.appendChild(counter);
-
-            reviewTextarea.addEventListener('input', function() {
-                const charCount = this.value.length;
-                document.getElementById('charCount').textContent = charCount;
-                counter.style.color = charCount > 500 ? '#dc3545' : '#6c757d';
-            });
-        }
-    });
-</script>
 {% endblock %}
