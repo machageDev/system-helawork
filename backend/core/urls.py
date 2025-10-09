@@ -29,6 +29,10 @@ urlpatterns = [
     path('dashboard',views.employer_dashboard,name='employer_dashboard'),
     path('login',views.login_view,name='login'),
     path('logout', views.logout_view, name='logout'),
+    path("tasks/", views.task_list, name="task_list"),
+    path("tasks/create/", views.create_task, name="create_task"),
+    path("tasks/<int:task_id>/", views.task_detail, name="task_detail"),  
+    path("proposals/<int:task_id>/", views.view_proposals, name="view_proposals"),
     path("tasks/create", views.create_task, name="create_task"),      
     path("tasks", views.task_list, name="task_list"),
     path('worker_list', views.worker_list, name="worker_list"),
@@ -43,7 +47,12 @@ urlpatterns = [
     path("proposals", views.proposal, name="task_proposals"),
     path('profile',views.create_employer_profile,name='employer_profile'),
     path('profileview',views.employer_profile,name='profileview'),
-
+    path("proposals/", views.proposal_list, name="proposal_list"),
     path("test-404/", views.test_404, name="test_404"),
+   
+    
+    path('proposals/accept/<int:proposal_id>/', views.accept_proposal, name='accept_proposal'),
+    path('proposals/reject/<int:proposal_id>/', views.reject_proposal, name='reject_proposal'),
+    path('profile/<int:freelancer_id>/', views.profile, name='view_freelancer_profile'),
 
 ]

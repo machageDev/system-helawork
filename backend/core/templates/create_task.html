@@ -4,38 +4,110 @@
 {% block title %}Create Task{% endblock %}
 {% block page_title %}Create New Task{% endblock %}
 
+{% block extra_head %}
+<style>
+    .form-label.required:after {
+        content: " *";
+        color: #dc3545;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+        padding: 1.5rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    }
+    
+    .form-check-input:checked {
+        background-color: #4e73df;
+        border-color: #4e73df;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
+        <div class="col-lg-10">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Create New Task</h4>
-                    <small class="text-white-50">This task will be visible to all freelancers</small>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-1">Create New Task</h4>
+                            <small class="text-white-50">This task will be immediately visible to all freelancers</small>
+                        </div>
+                        <div class="badge bg-light text-primary p-2">
+                            <i class="fas fa-users me-1"></i>Visible to Freelancers
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body p-4">
-                    <form method="post">
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>{{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" id="taskForm">
                         {% csrf_token %}
 
-                        <div class="mb-3">
-                            <label for="title" class="form-label">Task Title *</label>
-                            <input type="text" name="title" id="title" class="form-control" 
-                                   placeholder="e.g., Website Development, Mobile App Design" required>
-                            <div class="form-text">Choose a clear and descriptive title</div>
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>Basic Information
+                                </h5>
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                <label for="title" class="form-label required">Task Title</label>
+                                <input type="text" name="title" id="title" class="form-control form-control-lg" 
+                                       placeholder="e.g., Website Development, Mobile App Design, Content Writing Service" 
+                                       required maxlength="255">
+                                <div class="form-text">Choose a clear and descriptive title (max 255 characters)</div>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label for="description" class="form-label required">Task Description</label>
+                                <textarea name="description" id="description" class="form-control" 
+                                          rows="6" placeholder="Describe the task in detail including:
+• Specific requirements and deliverables
+• Expected timeline
+• Any special instructions
+• Communication preferences..." required></textarea>
+                                <div class="form-text">Be specific about requirements, deliverables, and expectations. Clear descriptions attract better proposals.</div>
+                                <div class="mt-1">
+                                    <small class="text-muted" id="descriptionCounter">0 characters</small>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Task Description *</label>
-                            <textarea name="description" id="description" class="form-control" 
-                                      rows="6" placeholder="Describe the task in detail..." required></textarea>
-                            <div class="form-text">Be specific about requirements, deliverables, and expectations</div>
-                        </div>
-
-                        <div class="row">
+                        <!-- Category & Budget -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-tags me-2"></i>Category & Budget
+                                </h5>
+                            </div>
+                            
                             <div class="col-md-6 mb-3">
-                                <label for="category" class="form-label">Category</label>
-                                <select name="category" id="category" class="form-select">
-                                    <option value="">Select Category</option>
+                                <label for="category" class="form-label required">Category</label>
+                                <select name="category" id="category" class="form-select" required>
+                                    <option value="">Select a Category</option>
                                     <option value="web">Web Development</option>
                                     <option value="mobile">Mobile Development</option>
                                     <option value="design">Design</option>
@@ -43,42 +115,82 @@
                                     <option value="marketing">Digital Marketing</option>
                                     <option value="other">Other</option>
                                 </select>
+                                <div class="form-text">Choose the most relevant category for your task</div>
                             </div>
+                            
                             <div class="col-md-6 mb-3">
                                 <label for="budget" class="form-label">Budget (Ksh)</label>
-                                <input type="number" name="budget" id="budget" class="form-control" 
-                                       placeholder="e.g., 5000" min="0">
-                                <div class="form-text">Estimated budget for this task</div>
+                                <div class="input-group">
+                                    <span class="input-group-text">Ksh</span>
+                                    <input type="number" name="budget" id="budget" class="form-control" 
+                                           placeholder="e.g., 5000" min="0" step="100">
+                                </div>
+                                <div class="form-text">Estimated budget. Leaving this blank may attract more proposals with varying prices.</div>
                             </div>
                         </div>
 
-                        <div class="row">
+                        <!-- Timeline & Requirements -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-calendar-alt me-2"></i>Timeline & Requirements
+                                </h5>
+                            </div>
+                            
                             <div class="col-md-6 mb-3">
                                 <label for="deadline" class="form-label">Deadline</label>
-                                <input type="date" name="deadline" id="deadline" class="form-control">
+                                <input type="date" name="deadline" id="deadline" class="form-control" 
+                                       min="{{ today|date:'Y-m-d' }}">
+                                <div class="form-text">Set a realistic deadline for task completion</div>
                             </div>
+                            
                             <div class="col-md-6 mb-3">
                                 <label for="skills" class="form-label">Required Skills</label>
                                 <input type="text" name="skills" id="skills" class="form-control" 
-                                       placeholder="e.g., Python, Django, React">
-                                <div class="form-text">Separate skills with commas</div>
+                                       placeholder="e.g., Python, Django, React, Graphic Design, SEO">
+                                <div class="form-text">Separate multiple skills with commas</div>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input type="checkbox" name="is_urgent" id="is_urgent" class="form-check-input">
-                                <label for="is_urgent" class="form-check-label">Mark as Urgent</label>
+                        <!-- Additional Options -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-cog me-2"></i>Additional Options
+                                </h5>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div class="form-check form-switch mb-3">
+                                    <input type="checkbox" name="is_urgent" id="is_urgent" class="form-check-input" role="switch">
+                                    <label for="is_urgent" class="form-check-label">
+                                        <strong>Mark as Urgent</strong>
+                                        <small class="text-muted d-block">This task will be highlighted to freelancers as high priority</small>
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-plus me-2"></i>Create Task
-                            </button>
-                            <a href="{% url 'task_list' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-times me-2"></i>Cancel
-                            </a>
+                        <!-- Form Actions -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex gap-2 justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            This task will be immediately visible to freelancers after creation
+                                        </small>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary btn-lg px-4">
+                                            <i class="fas fa-plus me-2"></i>Create Task
+                                        </button>
+                                        <a href="{% url 'task_list' %}" class="btn btn-outline-secondary btn-lg">
+                                            <i class="fas fa-times me-2"></i>Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -86,4 +198,67 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Character counter for description
+    const descriptionField = document.getElementById('description');
+    const descriptionCounter = document.getElementById('descriptionCounter');
+    
+    descriptionField.addEventListener('input', function() {
+        const count = this.value.length;
+        descriptionCounter.textContent = count + ' characters';
+        
+        if (count < 50) {
+            descriptionCounter.className = 'text-danger';
+        } else if (count < 100) {
+            descriptionCounter.className = 'text-warning';
+        } else {
+            descriptionCounter.className = 'text-success';
+        }
+    });
+    
+    // Set minimum date for deadline to today
+    const deadlineField = document.getElementById('deadline');
+    const today = new Date().toISOString().split('T')[0];
+    deadlineField.min = today;
+    
+    // Form validation
+    const taskForm = document.getElementById('taskForm');
+    taskForm.addEventListener('submit', function(e) {
+        const title = document.getElementById('title').value.trim();
+        const description = document.getElementById('description').value.trim();
+        const category = document.getElementById('category').value;
+        
+        if (!title) {
+            e.preventDefault();
+            alert('Please enter a task title');
+            return;
+        }
+        
+        if (!description) {
+            e.preventDefault();
+            alert('Please enter a task description');
+            return;
+        }
+        
+        if (!category) {
+            e.preventDefault();
+            alert('Please select a category');
+            return;
+        }
+        
+        if (description.length < 50) {
+            e.preventDefault();
+            alert('Please provide a more detailed description (at least 50 characters)');
+            return;
+        }
+    });
+    
+    // Initialize character counter
+    descriptionField.dispatchEvent(new Event('input'));
+});
+</script>
 {% endblock %}

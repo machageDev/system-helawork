@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Task Details - {{ task.title }}{% endblock %}
+{% block page_title %}Task Details{% endblock %}
+
+{% block extra_head %}
+<style>
+    .task-detail-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .task-header {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        border-radius: 15px 15px 0 0;
+        color: white;
+        padding: 2rem;
+    }
+    
+    .detail-section {
+        border-bottom: 1px solid #e3e6f0;
+        padding: 1.5rem 0;
+    }
+    
+    .detail-section:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #5a5c69;
+        margin-bottom: 0.5rem;
+    }
+    
+    .detail-value {
+        color: #858796;
+        font-size: 1.1rem;
+    }
+    
+    .status-badge {
+        font-size: 0.9rem;
+        padding: 8px 16px;
+        border-radius: 20px;
+    }
+    
+    .budget-amount {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1cc88a;
+    }
+    
+    .skill-badge {
+        background-color: #e3e6f0;
+        color: #4e73df;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        margin: 2px;
+        display: inline-block;
+    }
+    
+    .action-btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .info-card {
+        background: #f8f9fc;
+        border: 1px solid #e3e6f0;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .urgent-banner {
+        background: linear-gradient(45deg, #e74a3b, #f6c23e);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Back Navigation -->
+    <div class="mb-4">
+        <a href="{% url 'task_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Tasks
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Main Task Details -->
+        <div class="col-lg-8">
+            <div class="card task-detail-card">
+                <!-- Task Header -->
+                <div class="task-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h1 class="h3 mb-2">{{ task.title }}</h1>
+                            <div class="d-flex flex-wrap align-items-center gap-3">
+                                <span class="badge bg-light text-dark status-badge">
+                                    {{ task.get_category_display }}
+                                </span>
+                                {% if task.is_urgent %}
+                                <span class="badge bg-warning status-badge">
+                                    <i class="fas fa-bolt me-1"></i>URGENT
+                                </span>
+                                {% endif %}
+                                <span class="badge {% if task.status == 'open' %}bg-success{% elif task.status == 'in_progress' %}bg-primary{% elif task.status == 'completed' %}bg-info{% else %}bg-danger{% endif %} status-badge">
+                                    {{ task.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="budget-amount">
+                                {% if task.budget %}
+                                    Ksh {{ task.budget|floatformat:2 }}
+                                {% else %}
+                                    <span class="text-light">Budget Not Set</span>
+                                {% endif %}
+                            </div>
+                            <small class="text-light-50">Total Budget</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Body -->
+                <div class="card-body">
+                    <!-- Description Section -->
+                    <div class="detail-section">
+                        <h5 class="detail-label">
+                            <i class="fas fa-align-left me-2 text-primary"></i>Task Description
+                        </h5>
+                        <div class="detail-value">
+                            <p class="mb-0" style="white-space: pre-line; line-height: 1.6;">{{ task.description }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Requirements & Skills -->
+                    <div class="detail-section">
+                        <h5 class="detail-label">
+                            <i class="fas fa-tools me-2 text-primary"></i>Required Skills & Technologies
+                        </h5>
+                        <div class="detail-value">
+                            {% if task.required_skills %}
+                                <div class="d-flex flex-wrap">
+                                    {% for skill in task.required_skills.split %}
+                                        <span class="skill-badge">{{ skill.strip }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <span class="text-muted">No specific skills required</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Timeline Information -->
+                    <div class="detail-section">
+                        <h5 class="detail-label">
+                            <i class="fas fa-calendar-alt me-2 text-primary"></i>Timeline
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Created:</strong>
+                                <span class="text-muted">{{ task.created_at|date:"F d, Y" }}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Deadline:</strong>
+                                {% if task.deadline %}
+                                    {% if task.deadline < today %}
+                                        <span class="text-danger">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            {{ task.deadline|date:"F d, Y" }} (Overdue)
+                                        </span>
+                                    {% else %}
+                                        <span class="text-success">{{ task.deadline|date:"F d, Y" }}</span>
+                                        <small class="text-muted d-block">
+                                            {{ task.deadline|timeuntil }} remaining
+                                        </small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">No deadline set</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task Status Information -->
+                    <div class="detail-section">
+                        <h5 class="detail-label">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>Task Status
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="info-card text-center">
+                                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                                    <div class="h5 mb-1">Approved</div>
+                                    <small class="text-muted">
+                                        {% if task.is_approved %}
+                                            <span class="text-success">Yes</span>
+                                        {% else %}
+                                            <span class="text-danger">No</span>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="info-card text-center">
+                                    <i class="fas fa-eye fa-2x text-info mb-2"></i>
+                                    <div class="h5 mb-1">Visibility</div>
+                                    <small class="text-muted">
+                                        {% if task.is_active %}
+                                            <span class="text-success">Active</span>
+                                        {% else %}
+                                            <span class="text-danger">Hidden</span>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="info-card text-center">
+                                    <i class="fas fa-bolt fa-2x text-warning mb-2"></i>
+                                    <div class="h5 mb-1">Priority</div>
+                                    <small class="text-muted">
+                                        {% if task.is_urgent %}
+                                            <span class="text-warning">High</span>
+                                        {% else %}
+                                            <span class="text-success">Normal</span>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Assigned Freelancer -->
+                    {% if task.assigned_user %}
+                    <div class="detail-section">
+                        <h5 class="detail-label">
+                            <i class="fas fa-user-check me-2 text-primary"></i>Assigned Freelancer
+                        </h5>
+                        <div class="detail-value">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-lg bg-primary rounded-circle text-white d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                                    {{ task.assigned_user.username|make_list|first|upper }}
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ task.assigned_user.username }}</h6>
+                                    <p class="text-muted mb-0">{{ task.assigned_user.email }}</p>
+                                    <small class="text-success">Currently working on this task</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar - Actions & Statistics -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card task-detail-card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2 text-primary"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if task.status == 'open' %}
+                            <a href="{% url 'view_proposals' task.task_id %}" class="btn btn-primary action-btn">
+                                <i class="fas fa-list me-2"></i>
+                                View Proposals
+                                {% if task.proposals.count > 0 %}
+                                    <span class="badge bg-light text-dark ms-2">{{ task.proposals.count }}</span>
+                                {% endif %}
+                            </a>
+                        {% endif %}
+                        
+                        {% if task.assigned_user %}
+                            <button class="btn btn-info action-btn" onclick="alert('Messaging feature coming soon!')">
+                                <i class="fas fa-envelope me-2"></i>Message Freelancer
+                            </button>
+                        {% endif %}
+                        
+                        <a href="{% url 'task_list' %}" class="btn btn-outline-secondary action-btn">
+                            <i class="fas fa-tasks me-2"></i>Back to Tasks
+                        </a>
+                        
+                        {% if task.status == 'open' %}
+                            <button class="btn btn-warning action-btn" onclick="alert('Edit feature coming soon!')">
+                                <i class="fas fa-edit me-2"></i>Edit Task
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Statistics -->
+            <div class="card task-detail-card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2 text-primary"></i>Task Statistics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Proposals Received</span>
+                            <span class="badge bg-primary rounded-pill">{{ task.proposals.count }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Days Active</span>
+                            <span class="badge bg-info rounded-pill">{{ task.created_at|timesince }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Task Status</span>
+                            <span class="badge {% if task.status == 'open' %}bg-success{% elif task.status == 'in_progress' %}bg-primary{% elif task.status == 'completed' %}bg-info{% else %}bg-danger{% endif %} rounded-pill">
+                                {{ task.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Category</span>
+                            <span class="badge bg-secondary rounded-pill">{{ task.get_category_display }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employer Information -->
+            <div class="card task-detail-card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-building me-2 text-primary"></i>Employer Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-lg bg-success rounded-circle text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                            {{ employer.name|make_list|first|upper }}
+                        </div>
+                        <div>
+                            <h6 class="mb-1">{{ employer.name }}</h6>
+                            <p class="text-muted mb-0">{{ employer.company_name }}</p>
+                            <small class="text-muted">Task Creator</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Task detail page loaded');
+    
+    // Add any interactive functionality here
+    const actionButtons = document.querySelectorAll('.action-btn');
+    actionButtons.forEach(button => {
+        button.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        button.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

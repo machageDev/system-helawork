@@ -4,19 +4,109 @@
 {% block title %}Employer Dashboard{% endblock %}
 {% block page_title %}Employer Dashboard{% endblock %}
 
+{% block extra_head %}
+<style>
+    .stat-card {
+        transition: transform 0.2s ease;
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .border-left-primary {
+        border-left: 4px solid #4e73df !important;
+    }
+    
+    .border-left-success {
+        border-left: 4px solid #1cc88a !important;
+    }
+    
+    .border-left-warning {
+        border-left: 4px solid #f6c23e !important;
+    }
+    
+    .border-left-info {
+        border-left: 4px solid #36b9cc !important;
+    }
+    
+    .border-left-secondary {
+        border-left: 4px solid #858796 !important;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #5a5c69;
+    }
+    
+    .badge-success { background-color: #1cc88a; }
+    .badge-warning { background-color: #f6c23e; }
+    .badge-secondary { background-color: #858796; }
+    .badge-info { background-color: #36b9cc; }
+    .badge-primary { background-color: #4e73df; }
+    .badge-danger { background-color: #e74a3b; }
+    
+    .list-group-item {
+        border: none;
+        border-bottom: 1px solid #eaecf4;
+        padding: 1rem 0;
+    }
+    
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+    
+    .urgent-badge {
+        background-color: #e74a3b;
+        color: white;
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-left: 5px;
+    }
+    
+    .task-actions {
+        display: flex;
+        gap: 5px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
 
-    <!-- Stats Row -->
+    <!-- Welcome Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Welcome back, {{ employer.name }}!</h1>
+            <p class="text-muted">Here's what's happening with your jobs and proposals.</p>
+        </div>
+        <a href="{% url 'create_task' %}" class="d-none d-sm-inline-block btn btn-primary shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50 me-1"></i> 
+            Create New Task
+        </a>
+    </div>
+
+    <!-- Stats Row - Updated to show ALL tasks statistics -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card border-left-primary shadow h-100 py-2 stat-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Active Jobs</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_jobs }}</div>
+                                Total Tasks</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_tasks }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-briefcase fa-2x text-gray-300"></i>
@@ -27,16 +117,16 @@
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
+            <div class="card border-left-success shadow h-100 py-2 stat-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Proposals Pending</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_proposals }}</div>
+                                Active Jobs</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_jobs }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                            <i class="fas fa-play-circle fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
@@ -44,12 +134,12 @@
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card border-left-warning shadow h-100 py-2 stat-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Ongoing Tasks</div>
+                                In Progress</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ ongoing_tasks }}</div>
                         </div>
                         <div class="col-auto">
@@ -61,16 +151,16 @@
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
+            <div class="card border-left-info shadow h-100 py-2 stat-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Total Spent</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">Ksh {{ total_spent|floatformat:2 }}</div>
+                                Proposals</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_proposals }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
@@ -78,12 +168,12 @@
         </div>
     </div>
 
-    <!-- Jobs Posted -->
+    <!-- All Recent Tasks (All Statuses) -->
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">My Recent Jobs</h6>
-            <a href="{% url 'create_task' %}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus me-1"></i>Post New Job
+            <h6 class="m-0 font-weight-bold text-primary">My Recent Tasks</h6>
+            <a href="{% url 'task_list' %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-list me-1"></i>View All Tasks
             </a>
         </div>
         <div class="card-body">
@@ -93,6 +183,8 @@
                         <thead class="thead-light">
                             <tr>
                                 <th>Title</th>
+                                <th>Category</th>
+                                <th>Budget</th>
                                 <th>Deadline</th>
                                 <th>Status</th>
                                 <th>Proposals</th>
@@ -100,23 +192,65 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for job in jobs %}
+                            {% for task in jobs %}
                             <tr>
-                                <td>{{ job.title }}</td>
-                                <td>{{ job.deadline|date:"M d, Y"|default:"Not set" }}</td>
                                 <td>
-                                    <span class="badge badge-{% if job.status == 'Completed' %}success{% elif job.status == 'In Progress' %}warning{% else %}secondary{% endif %}">
-                                        {{ job.status|default:"Open" }}
+                                    <strong>{{ task.title }}</strong>
+                                    {% if task.is_urgent %}
+                                        <span class="urgent-badge">URGENT</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ task.get_category_display }}</span>
+                                </td>
+                                <td>
+                                    {% if task.budget %}
+                                        Ksh {{ task.budget|floatformat:2 }}
+                                    {% else %}
+                                        <span class="text-muted">Not set</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if task.deadline %}
+                                        {{ task.deadline|date:"M d, Y" }}
+                                    {% else %}
+                                        <span class="text-muted">Not set</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if task.status == 'open' %}
+                                        <span class="badge bg-success">Open</span>
+                                    {% elif task.status == 'in_progress' %}
+                                        <span class="badge bg-primary">In Progress</span>
+                                    {% elif task.status == 'completed' %}
+                                        <span class="badge bg-info">Completed</span>
+                                    {% elif task.status == 'cancelled' %}
+                                        <span class="badge bg-danger">Cancelled</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ task.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge {% if task.proposals.count > 0 %}bg-primary{% else %}bg-secondary{% endif %}">
+                                        {{ task.proposals.count }}
                                     </span>
                                 </td>
-                                <td>{{ job.proposal_set.count|default:0 }}</td>
                                 <td>
-                                    <a href="{% url 'job_detail' job.id %}" class="btn btn-info btn-sm">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{% url 'proposal_list' job.id %}" class="btn btn-warning btn-sm">
-                                        <i class="fas fa-list"></i>
-                                    </a>
+                                    <div class="task-actions">
+                                        <a href="{% url 'task_detail' task.task_id %}" class="btn btn-info btn-sm" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if task.status == 'open' %}
+                                            <a href="{% url 'view_proposals' task.task_id %}" class="btn btn-warning btn-sm" title="View Proposals">
+                                                <i class="fas fa-list"></i>
+                                            </a>
+                                        {% endif %}
+                                        {% if task.assigned_user %}
+                                            <button class="btn btn-success btn-sm" title="Contact Freelancer" onclick="alert('Contact feature coming soon!')">
+                                                <i class="fas fa-envelope"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -126,10 +260,10 @@
             {% else %}
                 <div class="text-center py-4">
                     <i class="fas fa-briefcase fa-3x text-gray-300 mb-3"></i>
-                    <h5 class="text-gray-500">No jobs posted yet</h5>
-                    <p class="text-gray-500">Get started by posting your first job</p>
+                    <h5 class="text-gray-500">No tasks posted yet</h5>
+                    <p class="text-gray-500">Get started by posting your first task</p>
                     <a href="{% url 'create_task' %}" class="btn btn-primary">
-                        <i class="fas fa-plus me-1"></i>Post Your First Job
+                        <i class="fas fa-plus me-1"></i>Post Your First Task
                     </a>
                 </div>
             {% endif %}
@@ -140,20 +274,31 @@
         <!-- Recent Proposals -->
         <div class="col-lg-6 mb-4">
             <div class="card shadow">
-                <div class="card-header py-3">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">Recent Proposals</h6>
+                    <a href="{% url 'proposal_list' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-eye me-1"></i>View All
+                    </a>
                 </div>
                 <div class="card-body">
                     {% if proposals %}
                         <div class="list-group list-group-flush">
-                            {% for p in proposals %}
+                            {% for proposal in proposals %}
                             <div class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>{{ p.freelancer.username|default:p.freelancer.name }}</strong>
-                                    <small class="d-block text-muted">Applied for {{ p.task.title }}</small>
-                                    <small class="text-muted">{{ p.submitted_at|date:"M d, Y"|default:"Recently" }}</small>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="avatar-sm bg-primary rounded-circle text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                            {{ proposal.freelancer.username|make_list|first|upper }}
+                                        </div>
+                                        <div>
+                                            <strong class="d-block">{{ proposal.freelancer.username }}</strong>
+                                            <small class="text-muted">Bid: Ksh {{ proposal.bid_amount|floatformat:2 }}</small>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted d-block">Applied for: {{ proposal.task.title }}</small>
+                                    <small class="text-muted">{{ proposal.submitted_at|date:"M d, Y • g:i A" }}</small>
                                 </div>
-                                <a href="{% url 'proposal_detail' p.id %}" class="btn btn-primary btn-sm">Review</a>
+                                <a href="{% url 'view_proposals' proposal.task.task_id %}" class="btn btn-primary btn-sm">Review</a>
                             </div>
                             {% endfor %}
                         </div>
@@ -161,92 +306,113 @@
                         <div class="text-center py-3">
                             <i class="fas fa-clipboard-list fa-2x text-gray-300 mb-2"></i>
                             <p class="text-gray-500 mb-0">No new proposals</p>
+                            <small class="text-muted">Proposals will appear here when freelancers apply to your tasks</small>
                         </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Recent Ratings -->
+        <!-- Quick Actions -->
         <div class="col-lg-6 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Ratings</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
                 </div>
                 <div class="card-body">
-                    {% if ratings %}
-                        <div class="list-group list-group-flush">
-                            {% for r in ratings %}
-                            <div class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <strong>{{ r.task.title|default:"Task" }}</strong>
-                                        <div class="text-warning">
-                                            {% for i in "12345" %}
-                                                <i class="fas fa-star{% if forloop.counter > r.rating %} text-gray-300{% endif %}"></i>
-                                            {% endfor %}
-                                        </div>
-                                        <small class="text-muted">by {{ r.rater.username|default:"User" }}</small>
-                                        <small class="d-block text-muted">{{ r.created_at|date:"M d, Y"|default:"Recently" }}</small>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <a href="{% url 'create_task' %}" class="btn btn-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                                <i class="fas fa-plus-circle fa-2x mb-2"></i>
+                                <span>Create Task</span>
+                            </a>
                         </div>
-                    {% else %}
-                        <div class="text-center py-3">
-                            <i class="fas fa-star fa-2x text-gray-300 mb-2"></i>
-                            <p class="text-gray-500 mb-0">No ratings yet</p>
+                        <div class="col-6">
+                            <a href="{% url 'task_list' %}" class="btn btn-success w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                                <i class="fas fa-tasks fa-2x mb-2"></i>
+                                <span>Manage Tasks</span>
+                            </a>
                         </div>
-                    {% endif %}
+                        <div class="col-6">
+                            <a href="{% url 'proposal_list' %}" class="btn btn-info w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                               <i class="fas fa-list fa-2x mb-2"></i>
+                               <span>View Proposals</span>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="#" class="btn btn-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                                <i class="fas fa-users fa-2x mb-2"></i>
+                                <span>Freelancers</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Payments -->
+    <!-- Recent Activity -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Recent Payments</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
         </div>
         <div class="card-body">
-            {% if payments %}
-                <div class="table-responsive">
-                    <table class="table table-bordered" width="100%" cellspacing="0">
-                        <thead class="thead-light">
-                            <tr>
-                                <th>Task</th>
-                                <th>Freelancer</th>
-                                <th>Amount</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for pay in payments %}
-                            <tr>
-                                <td>{{ pay.task.title|default:"Task" }}</td>
-                                <td>{{ pay.worker.username|default:pay.worker.name }}</td>
-                                <td>Ksh {{ pay.amount|floatformat:2 }}</td>
-                                <td>{{ pay.date|date:"M d, Y"|default:"Not set" }}</td>
-                                <td>
-                                    <span class="badge badge-{% if pay.status == 'completed' or pay.status == 'Paid' %}success{% else %}warning{% endif %}">
-                                        {{ pay.status|default:"Pending" }}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+            {% if jobs or proposals %}
+                <div class="timeline">
+                    {% for task in jobs|slice:":3" %}
+                    <div class="timeline-item mb-3">
+                        <div class="timeline-marker bg-primary"></div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">Task Created</h6>
+                            <p class="mb-1 text-muted">"{{ task.title }}" was created</p>
+                            <small class="text-muted">{{ task.created_at|timesince }} ago • 
+                                <span class="badge {% if task.status == 'open' %}bg-success{% elif task.status == 'in_progress' %}bg-primary{% elif task.status == 'completed' %}bg-info{% else %}bg-danger{% endif %}">
+                                    {{ task.get_status_display }}
+                                </span>
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% for proposal in proposals|slice:":3" %}
+                    <div class="timeline-item mb-3">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">New Proposal Received</h6>
+                            <p class="mb-1 text-muted">{{ proposal.freelancer.username }} applied to "{{ proposal.task.title }}"</p>
+                            <small class="text-muted">{{ proposal.submitted_at|timesince }} ago • Ksh {{ proposal.bid_amount|floatformat:2 }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
             {% else %}
-                <div class="text-center py-4">
-                    <i class="fas fa-money-bill fa-3x text-gray-300 mb-3"></i>
-                    <h5 class="text-gray-500">No payments made yet</h5>
+                <div class="text-center py-3">
+                    <i class="fas fa-history fa-2x text-gray-300 mb-2"></i>
+                    <p class="text-gray-500 mb-0">No recent activity</p>
+                    <small class="text-muted">Activity will appear here as you use the platform</small>
                 </div>
             {% endif %}
         </div>
     </div>
 
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dashboard loaded successfully');
+    
+    // Add hover effects for cards
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.boxShadow = '0 2px 10px rgba(0,0,0,0.08)';
+        });
+    });
+});
+</script>
 {% endblock %}

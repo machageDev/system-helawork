@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timezone
 import random
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -647,26 +647,32 @@ def employer_dashboard(request):
     try:
         employer = Employer.objects.get(employer_id=employer_id)
         
+        # Get ALL tasks posted by this employer (not just active ones)
+        all_tasks = Task.objects.filter(employer=employer)
         
-        active_jobs = Task.objects.filter(employer=employer).count()
+        # Calculate statistics for ALL tasks
+        total_tasks = all_tasks.count()
+        
         pending_proposals = Proposal.objects.filter(task__employer=employer).count()
-        ongoing_tasks = Task.objects.filter(employer=employer).count()
+        ongoing_tasks = all_tasks.filter(status='in_progress').count()
+        completed_tasks = all_tasks.filter(status='completed').count()
+        total_spent = 0  # You can calculate this later when you have payment data
         
-        total_spent = 0  # Temporary until Payment model is fixed
-        
-        
-        jobs = Task.objects.filter(employer=employer).order_by('-created_at')[:5]
-        proposals = Proposal.objects.filter(task__employer=employer).select_related('freelancer', 'task').order_by('-submitted_at')[:5]
+        # Get recent tasks (all statuses)
+        recent_tasks = all_tasks.order_by('-created_at')[:5]
+        recent_proposals = Proposal.objects.filter(task__employer=employer).select_related('freelancer', 'task').order_by('-submitted_at')[:5]
         payments = []  
         ratings = []   
         
         context = {
-            'active_jobs': active_jobs,
+            'total_tasks': total_tasks,  
+            
             'pending_proposals': pending_proposals,
             'ongoing_tasks': ongoing_tasks,
+            'completed_tasks': completed_tasks,  # Add completed tasks count
             'total_spent': total_spent,
-            'jobs': jobs,
-            'proposals': proposals,
+            'jobs': recent_tasks,  # This now contains all recent tasks
+            'proposals': recent_proposals,
             'payments': payments,
             'ratings': ratings,
             'employer': employer,
@@ -677,16 +683,17 @@ def employer_dashboard(request):
     except Exception as e:
         print(f"Dashboard error: {e}")
         return render(request, 'dashboard.html', {
+            'total_tasks': 0,
             'active_jobs': 0,
             'pending_proposals': 0,
             'ongoing_tasks': 0,
+            'completed_tasks': 0,
             'total_spent': 0,
             'jobs': [],
             'proposals': [],
             'payments': [],
             'ratings': [],
         })
-        
 def register(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -729,7 +736,7 @@ def login_view(request):
         try:
             employer = Employer.objects.get(username=username)
             if check_password(password, employer.password):
-                # Store employer_id in session, not the object
+                
                 request.session['employer_id'] = employer.employer_id
                 request.session['employer_name'] = employer.username
                 return redirect('employer_dashboard')
@@ -745,68 +752,174 @@ def logout_view(request):
     messages.success(request, "You have been successfully logged out.")
     return redirect("login")
 
-
-
+from django.utils import timezone
+timezone.now() 
 def task_list(request):
-    # Get the logged-in employer's ID from session
     employer_id = request.session.get('employer_id')
     
     if not employer_id:
         return redirect('login')
     
     try:
-        # Get the employer object
         employer = Employer.objects.get(employer_id=employer_id)
+        tasks = Task.objects.filter(employer=employer).select_related("employer", "assigned_user")
         
-        # Only show tasks that belong to this specific employer
-        tasks = Task.objects.filter(employer=employer).select_related("employer")
+        # Calculate statistics
+        total_tasks = tasks.count()
+        open_tasks = tasks.filter(status='open').count()
+        assigned_tasks = tasks.filter(assigned_user__isnull=False).count()
+        completed_tasks = tasks.filter(status='completed').count()
         
         return render(request, "task.html", {
             "tasks": tasks,
-            "employer": employer
+            "employer": employer,
+            "total_tasks": total_tasks,
+            "open_tasks": open_tasks,
+            "assigned_tasks": assigned_tasks,
+            "completed_tasks": completed_tasks,
+            "today": timezone.now().date(),  
         })
         
     except Employer.DoesNotExist:
         request.session.flush()
         return redirect('login')
+
+from django.utils import timezone
+from datetime import datetime
+
 def create_task(request):
-    # Get the logged-in employer's ID from session
     employer_id = request.session.get('employer_id')
     
     if not employer_id:
         return redirect('login')
     
     try:
-        # Get the employer object
         employer = Employer.objects.get(employer_id=employer_id)
         
         if request.method == 'POST':
-            # Create task and automatically assign it to this employer
-            # BUT the task will be visible to ALL freelancers
+            # Get and validate form data
+            title = request.POST.get('title', '').strip()
+            description = request.POST.get('description', '').strip()
+            category = request.POST.get('category', 'other')
+            
+            # Basic validation
+            if not title or not description or not category:
+                messages.error(request, "Please fill in all required fields.")
+                return render(request, "create_task.html", {"employer": employer, "today": timezone.now().date()})
+            
+            if len(description) < 50:
+                messages.error(request, "Please provide a more detailed description (at least 50 characters).")
+                return render(request, "create_task.html", {"employer": employer, "today": timezone.now().date()})
+            
+            # Process budget
+            budget = request.POST.get('budget')
+            budget = float(budget) if budget and budget.strip() else None
+            
+            # Process deadline
+            deadline_str = request.POST.get('deadline')
+            deadline = None
+            if deadline_str:
+                try:
+                    deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
+                    # Ensure deadline is not in the past
+                    if deadline < timezone.now().date():
+                        messages.error(request, "Deadline cannot be in the past.")
+                        return render(request, "create_task.html", {"employer": employer, "today": timezone.now().date()})
+                except ValueError:
+                    messages.error(request, "Invalid deadline format.")
+                    return render(request, "create_task.html", {"employer": employer, "today": timezone.now().date()})
+            
+            # Create task - AUTO-APPROVE since creator is approving it
             task = Task(
-                title=request.POST.get('title'),
-                description=request.POST.get('description'),
-                employer=employer,  # This tracks who created the task
-                category=request.POST.get('category'),
-                budget=request.POST.get('budget') or 0,
-                deadline=request.POST.get('deadline'),
-                required_skills=request.POST.get('skills', ''),
+                title=title,
+                description=description,
+                employer=employer,
+                category=category,
+                budget=budget,
+                deadline=deadline,
+                required_skills=request.POST.get('skills', '').strip(),
                 is_urgent=bool(request.POST.get('is_urgent')),
-                is_active=True,  # Task is active and visible to freelancers
-                status='Open'  # Task is open for proposals
+                is_active=True,
+                status='open',
+                is_approved=True  # Auto-approve since creator is approving it
             )
             task.save()
             
-            messages.success(request, "Task created successfully! It's now visible to all freelancers.")
+            messages.success(request, 
+                "Task created and approved successfully! It's now visible to all freelancers."
+            )
             return redirect('task_list')
         
+        # GET request - show form
         return render(request, "create_task.html", {
+            "employer": employer,
+            "today": timezone.now().date()
+        })
+        
+    except Employer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+    
+def task_detail(request, task_id):
+    employer_id = request.session.get('employer_id')
+    
+    if not employer_id:
+        return redirect('login')
+    
+    try:
+        employer = Employer.objects.get(employer_id=employer_id)
+        task = Task.objects.get(task_id=task_id, employer=employer)
+        
+        return render(request, "task_detail.html", {
+            "task": task,
+            "employer": employer
+        })
+        
+    except (Employer.DoesNotExist, Task.DoesNotExist):
+        messages.error(request, "Task not found.")
+        return redirect('task_list')    
+def proposal_list(request):
+    employer_id = request.session.get('employer_id')
+    
+    if not employer_id:
+        return redirect('login')
+    
+    try:
+        employer = Employer.objects.get(employer_id=employer_id)
+        
+        
+        proposals = Proposal.objects.filter(
+            task__employer=employer
+        ).select_related('freelancer', 'task').order_by('-submitted_at')
+        
+        return render(request, "proposal_list.html", {
+            "proposals": proposals,
             "employer": employer
         })
         
     except Employer.DoesNotExist:
         request.session.flush()
         return redirect('login')
+def view_proposals(request, task_id):
+    employer_id = request.session.get('employer_id')
+    
+    if not employer_id:
+        return redirect('login')
+    
+    try:
+        employer = Employer.objects.get(employer_id=employer_id)
+        task = Task.objects.get(task_id=task_id, employer=employer)
+        proposals = Proposal.objects.filter(task=task).select_related('freelancer')
+        
+        return render(request, "proposal.html", {
+            "task": task,
+            "proposals": proposals,
+            "employer": employer
+        })
+        
+    except (Employer.DoesNotExist, Task.DoesNotExist):
+        messages.error(request, "Task not found.")
+        return redirect('task_list')
 
 def worker_list(request):
     
@@ -920,7 +1033,7 @@ def reset_password(request, uidb64, token):
     
 
 def create_employer_rating(request):
-    # Get the logged-in employer
+    
     employer_id = request.session.get('employer_id')
     if not employer_id:
         return redirect('login')
@@ -929,7 +1042,7 @@ def create_employer_rating(request):
         employer = Employer.objects.get(employer_id=employer_id)
         
         if request.method == "POST":
-            # Get task_id from the form to identify which task to rate
+            
             task_id = request.POST.get("task_id")
             if not task_id:
                 messages.error(request, "Please select a task to rate.")
@@ -983,22 +1096,26 @@ def employer_ratings_detail(request, employer_id):
     ratings = EmployerRating.objects.filter(employer=employer).order_by("-created_at")
     return render(request, "employer_ratings_detail.html", {"employer": employer, "ratings": ratings})
 
-
 def proposal(request):
-    
     employer_id = request.session.get('employer_id')
     
     if not employer_id:
         return redirect('login')
     
     try:
-        
         employer = Employer.objects.get(employer_id=employer_id)
         
         
         proposals = Proposal.objects.filter(
-            task__employer=employer
+            task__employer=employer,
+            freelancer__isnull=False  
         ).select_related('freelancer', 'task')
+        
+       
+        print(f"Found {proposals.count()} proposals")
+        for p in proposals:
+            freelancer_id = p.freelancer.pk if p.freelancer else 'None'
+            print(f"Proposal {p.proposal_id}: Freelancer ID = {freelancer_id}")
         
         return render(request, "proposal.html", {
             "proposals": proposals,
@@ -1009,7 +1126,101 @@ def proposal(request):
         request.session.flush()
         return redirect('login')
 
+def accept_proposal(request, proposal_id):
+    employer_id = request.session.get('employer_id')
+    
+    if not employer_id:
+        return redirect('login')
+    
+    try:
+        employer = Employer.objects.get(employer_id=employer_id)
+        
+        
+        proposal = Proposal.objects.get(proposal_id=proposal_id, task__employer=employer)
+        
+       
+        task = proposal.task
+        
+        
+        if task.status != 'open':
+            messages.error(request, "This task is no longer open for assignment.")
+            return redirect('view_proposals', task_id=task.task_id)
+        
+        
+        task.assigned_user = proposal.freelancer
+        task.status = 'in_progress'
+        task.save()
+        
+        
+        proposal.status = 'accepted'
+        proposal.save()
+        
+       
+        other_proposals = Proposal.objects.filter(
+            task=task, 
+            proposal_id__ne=proposal_id 
+        )
+        other_proposals.update(status='rejected')
+        
+        messages.success(request, f"Proposal accepted! {proposal.freelancer.username} has been assigned to the task.")
+        return redirect('task_list')
+        
+    except Proposal.DoesNotExist:
+        messages.error(request, "Proposal not found.")
+        return redirect('task_list')
+    except Employer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
 
+def reject_proposal(request, proposal_id):
+    employer_id = request.session.get('employer_id')
+    
+    if not employer_id:
+        return redirect('login')
+    
+    try:
+        employer = Employer.objects.get(employer_id=employer_id)
+        
+        # Get the proposal using proposal_id (not id)
+        proposal = Proposal.objects.get(proposal_id=proposal_id, task__employer=employer)
+        
+        # Update the proposal status to rejected
+        proposal.status = 'rejected'
+        proposal.save()
+        
+        messages.success(request, "Proposal rejected successfully.")
+        return redirect('view_proposals', task_id=proposal.task.task_id)
+        
+    except Proposal.DoesNotExist:
+        messages.error(request, "Proposal not found.")
+        return redirect('task_list')
+    except Employer.DoesNotExist:
+        request.session.flush()
+        return redirect('login')
+
+def profile(request, freelancer_id):  
+    employer_id = request.session.get('employer_id')
+    if not employer_id:
+        return redirect('login')
+    
+    try:
+        employer = Employer.objects.get(employer_id=employer_id)
+        # Get the specific User by ID from the URL parameter
+        freelancer_user = User.objects.get(id=freelancer_id)  # Filter by the ID from URL
+        freelancer_profile = UserProfile.objects.get(user=freelancer_user)
+        
+        context = {
+            'employer': employer,
+            'freelancer': freelancer_user,
+            'profile': freelancer_profile,
+        }
+        
+        return render(request, 'freelancer_profile.html', context)
+        
+    except (Employer.DoesNotExist, User.DoesNotExist, UserProfile.DoesNotExist):
+        messages.error(request, "Freelancer profile not found.")
+        return redirect('proposal')  
+    
 def create_employer_profile(request):
     if request.method == "POST":
         contact_email = request.POST.get("contact_email")

@@ -183,6 +183,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        text-decoration: none;
     }
 
     .btn-accept {
@@ -193,6 +194,8 @@
     .btn-accept:hover {
         background: #059669;
         transform: translateY(-1px);
+        color: white;
+        text-decoration: none;
     }
 
     .btn-reject {
@@ -203,6 +206,8 @@
     .btn-reject:hover {
         background: #dc2626;
         transform: translateY(-1px);
+        color: white;
+        text-decoration: none;
     }
 
     .btn-message {
@@ -213,6 +218,8 @@
     .btn-message:hover {
         background: #2563eb;
         transform: translateY(-1px);
+        color: white;
+        text-decoration: none;
     }
 
     .btn-secondary {
@@ -223,6 +230,14 @@
     .btn-secondary:hover {
         background: #475569;
         transform: translateY(-1px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-action:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
     }
 
     .empty-state {
@@ -292,7 +307,22 @@
 {% endblock %}
 
 {% block content %}
+<!-- DEBUG: Check what's in the proposals -->
+
+
 <div class="proposals-list">
+    {% if messages %}
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        {% for message in messages %}
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle me-2"></i>
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
     {% if proposals %}
         <div class="proposal-count">
             <strong>{{ proposals|length }}</strong> proposal{{ proposals|length|pluralize }} received
@@ -309,7 +339,7 @@
                         </div>
                     </div>
                     <span class="status-badge status-{{ proposal.status|lower }}">
-                        {{ proposal.status }}
+                        {{ proposal.status|title }}
                     </span>
                 </div>
                 
@@ -346,31 +376,58 @@
                         </div>
                     </div>
 
+                    {% if proposal.cover_letter %}
                     <div class="proposal-text">
                         <p><strong>Cover Letter:</strong></p>
                         <div class="cover-letter">
                             <p>{{ proposal.cover_letter|linebreaks }}</p>
                         </div>
                     </div>
+                    {% endif %}
                 </div>
 
                 <div class="proposal-actions">
-                    <button class="btn-action btn-accept">
-                        <i class="fas fa-check"></i>
-                        Accept Proposal
-                    </button>
-                    <button class="btn-action btn-reject">
-                        <i class="fas fa-times"></i>
-                        Reject
-                    </button>
-                    <button class="btn-action btn-message">
+                    <!-- Accept/Reject buttons with functionality -->
+                    {% if proposal.status == 'pending' %}
+                        <a href="{% url 'accept_proposal' proposal.proposal_id %}" class="btn-action btn-accept" 
+                           onclick="return confirm('Are you sure you want to accept this proposal? This will reject all other proposals for this task.')">
+                            <i class="fas fa-check"></i>
+                            Accept Proposal
+                        </a>
+                        <a href="{% url 'reject_proposal' proposal.proposal_id %}" class="btn-action btn-reject"
+                           onclick="return confirm('Are you sure you want to reject this proposal?')">
+                            <i class="fas fa-times"></i>
+                            Reject
+                        </a>
+                    {% else %}
+                        <button class="btn-action btn-accept" disabled>
+                            <i class="fas fa-check"></i>
+                            {% if proposal.status == 'accepted' %}Accepted{% else %}Accept Proposal{% endif %}
+                        </button>
+                        <button class="btn-action btn-reject" disabled>
+                            <i class="fas fa-times"></i>
+                            {% if proposal.status == 'rejected' %}Rejected{% else %}Reject{% endif %}
+                        </button>
+                    {% endif %}
+                    
+                    <!-- Message button -->
+                    <button class="btn-action btn-message" onclick="alert('Messaging feature coming soon!')">
                         <i class="fas fa-comment"></i>
                         Message
                     </button>
-                    <button class="btn-action btn-secondary">
-                        <i class="fas fa-eye"></i>
-                        View Profile
-                    </button>
+                    
+                    <!-- View Profile button with comprehensive safety check -->
+                    {% if proposal.freelancer and proposal.freelancer.id %}
+                        <a href="{% url 'view_freelancer_profile' proposal.freelancer.id %}" class="btn-action btn-secondary">
+                            <i class="fas fa-eye"></i>
+                            View Profile
+                        </a>
+                    {% else %}
+                        <button class="btn-action btn-secondary" disabled title="Freelancer data missing">
+                            <i class="fas fa-eye-slash"></i>
+                            No Profile
+                        </button>
+                    {% endif %}
                 </div>
             </div>
         {% endfor %}
@@ -383,4 +440,28 @@
         </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add confirmation for accept/reject actions
+    const acceptButtons = document.querySelectorAll('.btn-accept[href]');
+    const rejectButtons = document.querySelectorAll('.btn-reject[href]');
+    
+    acceptButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (!confirm('Are you sure you want to accept this proposal? This will automatically reject all other proposals for this task.')) {
+                e.preventDefault();
+            }
+        });
+    });
+    
+    rejectButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (!confirm('Are you sure you want to reject this proposal?')) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

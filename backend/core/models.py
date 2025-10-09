@@ -86,7 +86,7 @@ class Task(models.Model):
     
     
     is_approved = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)  # To control visibility to freelancers
+    is_active = models.BooleanField(default=True)  
     status = models.CharField(max_length=20, choices=TASK_STATUS, default='open')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -169,7 +169,6 @@ class UserProfile(models.Model):
         return f"Profile of {self.user.name}"
 
 
-
 class Proposal(models.Model):
     proposal_id = models.AutoField(primary_key=True)
     task = models.ForeignKey(Task, related_name="proposals", on_delete=models.CASCADE)
@@ -177,6 +176,19 @@ class Proposal(models.Model):
     cover_letter_file = models.FileField(upload_to='cover_letters/', blank=True, null=True)
     bid_amount = models.DecimalField(max_digits=10, decimal_places=2)
     submitted_at = models.DateTimeField(default=timezone.now)
+    
+    
+    status = models.CharField(
+        max_length=20, 
+        choices=[
+            ('pending', 'Pending'),
+            ('accepted', 'Accepted'),
+            ('rejected', 'Rejected')
+        ], 
+        default='pending'
+    )
+    estimated_days = models.PositiveIntegerField(default=7)  
+    cover_letter = models.TextField(blank=True, null=True)  
 
     def __str__(self):
         return f"{self.freelancer.name} -> {self.task.title}"

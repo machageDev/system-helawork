@@ -1,56 +1,360 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Tasks{% endblock %}
-{% block page_title %}Task Page{% endblock %}
+{% block title %}My Tasks{% endblock %}
+{% block page_title %}My Tasks{% endblock %}
+
+{% block extra_head %}
+<style>
+    .task-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-sm {
+        padding: 4px 8px;
+        font-size: 0.875rem;
+    }
+    
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+    
+    .table-responsive {
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .task-description {
+        max-width: 300px;
+        word-wrap: break-word;
+    }
+    
+    .urgent-badge {
+        background-color: #dc3545;
+        color: white;
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-left: 5px;
+    }
+    
+    .stat-card {
+        transition: transform 0.2s ease;
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .empty-state {
+        padding: 60px 20px;
+        text-align: center;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        background: #f8f9fa;
+    }
+    
+    .task-row:hover {
+        background-color: #f8f9fa !important;
+    }
+    
+    .proposal-badge {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+    }
+    
+    .proposal-count {
+        font-size: 0.8rem;
+    }
+    
+    /* Status-specific colors that match your model */
+    .status-open { background-color: #28a745; color: white; }
+    .status-in_progress { background-color: #007bff; color: white; }
+    .status-completed { background-color: #17a2b8; color: white; }
+    .status-cancelled { background-color: #dc3545; color: white; }
+    .status-pending { background-color: #ffc107; color: #212529; }
+    .status-inactive { background-color: #6c757d; color: white; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid mt-4">
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Task List</h2>
-        <a href="{% url 'create_task' %}" class="btn btn-primary">
-            + Add Task
-        </a>
+        <div>
+            <h2>My Tasks</h2>
+            <p class="text-muted">Manage and track all your posted tasks</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'create_task' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create New Task
+            </a>
+            <a href="{% url 'employer_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white stat-card">
+                <div class="card-body text-center">
+                    <h3>{{ total_tasks }}</h3>
+                    <p class="mb-0">Total Tasks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white stat-card">
+                <div class="card-body text-center">
+                    <h3>{{ open_tasks }}</h3>
+                    <p class="mb-0">Open Tasks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white stat-card">
+                <div class="card-body text-center">
+                    <h3>{{ assigned_tasks }}</h3>
+                    <p class="mb-0">In Progress</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white stat-card">
+                <div class="card-body text-center">
+                    <h3>{{ completed_tasks }}</h3>
+                    <p class="mb-0">Completed</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     {% if tasks %}
-        <table class="table table-striped table-bordered">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Title</th>
-                    <th>Description</th>
-                    <th>Employer</th>
-                    <th>Assigned User</th>
-                    <th>Status</th>
-                    <th>Created At</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for task in tasks %}
-                <tr>
-                    <td>{{ task.title }}</td>
-                    <td>{{ task.description|truncatewords:15 }}</td>
-                    <td>{{ task.employer.name }}</td>
-                    <td>
-                        {% if task.assigned_user %}
-                            {{ task.assigned_user.username }}
-                        {% else %}
-                            <span class="text-muted">Unassigned</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if task.is_approved %}
-                            <span class="badge bg-success">Approved</span>
-                        {% else %}
-                            <span class="badge bg-warning text-dark">Pending</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ task.created_at|date:"M d, Y H:i" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <!-- Tasks Table -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">All My Tasks ({{ total_tasks }})</h5>
+                <span class="text-muted">Showing tasks for: <strong>{{ employer.name }}</strong></span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Budget</th>
+                                <th>Status</th>
+                                <th>Proposals</th>
+                                <th>Deadline</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr class="task-row">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <strong>{{ task.title }}</strong>
+                                        {% if task.is_urgent %}
+                                            <span class="urgent-badge">URGENT</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="task-description">
+                                    {{ task.description|truncatewords:10 }}
+                                    {% if task.description|wordcount > 10 %}
+                                        <small class="text-muted d-block">...see more</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ task.get_category_display }}</span>
+                                </td>
+                                <td>
+                                    {% if task.budget %}
+                                        <strong>Ksh {{ task.budget|floatformat:2 }}</strong>
+                                    {% else %}
+                                        <span class="text-muted">Not set</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                   <td>
+    <div class="d-flex flex-column gap-1">
+        <!-- Main Status Badge -->
+        {% if task.status == 'open' %}
+            <span class="badge status-open status-badge">Open</span>
+        {% elif task.status == 'in_progress' %}
+            <span class="badge status-in_progress status-badge">In Progress</span>
+        {% elif task.status == 'completed' %}
+            <span class="badge status-completed status-badge">Completed</span>
+        {% elif task.status == 'cancelled' %}
+            <span class="badge status-cancelled status-badge">Cancelled</span>
+        {% else %}
+            <span class="badge bg-secondary status-badge">{{ task.status }}</span>
+        {% endif %}
+        
+        <!-- Only show inactive status if needed -->
+        {% if not task.is_active %}
+            <span class="badge status-inactive status-badge">Inactive</span>
+        {% endif %}
+    </div>
+</td>
+                                </td
+                                <td>
+                                    {% if task.status == 'open' %}
+                                        {% if task.proposals.count > 0 %}
+                                            <div class="text-center">
+                                                <span class="badge bg-success proposal-count p-2">
+                                                    <i class="fas fa-users me-1"></i>
+                                                    {{ task.proposals.count }} proposal{{ task.proposals.count|pluralize }}
+                                                </span>
+                                                <small class="text-muted d-block mt-1">Awaiting review</small>
+                                            </div>
+                                        {% else %}
+                                            <div class="text-center">
+                                                <span class="badge bg-secondary proposal-count p-2">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    No proposals yet
+                                                </span>
+                                                <small class="text-muted d-block mt-1">Waiting for freelancers</small>
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if task.assigned_user %}
+                                            <div class="text-center">
+                                                <span class="badge bg-primary proposal-count p-2">
+                                                    <i class="fas fa-user-check me-1"></i>
+                                                    Assigned
+                                                </span>
+                                                <small class="text-muted d-block mt-1">To: {{ task.assigned_user.username }}</small>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">No freelancer</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if task.deadline %}
+                                        {% if task.deadline < today %}
+                                            <span class="text-danger">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                {{ task.deadline|date:"M d, Y" }}
+                                            </span>
+                                            <small class="d-block text-danger">Overdue</small>
+                                        {% else %}
+                                            {{ task.deadline|date:"M d, Y" }}
+                                            {% if task.status == 'open' %}
+                                                <small class="d-block text-muted">
+                                                    {{ task.deadline|timeuntil }} left
+                                                </small>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">Not set</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="task-actions">
+                                        <a href="{% url 'task_detail' task.task_id %}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if task.status == 'open' and task.is_approved and task.is_active %}
+                                            <a href="{% url 'view_proposals' task.task_id %}" class="btn btn-sm btn-outline-success position-relative" title="View Proposals">
+                                                <i class="fas fa-list"></i>
+                                                {% if task.proposals.count > 0 %}
+                                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger proposal-badge">
+                                                        {{ task.proposals.count }}
+                                                    </span>
+                                                {% endif %}
+                                            </a>
+                                        {% endif %}
+                                        {% if task.assigned_user %}
+                                            <button class="btn btn-sm btn-outline-info" title="Contact Freelancer" onclick="alert('Contact feature coming soon!')">
+                                                <i class="fas fa-envelope"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        Showing {{ tasks.count }} task{{ tasks.count|pluralize }}
+                    </small>
+                    <div>
+                        <a href="{% url 'create_task' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Create Another Task
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     {% else %}
-        <div class="alert alert-info">No tasks available.</div>
+        <!-- Empty State -->
+        <div class="empty-state">
+            <i class="fas fa-tasks fa-4x text-muted mb-3"></i>
+            <h4>No Tasks Created Yet</h4>
+            <p class="text-muted mb-4">You haven't created any tasks yet. Start by creating your first task to find freelancers.</p>
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="{% url 'create_task' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus"></i> Create Your First Task
+                </a>
+                <a href="{% url 'employer_dashboard' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Task management page loaded successfully');
+    
+    // Add hover effects for better UX
+    const tableRows = document.querySelectorAll('.task-row');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+            this.style.cursor = 'pointer';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+        
+        // Make entire row clickable for task detail
+        row.addEventListener('click', function(e) {
+            // Don't trigger if clicking on buttons or links
+            if (!e.target.closest('a') && !e.target.closest('button')) {
+                const taskDetailLink = this.querySelector('a[href*="task_detail"]');
+                if (taskDetailLink) {
+                    window.location.href = taskDetailLink.href;
+                }
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
