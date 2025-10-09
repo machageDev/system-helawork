@@ -944,10 +944,10 @@ def create_employer_rating(request):
                 messages.error(request, "Please select a rating score.")
                 return render(request, "rating.html", {"task": task})
 
-            # Create the rating
+            
             EmployerRating.objects.create(
                 task=task,
-                freelancer=task.assigned_user,  # The freelancer who worked on this task
+                freelancer=task.assigned_user, 
                 employer=employer,  
                 score=int(score),
                 review=review
@@ -956,14 +956,14 @@ def create_employer_rating(request):
             return redirect("employer_rating_list")
 
         else:
-            # GET request - show tasks that can be rated
-            # Show completed tasks that have an assigned freelancer and haven't been rated yet
+            
+
             rateable_tasks = Task.objects.filter(
                 employer=employer,
-                assigned_user__isnull=False,  # Has an assigned freelancer
-                status='completed'  # Or whatever indicates completion
+                assigned_user__isnull=False,  
+                status='completed'  
             ).exclude(
-                employerrating__isnull=False  # Exclude already rated tasks
+                employerrating__isnull=False  
             )
             
             return render(request, "rating.html", {"tasks": rateable_tasks})
@@ -985,17 +985,17 @@ def employer_ratings_detail(request, employer_id):
 
 
 def proposal(request):
-    # Get the logged-in employer's ID from session
+    
     employer_id = request.session.get('employer_id')
     
     if not employer_id:
         return redirect('login')
     
     try:
-        # Get the employer object
+        
         employer = Employer.objects.get(employer_id=employer_id)
         
-        # Only show proposals for this employer's tasks
+        
         proposals = Proposal.objects.filter(
             task__employer=employer
         ).select_related('freelancer', 'task')
