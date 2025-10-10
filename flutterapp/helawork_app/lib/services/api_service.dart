@@ -571,6 +571,270 @@ Future<List<Contract>> fetchContracts() async {
       throw Exception("Failed to reject contract: ${response.body}");
     }
   }
+
+   static Future<Map<String, dynamic>> fetchTaskDetails(int taskId) async {
+    try {
+      final token = await _getToken();
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/tasks/$taskId/'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return {
+          'title': data['title'],
+          'budget': data['budget'] != null ? double.parse(data['budget'].toString()) : 0.0,
+          'deadline': data['deadline'],
+          'category_display': data['category_display'],
+          'description': data['description'],
+          'status': data['status'],
+        };
+      } else {
+        throw Exception('Failed to load task details: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching task details: $e');
+      rethrow;
+    }
+  }
+
+  /// Fetch task completion data for a specific task
+  static Future<Map<String, dynamic>?> fetchTaskCompletion(int taskId) async {
+    try {
+      final token = await _getToken();
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/task-completions/?task_id=$taskId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data is List && data.isNotEmpty) {
+          // Return the first completion (should only be one per task for current user)
+          return _parseCompletionData(data.first);
+        }
+        return null; // No completion exists
+      } else {
+        throw Exception('Failed to load completion: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching task completion: $e');
+      rethrow;
+    }
+  }
+
+  /// Submit new task completion
+  static Future<Map<String, dynamic>> submitTaskCompletion({
+    required int taskId,
+    required String notes,
+  }) async {
+    try {
+      final token = await _getToken();
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/task-completions/'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'task_id': taskId,
+          'freelancer_submission_notes': notes,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': 'Completion submitted successfully',
+          'data': json.decode(response.body),
+        };
+      } else {
+        final errorData = json.decode(response.body);
+        return {
+          'success': false,
+          'message': errorData['non_field_errors']?[0] ?? 
+                    errorData['task_id']?[0] ?? 
+                    'Submission failed',
+          'error': errorData,
+        };
+      }
+    } catch (e) {
+      print('Error submitting completion: $e');
+      return {
+        'success': false,
+        'message': 'Network error: $e',
+      };
+    }
+  }
+
+  /// Update existing task completion
+  static Future<Map<String, dynamic>> updateTaskCompletion({
+    required int taskId,
+    required String notes,
+  }) async {
+    try {
+      // First get the completion ID for this task
+      final completion = await fetchTaskCompletion(taskId);
+      if (completion == null) {
+        return {
+          'success': false,
+          'message': 'No completion found to update',
+        };
+      }
+
+      final completionId = completion['completion_id'];
+      final token = await _getToken();
+      
+      final response = await http.patch(
+        Uri.parse('$baseUrl/api/task-completions/$completionId/'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'freelancer_submission_notes': notes,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': 'Completion updated successfully',
+          'data': json.decode(response.body),
+        };
+      } else {
+        final errorData = json.decode(response.body);
+        return {
+          'success': false,
+          'message': errorData['non_field_errors']?[0] ?? 'Update failed',
+          'error': errorData,
+        };
+      }
+    } catch (e) {
+      print('Error updating completion: $e');
+      return {
+        'success': false,
+        'message': 'Network error: $e',
+      };
+    }
+  }
+
+  /// List all task completions for the current user
+  static Future<List<Map<String, dynamic>>> fetchUserCompletions() async {
+    try {
+      final token = await _getToken();
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/task-completions/'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data is List) {
+          return data.map((item) => _parseCompletionData(item)).toList();
+        }
+        return [];
+      } else {
+        throw Exception('Failed to load completions: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching user completions: $e');
+      rethrow;
+    }
+  }
+
+  /// Withdraw a task completion submission
+  static Future<Map<String, dynamic>> withdrawCompletion(int completionId) async {
+    try {
+      final token = await _getToken();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/task-completions/$completionId/'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 204) {
+        return {
+          'success': true,
+          'message': 'Completion withdrawn successfully',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': 'Failed to withdraw completion',
+        };
+      }
+    } catch (e) {
+      print('Error withdrawing completion: $e');
+      return {
+        'success': false,
+        'message': 'Network error: $e',
+      };
+    }
+  }
+
+  // ================= HELPER METHODS =================
+
+  /// Parse completion data from API response
+  static Map<String, dynamic> _parseCompletionData(Map<String, dynamic> data) {
+    return {
+      'completion_id': data['completion_id'],
+      'task_id': data['task']?['task_id'] ?? data['task_id'],
+      'task_title': data['task_title'] ?? data['task']?['title'],
+      'status': data['status'],
+      'status_display': data['status_display'] ?? _getStatusDisplay(data['status']),
+      'freelancer_submission_notes': data['freelancer_submission_notes'],
+      'employer_review_notes': data['employer_review_notes'],
+      'completed_at': data['completed_at'],
+      'reviewed_at': data['reviewed_at'],
+      'paid': data['paid'] ?? false,
+      'payment_date': data['payment_date'],
+      'amount': data['amount'] != null ? double.parse(data['amount'].toString()) : 0.0,
+      'can_update': data['can_update'] ?? (data['status'] == 'submitted' || data['status'] == 'revisions_requested'),
+      'can_withdraw': data['can_withdraw'] ?? (data['status'] == 'submitted' || data['status'] == 'under_review' || data['status'] == 'revisions_requested'),
+    };
+  }
+
+  /// Get display text for status
+  static String _getStatusDisplay(String status) {
+    switch (status) {
+      case 'submitted':
+        return 'Submitted';
+      case 'under_review':
+        return 'Under Review';
+      case 'approved':
+        return 'Approved';
+      case 'revisions_requested':
+        return 'Revisions Requested';
+      case 'rejected':
+        return 'Rejected';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  /// Get authentication token (implement based on your auth system)
+  static Future<String> _getToken() async {
+    // Implement your token retrieval logic
+    // This could be from SharedPreferences, secure storage, etc.
+    // Example:
+    // final prefs = await SharedPreferences.getInstance();
+    // return prefs.getString('auth_token') ?? '';
+    return 'your-auth-token-here'; // Replace with actual token retrieval
+  }
+
 }
 
 
