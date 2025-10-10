@@ -109,13 +109,61 @@ class Task(models.Model):
 class TaskCompletion(models.Model):
     completion_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, blank=True)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)  # Removed null=True, blank=True
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     completed_at = models.DateTimeField(auto_now_add=True)
     paid = models.BooleanField(default=False)
+    
+    # ADDED: Status field to track completion workflow
+    STATUS_CHOICES = [
+        ('pending_review', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending_review')
+    
+    # ADDED: Completion notes/feedback
+    employer_notes = models.TextField(blank=True, null=True)
+    freelancer_notes = models.TextField(blank=True, null=True)
+    
+    # ADDED: Payment tracking
+    payment_date = models.DateTimeField(blank=True, null=True)
+    payment_reference = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.user.name} - {self.task.title} - {'Paid' if self.paid else 'Unpaid'}"
+        return f"{self.user.username} - {self.task.title} - {'Paid' if self.paid else 'Unpaid'}"
+
+    # ADDED: Property to check if completion is approved
+    @property
+    def is_approved(self):
+        return self.status == 'approved'
+    
+    # ADDED: Property to check if completion is pending
+    @property
+    def is_pending(self):
+        return self.status == 'pending_review'
+    
+    # ADDED: Method to mark as paid
+    def mark_as_paid(self, reference=None):
+        self.paid = True
+        self.payment_date = timezone.now()
+        if reference:
+            self.payment_reference = reference
+        self.save()
+    
+    # ADDED: Method to approve completion
+    def approve_completion(self, notes=None):
+        self.status = 'approved'
+        if notes:
+            self.employer_notes = notes
+        self.save()
+    
+    # ADDED: Method to reject completion
+    def reject_completion(self, notes=None):
+        self.status = 'rejected'
+        if notes:
+            self.employer_notes = notes
+        self.save()
 
 
 
