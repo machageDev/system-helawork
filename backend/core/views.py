@@ -921,36 +921,10 @@ def view_proposals(request, task_id):
         messages.error(request, "Task not found.")
         return redirect('task_list')
 
-def worker_list(request):
-    
-    users = User.objects.all()
-    return render(request, "worker.html", {"users": users})
 
 
 
-def edit_worker(request, worker_id):
-    worker = get_object_or_404(User, id=worker_id)
 
-    if request.method == "POST":
-        name = request.POST.get("name")
-        phoneNo = request.POST.get("phoneNo")
-
-        worker.user.name = name
-        worker.user.phoneNo = phoneNo
-        worker.user.save()
-
-        messages.success(request, "Worker updated successfully.")
-        return redirect("worker_list")
-
-    return render(request, "edit_worker.html", {"worker": worker})
-
-
-
-def delete_worker(request, worker_id):
-    worker = get_object_or_404(User, id=worker_id)
-    worker.delete()
-    messages.success(request, "Worker deleted successfully.")
-    return redirect("worker_list")
 
 
 def create_worker(request):
