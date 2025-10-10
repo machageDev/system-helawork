@@ -39,12 +39,12 @@ class _ContractScreenState extends State<ContractScreen> {
             fontSize: 20,
           ),
         ),
-        backgroundColor: const Color(0xFF007b),
+        backgroundColor: const Color(0x00ff007b),
       ),
       body: provider.isLoading
           ? const Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF007b),
+                color: Color(0x00ff007b),
               ),
             )
           : provider.contracts.isEmpty
@@ -65,7 +65,7 @@ class _ContractScreenState extends State<ContractScreen> {
                           provider.fetchContracts();
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF007b),
+                          backgroundColor: const Color(0x00ff007b),
                         ),
                         child: const Text(
                           "Refresh",

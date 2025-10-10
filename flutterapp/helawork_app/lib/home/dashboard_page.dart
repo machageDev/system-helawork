@@ -18,13 +18,11 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   int _selectedIndex = 0;
 
-  
   final List<Widget> _pages = const [
     SizedBox(), 
     TaskPage(),
     PaymentSummaryPage(),
     ProposalsScreen(),
-    // UserProfileScreen removed from navigation
   ];
 
   @override
@@ -69,7 +67,9 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(height: 20),
             _buildQuickActions(),
             const SizedBox(height: 20),
-            _buildActiveTasksSection(dashboard),
+            _buildNotificationsSection(dashboard),
+            const SizedBox(height: 20),
+            _buildStatsCards(dashboard),
             const SizedBox(height: 20),
             _buildRatingsSection(),
             const SizedBox(height: 20),
@@ -82,12 +82,12 @@ class _DashboardPageState extends State<DashboardPage> {
 
   // ================= USER HEADER =================
   Widget _buildUserHeader(DashboardProvider dashboard) {
+    final notificationCount = _getNotificationCount(dashboard);
+    
     return Row(
       children: [
-        
         GestureDetector(
           onTap: () {
-            // Navigate to UserProfileScreen when profile icon is tapped
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const UserProfileScreen()),
@@ -108,7 +108,6 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
         const SizedBox(width: 12),
-        // User Name
         Text(
           dashboard.userName ?? "Guest User",
           style: const TextStyle(
@@ -118,8 +117,137 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
         const Spacer(),
+        // Notification badge with count
+        Stack(
+          children: [
+            IconButton(
+              icon: Icon(
+                notificationCount > 0 ? Icons.notifications : Icons.notifications_none,
+                color: Colors.white,
+              ),
+              onPressed: () => _showNotifications(dashboard),
+            ),
+            if (notificationCount > 0)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 16,
+                    minHeight: 16,
+                  ),
+                  child: Text(
+                    notificationCount > 9 ? '9+' : notificationCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ================= NOTIFICATIONS SECTION =================
+  Widget _buildNotificationsSection(DashboardProvider dashboard) {
+    final notifications = _generateNotifications(dashboard);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              "Notifications",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (notifications.isNotEmpty)
+              TextButton(
+                onPressed: () => _showNotifications(dashboard),
+                child: const Text(
+                  "View All",
+                  style: TextStyle(color: Colors.green),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
         
-       
+        if (notifications.isEmpty)
+          _buildEmptyNotificationCard()
+        else
+          Column(
+            children: notifications.take(3).map((notification) => 
+              _buildNotificationCard(notification, dashboard)
+            ).toList(),
+          ),
+      ],
+    );
+  }
+
+  // ================= STATS CARDS =================
+  Widget _buildStatsCards(DashboardProvider dashboard) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Overview",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 10),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.2,
+          children: [
+            _buildStatCard(
+              "Active Tasks",
+              dashboard.activeTasks.length.toString(),
+              Icons.task,
+              Colors.green,
+            ),
+            _buildStatCard(
+              "Total Tasks",
+              dashboard.totalTasks.toString(),
+              Icons.assignment,
+              Colors.blue,
+            ),
+            _buildStatCard(
+              "In Progress",
+              dashboard.ongoingTasks.toString(),
+              Icons.timelapse,
+              Colors.orange,
+            ),
+            _buildStatCard(
+              "Completed",
+              dashboard.completedTasks.toString(),
+              Icons.check_circle,
+              Colors.purple,
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -137,10 +265,31 @@ class _DashboardPageState extends State<DashboardPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            onPressed: () => _onItemTapped(1), // Navigate to Tasks
+            onPressed: () => _onItemTapped(1),
             icon: const Icon(Icons.task, color: Colors.white),
             label: const Text(
               "Tasks",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => _onItemTapped(3),
+            icon: const Icon(Icons.article, color: Colors.white),
+            label: const Text(
+              "Proposals",
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -152,54 +301,13 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // ================= ACTIVE TASKS SECTION =================
-  Widget _buildActiveTasksSection(DashboardProvider dashboard) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              "Active Tasks",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            TextButton(
-              onPressed: () => _onItemTapped(1), 
-              child: const Text(
-                "View All",
-                style: TextStyle(color: Colors.green),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        if (dashboard.activeTasks.isEmpty)
-          const Text(
-            "No active tasks",
-            style: TextStyle(color: Colors.grey),
-          )
-        else
-          ...dashboard.activeTasks.map((task) => _buildTaskCard(
-                task["title"] ?? "Untitled Task",
-                "Due: ${task["deadline"] ?? 'N/A'}",
-                task["status"] ?? "Unknown",
-              )),
-      ],
-    );
-  }
-
   // ================= RATINGS SECTION =================
   Widget _buildRatingsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Ratings",
+          "Ratings & Reviews",
           style: TextStyle(
             color: Colors.white,
             fontSize: 18,
@@ -269,29 +377,199 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // ================= TASK CARD =================
-  Widget _buildTaskCard(String title, String subtitle, String status) {
-    Color statusColor = status == "Completed" ? Colors.green : Colors.orangeAccent;
+  // ================= NOTIFICATION METHODS =================
 
+  // Generate notifications based on dashboard data
+  List<Map<String, dynamic>> _generateNotifications(DashboardProvider dashboard) {
+    final notifications = <Map<String, dynamic>>[];
+    
+    // New proposals notification
+    if (dashboard.pendingProposals > 0) {
+      notifications.add({
+        'type': 'proposal',
+        'title': 'New Proposals',
+        'message': 'You have ${dashboard.pendingProposals} new proposal(s) waiting for review',
+        'icon': Icons.person_add,
+        'color': Colors.orange,
+        'action': () => _onItemTapped(3), // Navigate to proposals
+      });
+    }
+
+    // Active tasks notification
+    if (dashboard.activeTasks.isNotEmpty) {
+      notifications.add({
+        'type': 'active_tasks',
+        'title': 'Active Tasks',
+        'message': 'You have ${dashboard.activeTasks.length} active task(s)',
+        'icon': Icons.task,
+        'color': Colors.green,
+        'action': () => _onItemTapped(1), // Navigate to tasks
+      });
+    }
+
+    // Tasks in progress notification
+    if (dashboard.ongoingTasks > 0) {
+      notifications.add({
+        'type': 'in_progress',
+        'title': 'Tasks in Progress',
+        'message': '${dashboard.ongoingTasks} task(s) are currently being worked on',
+        'icon': Icons.timelapse,
+        'color': Colors.blue,
+        'action': () => _onItemTapped(1), // Navigate to tasks
+      });
+    }
+
+    // Completed tasks notification
+    if (dashboard.completedTasks > 0) {
+      notifications.add({
+        'type': 'completed',
+        'title': 'Completed Tasks',
+        'message': '${dashboard.completedTasks} task(s) have been completed',
+        'icon': Icons.check_circle,
+        'color': Colors.purple,
+        'action': () => _onItemTapped(1), // Navigate to tasks
+      });
+    }
+
+    return notifications;
+  }
+
+  // Get total notification count
+  int _getNotificationCount(DashboardProvider dashboard) {
+    return _generateNotifications(dashboard).length;
+  }
+
+  // Build notification card
+  Widget _buildNotificationCard(Map<String, dynamic> notification, DashboardProvider dashboard) {
     return Card(
       color: Colors.grey[900],
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 4),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: notification['color'] as Color,
+          child: Icon(
+            notification['icon'] as IconData,
+            color: Colors.white,
+            size: 20,
+          ),
+        ),
         title: Text(
-          title,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
+          notification['title'] as String,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
-          subtitle,
-          style: const TextStyle(color: Colors.grey, fontSize: 14),
+          notification['message'] as String,
+          style: const TextStyle(color: Colors.grey),
         ),
-        trailing: Text(
-          status,
-          style: TextStyle(
-            color: statusColor,
-            fontWeight: FontWeight.bold,
+        trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
+        onTap: () {
+          final action = notification['action'] as Function?;
+          if (action != null) {
+            action();
+          }
+        },
+      ),
+    );
+  }
+
+  // Build empty notification card
+  Widget _buildEmptyNotificationCard() {
+    return Card(
+      color: Colors.grey[900],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: const Padding(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Icon(Icons.notifications_off, color: Colors.grey, size: 40),
+            SizedBox(height: 10),
+            Text(
+              "No New Notifications",
+              style: TextStyle(color: Colors.grey, fontSize: 16),
+            ),
+            SizedBox(height: 5),
+            Text(
+              "You're all caught up!",
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Show notifications dialog
+  void _showNotifications(DashboardProvider dashboard) {
+    final notifications = _generateNotifications(dashboard);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text(
+          "All Notifications",
+          style: TextStyle(color: Colors.white),
+        ),
+        content: notifications.isEmpty
+            ? const Text(
+                "No new notifications",
+                style: TextStyle(color: Colors.grey),
+              )
+            : SizedBox(
+                width: double.maxFinite,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: notifications.length,
+                  itemBuilder: (context, index) {
+                    final notification = notifications[index];
+                    return _buildNotificationCard(notification, dashboard);
+                  },
+                ),
+              ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              "Close",
+              style: TextStyle(color: Colors.green),
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  // Build stat card
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+    return Card(
+      color: Colors.grey[900],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 30),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );
@@ -344,7 +622,6 @@ class _DashboardPageState extends State<DashboardPage> {
                 icon: Icon(Icons.article),
                 label: "Proposals",
               ),
-              // Account BottomNavigationBarItem removed
             ],
           ),
         );
