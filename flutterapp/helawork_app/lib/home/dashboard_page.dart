@@ -622,6 +622,10 @@ class _DashboardPageState extends State<DashboardPage> {
                 icon: Icon(Icons.article),
                 label: "Proposals",
               ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.check_circle_outline),
+                label: "completed Task",
+              )
             ],
           ),
         );

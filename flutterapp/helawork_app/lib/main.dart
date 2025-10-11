@@ -5,6 +5,7 @@ import 'package:helawork_app/providers/forgot_password_provider.dart';
 import 'package:helawork_app/providers/payment_provider.dart';
 import 'package:helawork_app/providers/proposal_provider.dart';
 import 'package:helawork_app/providers/rating_provider.dart';
+import 'package:helawork_app/providers/task_completion_provider.dart';
 import 'package:helawork_app/providers/task_provider.dart';
 import 'package:helawork_app/providers/user_profile_provider.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +27,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProposalProvider()),
         ChangeNotifierProvider(create: (_) => ContractProvider()..fetchContracts()),
         ChangeNotifierProvider(create: (_) => RatingProvider()), 
+        ChangeNotifierProvider(create:  (_) => TaskCompletionProvider()),
       ],
       child: const MyApp(),
     ),
