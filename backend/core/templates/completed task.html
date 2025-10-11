@@ -1,0 +1,77 @@
+{% extends "your_base_template.html" %}  <!-- Replace with your base template -->
+{% load static %}
+
+{% block title %}HelaWork - Reports{% endblock %}
+
+{% block page_title %}Freelancer Task Reports{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <h1 class="h3 mb-4 text-gray-800">Completed Tasks Report</h1>
+
+    <!-- Summary Metrics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Completed Tasks</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ completed_tasks|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Add more metric cards here if needed -->
+    </div>
+
+    <!-- Completed Tasks List -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Completed Tasks Details</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Task Name</th>
+                            <th>Freelancer</th>
+                            <th>Completion Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in completed_tasks %}
+                        <tr>
+                            <td>{{ task.title }}</td>
+                            <td>{{ task.freelancer.user.get_full_name }}</td>
+                            <td>{{ task.completed_date|date:"F j, Y" }}</td>
+                            <td><span class="badge bg-success">Completed</span></td>
+                            <td>
+                                <a href="{% url 'task_detail' task.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No completed tasks found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
